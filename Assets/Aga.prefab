@@ -100,8 +100,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   ShowTopMostFoldoutHeaderGroup: 1
-  moveSpeed: 5
-  jumpForce: 5
+  walkSpeed: 3
+  sprintSpeed: 8
   RotateSpeed: 30
 --- !u!54 &2317850879932105327
 Rigidbody:

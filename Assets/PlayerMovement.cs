@@ -1,4 +1,3 @@
-using PlayPulse.Api.Utils;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -9,7 +8,7 @@ public class NetworkPlayer : NetworkBehaviour
 {
     [Header("Movement Settings")]
     public float walkSpeed = 3f;
-    public float runningSpeed = 8f;
+    public float sprintSpeed = 8f;
 
     private Animator animator;
 
@@ -23,7 +22,7 @@ public class NetworkPlayer : NetworkBehaviour
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Owner);
 
-    private NetworkVariable<bool> isRunningNet = new NetworkVariable<bool>(
+    private NetworkVariable<bool> isSprintingNet = new NetworkVariable<bool>(
     false,
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Owner);
@@ -64,12 +63,10 @@ public class NetworkPlayer : NetworkBehaviour
 
         Vector2 input = moveAction.ReadValue<Vector2>();
         isSprinting = sprintAction.IsPressed();
-
         Vector3 movement = new Vector3(input.x, 0, input.y);
         
-        // Rotate prefab to match player movement direction
-        // also set walking animation
-        isRunningNet.Value = isSprinting;
+        // Handle animations and update position based on input actions
+        isSprintingNet.Value = isSprinting;
         if (movement.sqrMagnitude > 0.01f)
         {
             Quaternion targetRotation = Quaternion.LookRotation(movement);
@@ -80,11 +77,10 @@ public class NetworkPlayer : NetworkBehaviour
         else
         {
           isWalkingNet.Value = false;
-          isRunningNet.Value = false;
-          isFightingNet.Value = CheckNearbyPlayers(3f);
-          //isFightingNet.Value = true;  
+          isSprintingNet.Value = false;
+          isFightingNet.Value = CheckNearbyPlayers(3f); 
         } 
-        float moveSpeed =  isSprinting ? runningSpeed : walkSpeed;
+        float moveSpeed =  isSprinting ? sprintSpeed : walkSpeed;
         rb.MovePosition(rb.position + movement * moveSpeed * Time.deltaTime);
         SubmitPositionServerRpc(rb.position);
     }
@@ -107,7 +103,7 @@ public class NetworkPlayer : NetworkBehaviour
     {
         animator.SetBool("isWalking", isWalkingNet.Value);
         animator.SetBool("isFighting", isFightingNet.Value);
-        animator.SetBool("isRunning", isRunningNet.Value);
+        animator.SetBool("isSprinting", isSprintingNet.Value);
     }
 
     private bool CheckNearbyPlayers(float range)
@@ -115,13 +111,10 @@ public class NetworkPlayer : NetworkBehaviour
         foreach (NetworkPlayer other in FindObjectsByType(typeof(NetworkPlayer), FindObjectsSortMode.None))
         {
             if (other == this) continue;
-
             float distance = Vector3.Distance(transform.position, other.transform.position);
             if (distance <= range)
                 return true;
         }
         return false;
     }
-
-
 }
