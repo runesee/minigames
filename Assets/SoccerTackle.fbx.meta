@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: a2860e6e66544614b92822878bdf0fac
+guid: f16fd1dc3f725f8428f0b233ee01a519
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
@@ -31,19 +31,19 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Running
+      name: Soccer Tackle
       takeName: mixamo.com
       internalID: -203655887218126122
       firstFrame: 0
-      lastFrame: 19
+      lastFrame: 44
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
-      loopBlend: 1
+      loopTime: 0
+      loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
       loopBlendPositionXZ: 0

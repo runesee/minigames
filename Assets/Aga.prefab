@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: -2895062057458085473}
   - component: {fileID: 3680293497773164783}
   - component: {fileID: 1155656977587591010}
+  - component: {fileID: 8235293641429638268}
   m_Layer: 0
   m_Name: Aga
   m_TagString: Untagged
@@ -94,14 +95,14 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8587370964938106638}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 29da793242d74b343901e42baf12472f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
   ShowTopMostFoldoutHeaderGroup: 1
-  moveSpeed: 5
-  jumpForce: 5
+  walkSpeed: 3
+  sprintSpeed: 8
   RotateSpeed: 30
 --- !u!54 &2317850879932105327
 Rigidbody:
@@ -208,6 +209,23 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   TransitionStateInfoList: []
   m_Animator: {fileID: 8302977585742677729}
+--- !u!114 &8235293641429638268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8587370964938106638}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3fa726f6e1992445825f995c8e58b53, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerTagMovement
+  ShowTopMostFoldoutHeaderGroup: 1
+  walkSpeed: 3
+  sprintSpeed: 8
+  stunDuration: 1
+  RotateSpeed: 30
 --- !u!1001 &2472634209218968432
 PrefabInstance:
   m_ObjectHideFlags: 0
