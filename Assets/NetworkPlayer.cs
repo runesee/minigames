@@ -10,9 +10,19 @@ public class NetworkPlayer : NetworkBehaviour
     public float moveSpeed = 5f;
     public float jumpForce = 5f;
 
+    private Animator animator;
+
+    private NetworkVariable<bool> isWalkingNet = new NetworkVariable<bool>(
+    false,
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Owner);
+
+    public float RotateSpeed = 30f;
+
     private InputAction moveAction;
-    private InputAction jumpAction;
+
     private Rigidbody rb;
+    
 
     private void Awake()
     {
@@ -21,16 +31,15 @@ public class NetworkPlayer : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        animator = GetComponentInChildren<Animator>();
+        
         if (!IsOwner)
         {
             rb.isKinematic = true;
             return;
         }
         moveAction = InputSystem.actions.FindAction("Move");
-        //jumpAction = InputSystem.actions.FindAction("Jump");
-
         moveAction.Enable();
-        //jumpAction.Enable();
     }
 
     private void Update()
@@ -38,15 +47,21 @@ public class NetworkPlayer : NetworkBehaviour
         if (!IsOwner) return;
 
         Vector2 input = moveAction.ReadValue<Vector2>();
-        //bool jumpPressed = jumpAction.IsPressed();
 
-        Vector3 movement = new Vector3(input.x, 0, input.y) * moveSpeed * Time.deltaTime;
-        rb.MovePosition(rb.position + movement);
-
-        /*if (jumpPressed && Mathf.Abs(rb.linearVelocity.y) < 0.01f)
+        Vector3 movement = new Vector3(input.x, 0, input.y);
+        
+        // Rotate prefab to match player movement direction
+        // also set walking animation
+        if (movement.sqrMagnitude > 0.01f)
         {
-            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-        }*/
+            Quaternion targetRotation = Quaternion.LookRotation(movement);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
+            isWalkingNet.Value = true;
+        }
+        else isWalkingNet.Value = false;
+        
+
+        rb.MovePosition(rb.position + movement * moveSpeed * Time.deltaTime);
         SubmitPositionServerRpc(rb.position);
     }
 
@@ -63,4 +78,10 @@ public class NetworkPlayer : NetworkBehaviour
         if (IsOwner) return; // Owner already moved
         transform.position = position;
     }
+
+    private void LateUpdate()
+    {
+        animator.SetBool("isWalking", isWalkingNet.Value);
+    }
+
 }
