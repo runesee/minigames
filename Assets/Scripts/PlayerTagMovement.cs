@@ -62,6 +62,7 @@ public class PlayerTagMovement : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         animator = GetComponentInChildren<Animator>();
+        animator.applyRootMotion = false;
         
         if (!IsOwner)
         {
@@ -92,14 +93,13 @@ public class PlayerTagMovement : NetworkBehaviour
 
             if (target != null)
             {
-                Debug.Log($"target: {target}");
                 SendHitToServerRpc(target.NetworkObjectId);
             }
         }
 
         // Handle animations and update position based on input actions
         isSprintingNet.Value = isSprinting;
-        if (movement.sqrMagnitude > 0.01f)
+        if (movement.sqrMagnitude > 0.1f)
         {
             Quaternion targetRotation = Quaternion.LookRotation(movement);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
@@ -180,13 +180,11 @@ public class PlayerTagMovement : NetworkBehaviour
                 closest = (PlayerTagMovement) player;
             }
         }
-        Debug.Log($"closest player: {closest}");
         return closest;
     }
 
     private IEnumerator StunRoutine(PlayerTagMovement victim)
     {
-        rb.linearVelocity = Vector3.zero; // TODO: use actual movement stunning and not this
         yield return new WaitForSeconds(stunDuration);
         victim.isHitNet.Value = false; 
     }
