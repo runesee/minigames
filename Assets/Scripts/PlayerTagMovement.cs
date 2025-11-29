@@ -121,7 +121,7 @@ public class PlayerTagMovement : NetworkBehaviour
     private void SubmitPositionServerRpc(Vector3 position)
     {
         transform.position = position;
-        UpdateClientsClientRpc(position); // Send to all clients but owner
+        UpdateClientsClientRpc(position);
     }
 
     [ServerRpc]
@@ -138,7 +138,7 @@ public class PlayerTagMovement : NetworkBehaviour
     [ClientRpc]
     private void UpdateClientsClientRpc(Vector3 position)
     {
-        if (IsOwner) return; // Owner already moved
+        if (IsOwner) return;
         transform.position = position;
     }
 
