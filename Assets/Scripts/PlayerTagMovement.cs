@@ -20,11 +20,6 @@ public class PlayerTagMovement : NetworkBehaviour
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Owner);
 
-    private NetworkVariable<bool> isFightingNet = new NetworkVariable<bool>(
-    false,
-    NetworkVariableReadPermission.Everyone,
-    NetworkVariableWritePermission.Owner);
-
     private NetworkVariable<bool> isSprintingNet = new NetworkVariable<bool>(
     false,
     NetworkVariableReadPermission.Everyone,
@@ -33,6 +28,8 @@ public class PlayerTagMovement : NetworkBehaviour
     private InputAction attackAction;
 
     private bool isPunching;
+    private bool isTaunting;
+    private bool canTaunt;
 
     private NetworkVariable<bool> isPunchingNet = new NetworkVariable<bool>(
     false,
@@ -44,10 +41,17 @@ public class PlayerTagMovement : NetworkBehaviour
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Server);
 
+    private NetworkVariable<bool> isTauntingNet = new NetworkVariable<bool>(
+    false,
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Owner);
+
     public float RotateSpeed = 30f;
 
     private InputAction moveAction;
     private InputAction sprintAction;
+
+    private InputAction interactAction;
 
     private bool isSprinting;
 
@@ -69,25 +73,32 @@ public class PlayerTagMovement : NetworkBehaviour
             rb.isKinematic = true;
             return;
         }
+
         moveAction = InputSystem.actions.FindAction("Move");
         sprintAction = InputSystem.actions.FindAction("Sprint");
-        sprintAction.Enable();
-        moveAction.Enable();
         attackAction = InputSystem.actions.FindAction("Attack");
+        interactAction = InputSystem.actions.FindAction("Interact");
+        moveAction.Enable();
+        sprintAction.Enable();
         attackAction.Enable();
+        interactAction.Enable();
     }
 
     private void Update()
     {
         if (!IsOwner) return;
 
+        // Parse InputInteractions
         Vector2 input = moveAction.ReadValue<Vector2>();
         isSprinting = sprintAction.IsPressed();
         Vector3 movement = new Vector3(input.x, 0, input.y);
-        
+        isTaunting = interactAction.ReadValue<float>() > 0f;
         isPunching = attackAction.WasPerformedThisFrame();
         isPunchingNet.Value = isPunching;
-        if (isPunching)
+        isSprintingNet.Value = isSprinting;
+
+        // Set target player as isHit if punched by punching player
+        if (isPunching) // TODO: Check if player also 'has it'
         {
             PlayerTagMovement target = FindClosestPlayerInRange(2f);
 
@@ -98,23 +109,39 @@ public class PlayerTagMovement : NetworkBehaviour
         }
 
         // Handle animations and update position based on input actions
-        isSprintingNet.Value = isSprinting;
         if (movement.sqrMagnitude > 0.1f)
         {
             Quaternion targetRotation = Quaternion.LookRotation(movement);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
             isWalkingNet.Value = !isSprinting;
-            isFightingNet.Value = false;  
         }
         else
         {
           isWalkingNet.Value = false;
           isSprintingNet.Value = false;
-          isFightingNet.Value = !isPunching && CheckNearbyPlayers(2f); 
         } 
         float moveSpeed =  isSprinting ? sprintSpeed : walkSpeed;
         rb.MovePosition(rb.position + movement * moveSpeed * Time.deltaTime);
         SubmitPositionServerRpc(rb.position);
+
+        // Lastly, if neither moving or tagging, check if taunting.
+        // Sets both trigger and bool value in Animator.
+        // Limits animation to loop once if key is held down,
+        // otherwise cancels on other actions or letting go of key
+        canTaunt = !isWalkingNet.Value && !isSprinting && !isPunching;
+        if (interactAction.WasPressedThisFrame() && canTaunt)
+        {
+            animator.SetTrigger("isTauntingTrigger");
+            isTauntingNet.Value = true;
+        }
+        else if (isTaunting && canTaunt && !isTauntingNet.Value)
+        {
+            isTauntingNet.Value = true;
+        }
+        if (!isTaunting || !canTaunt || interactAction.WasReleasedThisFrame())
+        {
+            isTauntingNet.Value = false;
+        }
     }
 
     [ServerRpc]
@@ -133,8 +160,6 @@ public class PlayerTagMovement : NetworkBehaviour
         StartCoroutine(StunRoutine(victim));
     }
 
-
-
     [ClientRpc]
     private void UpdateClientsClientRpc(Vector3 position)
     {
@@ -145,10 +170,10 @@ public class PlayerTagMovement : NetworkBehaviour
     private void LateUpdate()
     {
         animator.SetBool("isWalking", isWalkingNet.Value);
-        animator.SetBool("isFighting", isFightingNet.Value);
         animator.SetBool("isSprinting", isSprintingNet.Value);
         animator.SetBool("isPunching", isPunchingNet.Value);
         animator.SetBool("isHit", isHitNet.Value);
+        animator.SetBool("isTaunting", isTauntingNet.Value);
     }
 
     private bool CheckNearbyPlayers(float range)
@@ -188,5 +213,4 @@ public class PlayerTagMovement : NetworkBehaviour
         yield return new WaitForSeconds(stunDuration);
         victim.isHitNet.Value = false; 
     }
-
 }
