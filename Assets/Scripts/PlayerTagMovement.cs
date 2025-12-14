@@ -2,6 +2,7 @@ using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Linq;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
@@ -41,10 +42,25 @@ public class PlayerTagMovement : NetworkBehaviour
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Server);
 
+    private NetworkVariable<bool> isTaggedNet = new NetworkVariable<bool>(
+    false,
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server);
+
     private NetworkVariable<bool> isTauntingNet = new NetworkVariable<bool>(
     false,
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Owner);
+
+    private NetworkVariable<double> timeSpentTagged = new NetworkVariable<double>(
+    0,
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server);
+
+    private NetworkVariable<double> lastTagTime = new NetworkVariable<double>(
+    0,
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server);
 
     public float RotateSpeed = 30f;
 
@@ -56,7 +72,8 @@ public class PlayerTagMovement : NetworkBehaviour
     private bool isSprinting;
 
     private Rigidbody rb;
-    
+
+    private int taggedCounter;
 
     private void Awake()
     {
@@ -73,6 +90,17 @@ public class PlayerTagMovement : NetworkBehaviour
             rb.isKinematic = true;
             return;
         }
+
+        // At the moment, we set the initially tagged player here => Always Player 1.
+        // TODO : change to on a start function etc. once all players have connected.
+        
+        // We have to do a lot of parsing as custom class objects are not serializable with Netcode (currently)
+        var playerObjects = NetworkManager.Singleton.SpawnManager.SpawnedObjects;
+        var players = playerObjects.Values.ToList();
+        var random  = Random.Range(0, players.Count - 1);
+        var selectedPlayer = players[random];
+        var selectedPlayerId = playerObjects.FirstOrDefault(player => player.Value == selectedPlayer).Key;
+        setInitialTaggedPlayerServerRpc(selectedPlayerId);
 
         moveAction = InputSystem.actions.FindAction("Move");
         sprintAction = InputSystem.actions.FindAction("Sprint");
@@ -94,16 +122,22 @@ public class PlayerTagMovement : NetworkBehaviour
         Vector3 movement = new Vector3(input.x, 0, input.y);
         isTaunting = interactAction.ReadValue<float>() > 0f;
         isPunching = attackAction.WasPerformedThisFrame();
-        isPunchingNet.Value = isPunching;
+        isPunchingNet.Value = isPunching && isTaggedNet.Value;
         isSprintingNet.Value = isSprinting;
 
         // Set target player as isHit if punched by punching player
-        if (isPunching) // TODO: Check if player also 'has it'
+        if (isPunching && isTaggedNet.Value)
         {
             PlayerTagMovement target = FindClosestPlayerInRange(2f);
 
             if (target != null)
             {
+                double time = NetworkManager.Singleton.LocalTime.FixedTime;
+                double servertime = NetworkManager.Singleton.ServerTime.FixedTime;
+                Debug.Log($"localtime: {time}");
+                Debug.Log($"servertime: {servertime}");
+                Debug.Log($"user time spent tagged: {timeSpentTagged.Value}");
+                // Set target as tagged and hit (can tag others, and play anim)
                 SendHitToServerRpc(target.NetworkObjectId);
             }
         }
@@ -152,16 +186,35 @@ public class PlayerTagMovement : NetworkBehaviour
     }
 
     [ServerRpc]
-    void SendHitToServerRpc(ulong victimId)
-    {
+    void SendHitToServerRpc(ulong victimId) // TODO :  give better name
+    {   
+        isTaggedNet.Value = false;
         var victim = NetworkManager.Singleton.SpawnManager.SpawnedObjects[victimId]
                     .GetComponent<PlayerTagMovement>();
         victim.isHitNet.Value = true;
+        victim.isTaggedNet.Value = true;
+
+        // Add timediff to current player
+        double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
+        timeSpentTagged.Value += serverTime - lastTagTime.Value;
+        victim.lastTagTime.Value = serverTime;
+        // TODO : Use localtime to display constant timechange of tagee in game.
+        // TODO : Then, update with actual serverTime on tag.
+
         StartCoroutine(StunRoutine(victim));
     }
 
+    [ServerRpc]
+    void setInitialTaggedPlayerServerRpc(ulong playerId)
+    {
+        var playerObject = NetworkManager.Singleton.SpawnManager.SpawnedObjects[playerId]
+                    .GetComponent<PlayerTagMovement>();
+        playerObject.isTaggedNet.Value = true;
+    }
+
+
     [ClientRpc]
-    private void UpdateClientsClientRpc(Vector3 position)
+    private void UpdateClientsClientRpc(Vector3 position)   // TODO :  give better name
     {
         if (IsOwner) return;
         transform.position = position;
@@ -175,19 +228,6 @@ public class PlayerTagMovement : NetworkBehaviour
         animator.SetBool("isHit", isHitNet.Value);
         animator.SetBool("isTaunting", isTauntingNet.Value);
     }
-
-    private bool CheckNearbyPlayers(float range)
-    {
-        foreach (PlayerTagMovement other in FindObjectsByType(typeof(PlayerTagMovement), FindObjectsSortMode.None))
-        {
-            if (other == this) continue;
-            float distance = Vector3.Distance(transform.position, other.transform.position);
-            if (distance <= range)
-                return true;
-        }
-        return false;
-    }
-
 
     private PlayerTagMovement FindClosestPlayerInRange(float range)
     {
