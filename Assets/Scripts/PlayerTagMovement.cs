@@ -3,6 +3,9 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Linq;
+using System;
+using TMPro;
+using Unity.VisualScripting;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
@@ -73,7 +76,9 @@ public class PlayerTagMovement : NetworkBehaviour
 
     private Rigidbody rb;
 
-    private int taggedCounter;
+    private Quaternion lastRotation; // User is currently facing this direction
+
+    private Vector3 lastDirection;
 
     private void Awake()
     {
@@ -97,11 +102,12 @@ public class PlayerTagMovement : NetworkBehaviour
         // We have to do a lot of parsing as custom class objects are not serializable with Netcode (currently)
         var playerObjects = NetworkManager.Singleton.SpawnManager.SpawnedObjects;
         var players = playerObjects.Values.ToList();
-        var random  = Random.Range(0, players.Count - 1);
+        var random  = UnityEngine.Random.Range(0, players.Count - 1);
         var selectedPlayer = players[random];
         var selectedPlayerId = playerObjects.FirstOrDefault(player => player.Value == selectedPlayer).Key;
         setInitialTaggedPlayerServerRpc(selectedPlayerId);
 
+        // Init key bindings
         moveAction = InputSystem.actions.FindAction("Move");
         sprintAction = InputSystem.actions.FindAction("Sprint");
         attackAction = InputSystem.actions.FindAction("Attack");
@@ -110,6 +116,9 @@ public class PlayerTagMovement : NetworkBehaviour
         sprintAction.Enable();
         attackAction.Enable();
         interactAction.Enable();
+
+        // Init currently faced direction (default)
+        lastRotation = Quaternion.LookRotation(new Vector3(0, 0, 0));
     }
 
     private void Update()
@@ -129,14 +138,17 @@ public class PlayerTagMovement : NetworkBehaviour
         if (isPunching && isTaggedNet.Value)
         {
             PlayerTagMovement target = FindClosestPlayerInRange(2f);
+            Debug.Log($"target 2nd pass: {target}");
 
             if (target != null)
             {
+                // Check if player is facing target
+
                 double time = NetworkManager.Singleton.LocalTime.FixedTime;
                 double servertime = NetworkManager.Singleton.ServerTime.FixedTime;
-                Debug.Log($"localtime: {time}");
-                Debug.Log($"servertime: {servertime}");
-                Debug.Log($"user time spent tagged: {timeSpentTagged.Value}");
+                //Debug.Log($"localtime: {time}");
+                //Debug.Log($"servertime: {servertime}");
+                //Debug.Log($"user time spent tagged: {timeSpentTagged.Value}");
                 // Set target as tagged and hit (can tag others, and play anim)
                 SendHitToServerRpc(target.NetworkObjectId);
             }
@@ -145,8 +157,9 @@ public class PlayerTagMovement : NetworkBehaviour
         // Handle animations and update position based on input actions
         if (movement.sqrMagnitude > 0.1f)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(movement);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
+            lastDirection = movement.normalized;
+            lastRotation = Quaternion.LookRotation(movement);
+            transform.rotation = Quaternion.Slerp(transform.rotation, lastRotation, 10f * Time.deltaTime);
             isWalkingNet.Value = !isSprinting;
         }
         else
@@ -233,19 +246,39 @@ public class PlayerTagMovement : NetworkBehaviour
     {
         PlayerTagMovement closest = null;
         float shortest = Mathf.Infinity;
+        bool isWithinBounds = false;
 
         foreach (var player in FindObjectsByType(typeof(PlayerTagMovement), FindObjectsSortMode.None))
         {
             if (player == this) continue;
 
             float dist = Vector3.Distance(transform.position, ((PlayerTagMovement) player).transform.position);
+
             if (dist < range && dist < shortest)
             {
                 shortest = dist;
                 closest = (PlayerTagMovement) player;
+                Debug.Log($"closest: {closest}");
+
+                // Just need to check if 'rotation' to get to target is within bounds
+                //return 
+
+                double _ = Math.Atan2(lastDirection.x, lastDirection.z);
+                double minAng = _ - 45f;
+                double maxAng = _ + 45f;
+                Vector3 minVector = new Vector3((float) Math.Cos(minAng), (float) Math.Sin(minAng));
+                Vector3 maxVector = new Vector3((float) Math.Cos(maxAng), (float) Math.Sin(maxAng));
+                Vector3 targetVector = rb.position - closest.rb.position;
+                isWithinBounds = (minVector.y * targetVector.x - minVector.x * targetVector.y) * (minVector.y * maxVector.x - minVector.x * targetVector.y) < 0;
+
+                //Quaternion targetRotation = Quaternion.LookRotation(targetVector);
+                //isWithinBounds = Quaternion.Angle(lastRotation, targetRotation) < 45f;
+                //Debug.Log(targetVector);
+                //Debug.Log(targetRotation);
+                Debug.Log($"isWithinBounds: {isWithinBounds}");
             }
         }
-        return closest;
+        return isWithinBounds ? closest : null;
     }
 
     private IEnumerator StunRoutine(PlayerTagMovement victim)
