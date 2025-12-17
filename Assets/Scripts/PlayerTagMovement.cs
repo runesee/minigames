@@ -76,10 +76,6 @@ public class PlayerTagMovement : NetworkBehaviour
 
     private Rigidbody rb;
 
-    private Quaternion lastRotation; // User is currently facing this direction
-
-    private Vector3 lastDirection;
-
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -116,9 +112,6 @@ public class PlayerTagMovement : NetworkBehaviour
         sprintAction.Enable();
         attackAction.Enable();
         interactAction.Enable();
-
-        // Init currently faced direction (default)
-        lastRotation = Quaternion.LookRotation(new Vector3(0, 0, 0));
     }
 
     private void Update()
@@ -138,12 +131,9 @@ public class PlayerTagMovement : NetworkBehaviour
         if (isPunching && isTaggedNet.Value)
         {
             PlayerTagMovement target = FindClosestPlayerInRange(2f);
-            Debug.Log($"target 2nd pass: {target}");
 
             if (target != null)
             {
-                // Check if player is facing target
-
                 double time = NetworkManager.Singleton.LocalTime.FixedTime;
                 double servertime = NetworkManager.Singleton.ServerTime.FixedTime;
                 //Debug.Log($"localtime: {time}");
@@ -157,8 +147,7 @@ public class PlayerTagMovement : NetworkBehaviour
         // Handle animations and update position based on input actions
         if (movement.sqrMagnitude > 0.1f)
         {
-            lastDirection = movement.normalized;
-            lastRotation = Quaternion.LookRotation(movement);
+            Quaternion lastRotation = Quaternion.LookRotation(movement);
             transform.rotation = Quaternion.Slerp(transform.rotation, lastRotation, 10f * Time.deltaTime);
             isWalkingNet.Value = !isSprinting;
         }
@@ -258,24 +247,14 @@ public class PlayerTagMovement : NetworkBehaviour
             {
                 shortest = dist;
                 closest = (PlayerTagMovement) player;
-                Debug.Log($"closest: {closest}");
+                Vector3 targetVector = (closest.transform.position - transform.position).normalized;
+                Vector3 playerVector = transform.forward;
 
-                // Just need to check if 'rotation' to get to target is within bounds
-                //return 
-
-                double _ = Math.Atan2(lastDirection.x, lastDirection.z);
-                double minAng = _ - 45f;
-                double maxAng = _ + 45f;
-                Vector3 minVector = new Vector3((float) Math.Cos(minAng), (float) Math.Sin(minAng));
-                Vector3 maxVector = new Vector3((float) Math.Cos(maxAng), (float) Math.Sin(maxAng));
-                Vector3 targetVector = rb.position - closest.rb.position;
-                isWithinBounds = (minVector.y * targetVector.x - minVector.x * targetVector.y) * (minVector.y * maxVector.x - minVector.x * targetVector.y) < 0;
-
-                //Quaternion targetRotation = Quaternion.LookRotation(targetVector);
-                //isWithinBounds = Quaternion.Angle(lastRotation, targetRotation) < 45f;
-                //Debug.Log(targetVector);
-                //Debug.Log(targetRotation);
-                Debug.Log($"isWithinBounds: {isWithinBounds}");
+                // Within bounds if angle between position diff vector and tagged player's forward vector < 45 degrees
+                float angle;
+                Vector3 axis;
+                Quaternion.FromToRotation(playerVector, targetVector).ToAngleAxis(out angle, out axis);
+                isWithinBounds = Mathf.Abs(angle) <= 45f;
             }
         }
         return isWithinBounds ? closest : null;
