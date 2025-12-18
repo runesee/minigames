@@ -191,8 +191,6 @@ public class PlayerTagMovement : NetworkBehaviour
                     .GetComponent<PlayerTagMovement>();
         victim.isHitNet.Value = true;
         victim.isTaggedNet.Value = true;
-        victim.isWalkingNet.Value = false;
-        victim.isSprintingNet.Value = false;
 
         // Add timediff to current player
         double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
