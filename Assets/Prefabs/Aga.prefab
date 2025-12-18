@@ -75,7 +75,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3051191352
+  GlobalObjectIdHash: 3990490726
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -207,7 +207,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClientNetworkAnimator
   ShowTopMostFoldoutHeaderGroup: 1
-  TransitionStateInfoList: []
+  TransitionStateInfoList:
+  - IsCrossFadeExit: 0
+    Layer: 0
+    OriginatingState: 1590449116
+    DestinationState: -2007455589
+    TransitionDuration: 0.25
+    TriggerNameHash: 1000451818
+    TransitionIndex: 4
   m_Animator: {fileID: 8302977585742677729}
 --- !u!114 &8235293641429638268
 MonoBehaviour:

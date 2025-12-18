@@ -2,6 +2,10 @@ using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Linq;
+using System;
+using TMPro;
+using Unity.VisualScripting;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
@@ -10,8 +14,6 @@ public class PlayerTagMovement : NetworkBehaviour
     [Header("Movement Settings")]
     public float walkSpeed = 3f;
     public float sprintSpeed = 8f;
-
-    public float stunDuration = 3f;
 
     private Animator animator;
 
@@ -41,10 +43,25 @@ public class PlayerTagMovement : NetworkBehaviour
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Server);
 
+    private NetworkVariable<bool> isTaggedNet = new NetworkVariable<bool>(
+    false,
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server);
+
     private NetworkVariable<bool> isTauntingNet = new NetworkVariable<bool>(
     false,
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Owner);
+
+    private NetworkVariable<double> timeSpentTagged = new NetworkVariable<double>(
+    0,
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server);
+
+    private NetworkVariable<double> lastTagTime = new NetworkVariable<double>(
+    0,
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server);
 
     public float RotateSpeed = 30f;
 
@@ -56,7 +73,6 @@ public class PlayerTagMovement : NetworkBehaviour
     private bool isSprinting;
 
     private Rigidbody rb;
-    
 
     private void Awake()
     {
@@ -74,6 +90,18 @@ public class PlayerTagMovement : NetworkBehaviour
             return;
         }
 
+        // At the moment, we set the initially tagged player here => Always Player 1.
+        // TODO : change to on a start function etc. once all players have connected.
+        
+        // We have to do a lot of parsing as custom class objects are not serializable with Netcode (currently)
+        var playerObjects = NetworkManager.Singleton.SpawnManager.SpawnedObjects;
+        var players = playerObjects.Values.ToList();
+        var random  = UnityEngine.Random.Range(0, players.Count - 1);
+        var selectedPlayer = players[random];
+        var selectedPlayerId = playerObjects.FirstOrDefault(player => player.Value == selectedPlayer).Key;
+        setInitialTaggedPlayerServerRpc(selectedPlayerId);
+
+        // Init key bindings
         moveAction = InputSystem.actions.FindAction("Move");
         sprintAction = InputSystem.actions.FindAction("Sprint");
         attackAction = InputSystem.actions.FindAction("Attack");
@@ -88,22 +116,32 @@ public class PlayerTagMovement : NetworkBehaviour
     {
         if (!IsOwner) return;
 
+        // If tagged, client does nothing until roughly 1.8 seconds have passed
+        if (isHitNet.Value)
+        {
+            double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
+            double timeDiff = serverTime - lastTagTime.Value;
+            if (timeDiff < 1.8f) return;
+            else UnfreezePlayerServerRpc(); // TODO : Prevent sending of additional RPCs
+        }
+        
         // Parse InputInteractions
         Vector2 input = moveAction.ReadValue<Vector2>();
         isSprinting = sprintAction.IsPressed();
         Vector3 movement = new Vector3(input.x, 0, input.y);
         isTaunting = interactAction.ReadValue<float>() > 0f;
         isPunching = attackAction.WasPerformedThisFrame();
-        isPunchingNet.Value = isPunching;
+        isPunchingNet.Value = isPunching && isTaggedNet.Value;
         isSprintingNet.Value = isSprinting;
 
         // Set target player as isHit if punched by punching player
-        if (isPunching) // TODO: Check if player also 'has it'
+        if (isPunching && isTaggedNet.Value)
         {
             PlayerTagMovement target = FindClosestPlayerInRange(2f);
 
             if (target != null)
             {
+                // Set target as tagged and hit (can tag others, play animation)
                 SendHitToServerRpc(target.NetworkObjectId);
             }
         }
@@ -111,8 +149,8 @@ public class PlayerTagMovement : NetworkBehaviour
         // Handle animations and update position based on input actions
         if (movement.sqrMagnitude > 0.1f)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(movement);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
+            Quaternion lastRotation = Quaternion.LookRotation(movement);
+            transform.rotation = Quaternion.Slerp(transform.rotation, lastRotation, 10f * Time.deltaTime);
             isWalkingNet.Value = !isSprinting;
         }
         else
@@ -143,6 +181,11 @@ public class PlayerTagMovement : NetworkBehaviour
             isTauntingNet.Value = false;
         }
     }
+    [ServerRpc]
+    private void UnfreezePlayerServerRpc()
+    {
+        isHitNet.Value = false;
+    }
 
     [ServerRpc]
     private void SubmitPositionServerRpc(Vector3 position)
@@ -152,16 +195,35 @@ public class PlayerTagMovement : NetworkBehaviour
     }
 
     [ServerRpc]
-    void SendHitToServerRpc(ulong victimId)
-    {
+    void SendHitToServerRpc(ulong victimId) // TODO :  give better name
+    {   
+        isTaggedNet.Value = false;
         var victim = NetworkManager.Singleton.SpawnManager.SpawnedObjects[victimId]
                     .GetComponent<PlayerTagMovement>();
         victim.isHitNet.Value = true;
-        StartCoroutine(StunRoutine(victim));
+        victim.isTaggedNet.Value = true;
+        victim.isWalkingNet.Value = false;
+        victim.isSprintingNet.Value = false;
+
+        // Add timediff to current player
+        double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
+        timeSpentTagged.Value += serverTime - lastTagTime.Value;
+        victim.lastTagTime.Value = serverTime;
+        // TODO : Use localtime to display constant timechange of tagee in game.
+        // TODO : Then, update with actual serverTime on tag.
     }
 
+    [ServerRpc]
+    void setInitialTaggedPlayerServerRpc(ulong playerId)
+    {
+        var playerObject = NetworkManager.Singleton.SpawnManager.SpawnedObjects[playerId]
+                    .GetComponent<PlayerTagMovement>();
+        playerObject.isTaggedNet.Value = true;
+    }
+
+
     [ClientRpc]
-    private void UpdateClientsClientRpc(Vector3 position)
+    private void UpdateClientsClientRpc(Vector3 position)   // TODO :  give better name
     {
         if (IsOwner) return;
         transform.position = position;
@@ -176,41 +238,32 @@ public class PlayerTagMovement : NetworkBehaviour
         animator.SetBool("isTaunting", isTauntingNet.Value);
     }
 
-    private bool CheckNearbyPlayers(float range)
-    {
-        foreach (PlayerTagMovement other in FindObjectsByType(typeof(PlayerTagMovement), FindObjectsSortMode.None))
-        {
-            if (other == this) continue;
-            float distance = Vector3.Distance(transform.position, other.transform.position);
-            if (distance <= range)
-                return true;
-        }
-        return false;
-    }
-
-
     private PlayerTagMovement FindClosestPlayerInRange(float range)
     {
         PlayerTagMovement closest = null;
         float shortest = Mathf.Infinity;
+        bool isWithinBounds = false;
 
         foreach (var player in FindObjectsByType(typeof(PlayerTagMovement), FindObjectsSortMode.None))
         {
             if (player == this) continue;
 
             float dist = Vector3.Distance(transform.position, ((PlayerTagMovement) player).transform.position);
+
             if (dist < range && dist < shortest)
             {
                 shortest = dist;
                 closest = (PlayerTagMovement) player;
+                Vector3 targetVector = (closest.transform.position - transform.position).normalized;
+                Vector3 playerVector = transform.forward;
+
+                // Within bounds if angle between position diff vector and tagged player's forward vector < 45 degrees
+                float angle;
+                Vector3 axis;
+                Quaternion.FromToRotation(playerVector, targetVector).ToAngleAxis(out angle, out axis);
+                isWithinBounds = Mathf.Abs(angle) <= 45f;
             }
         }
-        return closest;
-    }
-
-    private IEnumerator StunRoutine(PlayerTagMovement victim)
-    {
-        yield return new WaitForSeconds(stunDuration);
-        victim.isHitNet.Value = false; 
+        return isWithinBounds ? closest : null;
     }
 }
