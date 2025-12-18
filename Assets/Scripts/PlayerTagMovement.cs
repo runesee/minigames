@@ -15,8 +15,6 @@ public class PlayerTagMovement : NetworkBehaviour
     public float walkSpeed = 3f;
     public float sprintSpeed = 8f;
 
-    public float stunDuration = 3f;
-
     private Animator animator;
 
     private NetworkVariable<bool> isWalkingNet = new NetworkVariable<bool>(
@@ -118,6 +116,15 @@ public class PlayerTagMovement : NetworkBehaviour
     {
         if (!IsOwner) return;
 
+        // If tagged, client does nothing until roughly 1.8 seconds have passed
+        if (isHitNet.Value)
+        {
+            double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
+            double timeDiff = serverTime - lastTagTime.Value;
+            if (timeDiff < 1.8f) return;
+            else UnfreezePlayerServerRpc(); // TODO : Prevent sending of additional RPCs
+        }
+        
         // Parse InputInteractions
         Vector2 input = moveAction.ReadValue<Vector2>();
         isSprinting = sprintAction.IsPressed();
@@ -134,12 +141,7 @@ public class PlayerTagMovement : NetworkBehaviour
 
             if (target != null)
             {
-                double time = NetworkManager.Singleton.LocalTime.FixedTime;
-                double servertime = NetworkManager.Singleton.ServerTime.FixedTime;
-                //Debug.Log($"localtime: {time}");
-                //Debug.Log($"servertime: {servertime}");
-                //Debug.Log($"user time spent tagged: {timeSpentTagged.Value}");
-                // Set target as tagged and hit (can tag others, and play anim)
+                // Set target as tagged and hit (can tag others, play animation)
                 SendHitToServerRpc(target.NetworkObjectId);
             }
         }
@@ -179,6 +181,11 @@ public class PlayerTagMovement : NetworkBehaviour
             isTauntingNet.Value = false;
         }
     }
+    [ServerRpc]
+    private void UnfreezePlayerServerRpc()
+    {
+        isHitNet.Value = false;
+    }
 
     [ServerRpc]
     private void SubmitPositionServerRpc(Vector3 position)
@@ -195,6 +202,8 @@ public class PlayerTagMovement : NetworkBehaviour
                     .GetComponent<PlayerTagMovement>();
         victim.isHitNet.Value = true;
         victim.isTaggedNet.Value = true;
+        victim.isWalkingNet.Value = false;
+        victim.isSprintingNet.Value = false;
 
         // Add timediff to current player
         double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
@@ -202,8 +211,6 @@ public class PlayerTagMovement : NetworkBehaviour
         victim.lastTagTime.Value = serverTime;
         // TODO : Use localtime to display constant timechange of tagee in game.
         // TODO : Then, update with actual serverTime on tag.
-
-        StartCoroutine(StunRoutine(victim));
     }
 
     [ServerRpc]
@@ -258,11 +265,5 @@ public class PlayerTagMovement : NetworkBehaviour
             }
         }
         return isWithinBounds ? closest : null;
-    }
-
-    private IEnumerator StunRoutine(PlayerTagMovement victim)
-    {
-        yield return new WaitForSeconds(stunDuration);
-        victim.isHitNet.Value = false; 
     }
 }
