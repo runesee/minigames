@@ -148,7 +148,6 @@ public class PlayerTagMovement : NetworkBehaviour
         } 
         float moveSpeed =  isSprinting ? sprintSpeed : walkSpeed;
         rb.MovePosition(rb.position + movement * moveSpeed * Time.deltaTime);
-        SubmitPositionServerRpc(rb.position);
 
         // Lastly, if neither moving or tagging, check if taunting.
         // Sets both trigger and bool value in Animator.
@@ -169,21 +168,23 @@ public class PlayerTagMovement : NetworkBehaviour
             isTauntingNet.Value = false;
         }
     }
+
+    /// <summary>
+    /// Re-enable user actions after freeze period.
+    /// </summary>
     [ServerRpc]
     private void UnfreezePlayerServerRpc()
     {
         isHitNet.Value = false;
     }
 
+    /// <summary>
+    /// Set targeted player as tagged on server, and disable their movement.
+    /// Also update time tagging player has been tagged.
+    /// </summary>
+    /// <param name="victimId"></param> Target player ID.
     [ServerRpc]
-    private void SubmitPositionServerRpc(Vector3 position)
-    {
-        transform.position = position;
-        UpdatePositionClientRpc(position);
-    }
-
-    [ServerRpc]
-    void TagPlayerServerRpc(ulong victimId)
+    private void TagPlayerServerRpc(ulong victimId)
     {   
         isTaggedNet.Value = false;
         var victim = NetworkManager.Singleton.SpawnManager.SpawnedObjects[victimId]
@@ -199,20 +200,17 @@ public class PlayerTagMovement : NetworkBehaviour
         victim.lastTagTime.Value = serverTime;
     }
 
+    /// <summary>
+    /// Set a player as tagged on the server.
+    /// Used for initializing the game state.
+    /// </summary>
+    /// <param name="playerId"></param> ID of player that starts tagged.
     [ServerRpc]
     void SetInitialTaggedPlayerServerRpc(ulong playerId)
     {
         var playerObject = NetworkManager.Singleton.SpawnManager.SpawnedObjects[playerId]
                     .GetComponent<PlayerTagMovement>();
         playerObject.isTaggedNet.Value = true;
-    }
-
-
-    [ClientRpc]
-    private void UpdatePositionClientRpc(Vector3 position)
-    {
-        if (IsOwner) return;
-        transform.position = position;
     }
 
     private void LateUpdate()
@@ -224,6 +222,11 @@ public class PlayerTagMovement : NetworkBehaviour
         animator.SetBool("isTaunting", isTauntingNet.Value);
     }
 
+    /// <summary>
+    /// Helper function for getting the closest player within range and field of view, if any.
+    /// </summary>
+    /// <param name="range"></param> Limit for how far a player can tag.
+    /// <returns></returns> A PlayerTagMovement object or null.
     private PlayerTagMovement FindClosestPlayerInRange(float range)
     {
         PlayerTagMovement closest = null;
