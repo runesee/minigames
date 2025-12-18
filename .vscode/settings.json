@@ -66,5 +66,7 @@
     "explorer.fileNesting.patterns": {
         "*.sln": "*.csproj"
     },
-    "dotnet.defaultSolution": "minigames.sln"
+    "dotnet.defaultSolution": "minigames.sln",
+    "editor.acceptSuggestionOnCommitCharacter": false,
+    "dotnet.preferCSharpExtension": true
 }
