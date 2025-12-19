@@ -32,7 +32,7 @@ public class PlayerTagMovement : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
-    private NetworkVariable<bool> isTaggedNet = new NetworkVariable<bool>(
+    public NetworkVariable<bool> isTaggedNet = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
@@ -80,14 +80,6 @@ public class PlayerTagMovement : NetworkBehaviour
             rb.isKinematic = true;
             return;
         }
-        
-        // We have to do a lot of parsing as custom class objects are not serializable with Netcode (currently)
-        var playerObjects = NetworkManager.Singleton.SpawnManager.SpawnedObjects;
-        var players = playerObjects.Values.ToList();
-        var random  = UnityEngine.Random.Range(0, players.Count - 1);
-        var selectedPlayer = players[random];
-        var selectedPlayerId = playerObjects.FirstOrDefault(player => player.Value == selectedPlayer).Key;
-        SetInitialTaggedPlayerServerRpc(selectedPlayerId);
 
         // Init key bindings
         moveAction = InputSystem.actions.FindAction("Move");
@@ -196,19 +188,6 @@ public class PlayerTagMovement : NetworkBehaviour
         double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
         timeSpentTagged.Value += serverTime - lastTagTime.Value;
         victim.lastTagTime.Value = serverTime;
-    }
-
-    /// <summary>
-    /// Set a player as tagged on the server.
-    /// Used for initializing the game state.
-    /// </summary>
-    /// <param name="playerId"></param> ID of player that starts tagged.
-    [ServerRpc]
-    void SetInitialTaggedPlayerServerRpc(ulong playerId)
-    {
-        var playerObject = NetworkManager.Singleton.SpawnManager.SpawnedObjects[playerId]
-                    .GetComponent<PlayerTagMovement>();
-        playerObject.isTaggedNet.Value = true;
     }
 
     private void LateUpdate()
