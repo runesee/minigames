@@ -1,8 +1,12 @@
 using Unity.Netcode;
 using UnityEngine;
+using System.Linq;
 
 public class NetworkManagerController : MonoBehaviour
 {
+
+    private bool isGameStarted = false;
+
     void OnGUI()
     {
         // Prevents OnGUI from running after shutdown or exit
@@ -19,17 +23,47 @@ public class NetworkManagerController : MonoBehaviour
         }
         else
         {
-            if (GUILayout.Button("Shutdown")) NetworkManager.Singleton.Shutdown();
+            if (GUILayout.Button("Shutdown"))
+            {
+                isGameStarted = false;
+                NetworkManager.Singleton.Shutdown();
+            } 
+        }
+
+        // Currently using just 2 players for testing
+        if (NetworkManager.Singleton.ConnectedClientsList.Count >= 2 && !isGameStarted && NetworkManager.Singleton.IsHost)
+        {
+            if (GUILayout.Button("Start Game"))
+            {
+                isGameStarted = true;
+                // We have to do a lot of parsing as custom class objects are not serializable with Netcode (currently)
+                var players = NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values.ToList();
+                var random  = UnityEngine.Random.Range(0, players.Count);
+                var selectedPlayer = players[random];
+                SetInitialTaggedPlayerServerRpc(selectedPlayer.NetworkObjectId);
+            }
         }
 
         GUILayout.EndArea();
     }
 
     void OnDestroy()
-{
-    if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
-        NetworkManager.Singleton.Shutdown();
-}
+    {
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+            NetworkManager.Singleton.Shutdown();
+    }
 
+    /// <summary>
+    /// Set a player as tagged on the server.
+    /// Used for initializing the game state.
+    /// </summary>
+    /// <param name="playerId"></param> ID of player that starts tagged.
+    [ServerRpc]
+    private void SetInitialTaggedPlayerServerRpc(ulong playerId)
+    {
+        var playerObject = NetworkManager.Singleton.SpawnManager.SpawnedObjects[playerId]
+                    .GetComponent<PlayerTagMovement>();
+        playerObject.isTaggedNet.Value = true;
+    }
 }
 
