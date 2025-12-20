@@ -1,11 +1,25 @@
 using Unity.Netcode;
 using UnityEngine;
 using System.Linq;
+using System.Collections.Generic;
+using System;
 
 public class NetworkManagerController : MonoBehaviour
 {
-
+    public enum ConnectionStatus
+    {
+        Connected,
+        Disconnected
+    }
     private bool isGameStarted = false;
+    private Dictionary<uint, PlayerTagMovement> players = new Dictionary<uint, PlayerTagMovement>();
+    public event Action<ulong, ConnectionStatus> OnClientConnectionNotification;
+
+    void Start()
+    {
+        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnectedCallback;
+        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnectCallback;
+    }
 
     void OnGUI()
     {
@@ -64,6 +78,16 @@ public class NetworkManagerController : MonoBehaviour
         var playerObject = NetworkManager.Singleton.SpawnManager.SpawnedObjects[playerId]
                     .GetComponent<PlayerTagMovement>();
         playerObject.isTaggedNet.Value = true;
+    }
+
+    private void OnClientConnectedCallback(ulong clientId)
+    {
+        OnClientConnectionNotification?.Invoke(clientId, ConnectionStatus.Connected);
+    }
+
+    private void OnClientDisconnectCallback(ulong clientId)
+    {
+        OnClientConnectionNotification?.Invoke(clientId, ConnectionStatus.Disconnected);
     }
 }
 
