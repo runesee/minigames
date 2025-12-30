@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
 using System;
+using Unity.VisualScripting;
 
 public class NetworkManagerController : MonoBehaviour
 {
@@ -11,7 +12,7 @@ public class NetworkManagerController : MonoBehaviour
         Connected,
         Disconnected
     }
-    private bool isGameStarted = false;
+    public bool isGameStarted = false;
     private Dictionary<uint, PlayerTagMovement> players = new Dictionary<uint, PlayerTagMovement>();
     public event Action<ulong, ConnectionStatus> OnClientConnectionNotification;
 
@@ -45,7 +46,7 @@ public class NetworkManagerController : MonoBehaviour
         }
 
         // Currently using just 2 players for testing
-        if (NetworkManager.Singleton.ConnectedClientsList.Count >= 2 && !isGameStarted && NetworkManager.Singleton.IsHost)
+        if (NetworkManager.Singleton.ConnectedClientsList.Count >= 2 && !isGameStarted && NetworkManager.Singleton.IsHost && TagGameState.Instance != null)
         {
             if (GUILayout.Button("Start Game"))
             {
@@ -78,6 +79,8 @@ public class NetworkManagerController : MonoBehaviour
         var playerObject = NetworkManager.Singleton.SpawnManager.SpawnedObjects[playerId]
                     .GetComponent<PlayerTagMovement>();
         playerObject.isTaggedNet.Value = true;
+        TagGameState.Instance.taggedPlayerIdNet.Value = playerId;
+        //TagGameState.Instance.isGameStarted.Value = true;
     }
 
     private void OnClientConnectedCallback(ulong clientId)

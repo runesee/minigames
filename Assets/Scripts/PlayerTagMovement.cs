@@ -47,7 +47,7 @@ public class PlayerTagMovement : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
-    private NetworkVariable<double> lastTagTime = new NetworkVariable<double>(
+    private NetworkVariable<double> lastTagTime = new NetworkVariable<double>(//TODO : add net name standard?
         0,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
@@ -64,6 +64,7 @@ public class PlayerTagMovement : NetworkBehaviour
     private bool isPunching;
     private bool isTaunting;
     private bool canTaunt;
+    private double timeSpentTaggedClient;
 
     private void Awake()
     {
@@ -72,9 +73,12 @@ public class PlayerTagMovement : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        //if (IsOwner) return;
+        
         animator = GetComponentInChildren<Animator>();
         animator.applyRootMotion = false;
         
+
         if (!IsOwner)
         {
             rb.isKinematic = true;
@@ -90,18 +94,54 @@ public class PlayerTagMovement : NetworkBehaviour
         sprintAction.Enable();
         attackAction.Enable();
         interactAction.Enable();
+
+        timeSpentTaggedClient = 0;
+        //networkManagerController.taggedPlayerIdNet.OnValueChanged += OnTaggedPlayerChanged;
+    }
+
+    void Start()
+    {
+        if (IsOwner) return;
+        TagGameState.Instance.taggedPlayerIdNet.OnValueChanged += OnTaggedPlayerChanged;
+    }
+
+    void OnGUI()
+    {
+        //if (!IsOwner) return;
+        if (!TagGameState.Instance) return;
+
+        // Draw scoreboard
+        GUILayout.BeginArea(new Rect(Screen.width-210, 10, 200, 300));
+        GUILayout.TextArea("Scoreboard");
+        foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
+        {
+            var player = obj.GetComponent<PlayerTagMovement>();
+            if (!player) continue;
+
+            double displayTime = player.timeSpentTagged.Value;
+
+            if (player.NetworkObjectId == TagGameState.Instance.taggedPlayerIdNet.Value)
+            {
+                displayTime += timeSpentTaggedClient;
+                //Debug.Log($"tagged time: {displayTime}");
+            }
+            GUILayout.TextArea($"{player.OwnerClientId}: {displayTime:F1}s");
+        }
+        GUILayout.EndArea();
     }
 
     private void Update()
     {
+        timeSpentTaggedClient += Time.deltaTime;
+
         if (!IsOwner) return;
 
         // If tagged, client does nothing until roughly 1.8 seconds have passed
+        double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
         if (isHitNet.Value)
         {
-            double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
-            double timeDiff = serverTime - lastTagTime.Value;
-            if (timeDiff < 1.8f) return;
+            double timeSinceTagged = serverTime - lastTagTime.Value;
+            if (timeSinceTagged < 1.8f) return;
             else UnfreezePlayerServerRpc();
         }
         
@@ -127,7 +167,7 @@ public class PlayerTagMovement : NetworkBehaviour
         }
 
         // Handle animations and update position based on input actions
-        if (movement.sqrMagnitude > 0.1f)
+        if (movement.sqrMagnitude > 0.01f)
         {
             Quaternion lastRotation = Quaternion.LookRotation(movement);
             transform.rotation = Quaternion.Slerp(transform.rotation, lastRotation, 10f * Time.deltaTime);
@@ -178,16 +218,18 @@ public class PlayerTagMovement : NetworkBehaviour
     [ServerRpc]
     private void TagPlayerServerRpc(ulong victimId)
     {   
+        double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
+
         isTaggedNet.Value = false;
-        var victim = NetworkManager.Singleton.SpawnManager.SpawnedObjects[victimId]
-                    .GetComponent<PlayerTagMovement>();
+        var victim = NetworkManager.Singleton.SpawnManager.SpawnedObjects[victimId].GetComponent<PlayerTagMovement>();
         victim.isHitNet.Value = true;
         victim.isTaggedNet.Value = true;
 
         // Add timediff to current player
-        double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
         timeSpentTagged.Value += serverTime - lastTagTime.Value;
         victim.lastTagTime.Value = serverTime;
+        timeSpentTaggedClient = 0;
+        TagGameState.Instance.taggedPlayerIdNet.Value = victimId;
     }
 
     private void LateUpdate()
@@ -209,9 +251,10 @@ public class PlayerTagMovement : NetworkBehaviour
         PlayerTagMovement closest = null;
         float shortest = Mathf.Infinity;
         bool isWithinBounds = false;
-
         foreach (var player in FindObjectsByType(typeof(PlayerTagMovement), FindObjectsSortMode.None))
+        //foreach (var networkObject in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
         {
+            //var player = networkObject.GetComponent<PlayerTagMovement>();
             if (player == this) continue;
 
             float dist = Vector3.Distance(transform.position, ((PlayerTagMovement) player).transform.position);
@@ -229,4 +272,16 @@ public class PlayerTagMovement : NetworkBehaviour
         }
         return isWithinBounds ? closest : null;
     }
+
+    // TODO : add xml comment
+    private void OnTaggedPlayerChanged(ulong oldId, ulong newId)
+    {
+        timeSpentTaggedClient = 0;
+    }
+
+    // TODO : Fix GUI errors on application exit
+    // TODO : Fix timers initially not synced (until two tags)
+    // TODO : Code cleanup
+    // TODO : Migrate to Unity UI Toolkit
+    // TODO : Scoreboard UI showing before game is started.
 }
