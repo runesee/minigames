@@ -14,56 +14,34 @@ public class TagGameState : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
-    public NetworkVariable<bool> isGameStarted = new NetworkVariable<bool>(
-        false,
+    public NetworkVariable<GameState> gameState = new NetworkVariable<GameState>(
+        GameState.Initializing,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
+    public enum GameState
+    {
+        Initializing,
+        Idling,
+        Running,
+        Stopped,
+    }
+
     public override void OnNetworkSpawn()
     {
         Instance = this;
-    }
-
-    void OnGUI()
-    {
-        // Prevents OnGUI from running after shutdown or exit
-        if (NetworkManager.Singleton == null) return;
-
-        GUILayout.BeginArea(new Rect(10, 10, 200, 200));
-
-        if (GUILayout.Button("Shutdown"))
-        {
-            NetworkManager.Singleton.Shutdown();
-        } 
-
-        // Currently using just 2 players for testing
-        if (NetworkManager.Singleton.ConnectedClientsList.Count >= 2 && !isGameStarted.Value && NetworkManager.Singleton.IsHost)
-        {
-            if (GUILayout.Button("Start Game"))
-            {
-                // We have to do a lot of parsing as custom class objects are not serializable with Netcode (currently)
-                var players = NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values.ToList();
-                var random  = UnityEngine.Random.Range(0, players.Count);
-                var selectedPlayer = players[random];
-                SetInitialTaggedPlayerServerRpc(selectedPlayer.NetworkObjectId);
-            }
-        }
-        GUILayout.EndArea();
+        if (!IsOwner) return;
+        SetGameStateServerRpc(GameState.Idling);
     }
     
     /// <summary>
-    /// Set a player as tagged on the server.
-    /// Used for initializing the game state.
+    /// Update the current GameState (Initializing, Idling, Running or Stopped).
     /// </summary>
-    /// <param name="playerId"></param> ID of player that starts tagged.
+    /// <param name="state">New GameState.</param>
     [ServerRpc]
-    private void SetInitialTaggedPlayerServerRpc(ulong playerId)
+    public void SetGameStateServerRpc(GameState state)
     {
-        var playerObject = NetworkManager.Singleton.SpawnManager.SpawnedObjects[playerId]
-                    .GetComponent<PlayerTagMovement>();
-        playerObject.isTaggedNet.Value = true;
-        Instance.taggedPlayerIdNet.Value = playerId;
-        Instance.isGameStarted.Value = true;
+        gameState.Value = state;
     }
 }

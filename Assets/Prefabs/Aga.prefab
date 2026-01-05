@@ -127,7 +127,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 1
-  m_IsKinematic: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 1
@@ -234,6 +234,7 @@ MonoBehaviour:
   RotateSpeed: 30
   isTaggedNet:
     m_InternalValue: 0
+  playerClientLoaded: 0
 --- !u!1001 &2472634209218968432
 PrefabInstance:
   m_ObjectHideFlags: 0
