@@ -165,7 +165,7 @@ public class PlayerTagMovement : NetworkBehaviour
         // Set target player as isHit if punched by punching player
         if (isPunching && isTaggedNet.Value)
         {
-            PlayerTagMovement target = FindClosestPlayerInRange(2f);
+            PlayerTagMovement target = FindClosestPlayerInRange(2.5f);
 
             if (target != null)
             {
@@ -274,22 +274,20 @@ public class PlayerTagMovement : NetworkBehaviour
         float shortest = Mathf.Infinity;
         bool isWithinBounds = false;
         foreach (var player in FindObjectsByType(typeof(PlayerTagMovement), FindObjectsSortMode.None))
-        //foreach (var networkObject in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
         {
-            //var player = networkObject.GetComponent<PlayerTagMovement>();
             if (player == this) continue;
 
-            float dist = Vector3.Distance(transform.position, ((PlayerTagMovement) player).transform.position);
+            float distance = Vector3.Distance(transform.position, ((PlayerTagMovement) player).transform.position);
 
-            if (dist < range && dist < shortest)
+            if (distance < range && distance < shortest)
             {
-                shortest = dist;
+                shortest = distance;
                 closest = (PlayerTagMovement) player;
                 Vector3 targetVector = (closest.transform.position - transform.position).normalized;
 
                 // Within bounds if angle between position diff vector and tagged player's forward vector < 45 degrees
                 Quaternion.FromToRotation(transform.forward, targetVector).ToAngleAxis(out float angle, out Vector3 axis);
-                isWithinBounds = Mathf.Abs(angle) <= 45f;
+                isWithinBounds = Mathf.Abs(angle) <= (distance > range / 2 ? 70f : 45f);
             }
         }
         return isWithinBounds ? closest : null;
