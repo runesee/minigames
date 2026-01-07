@@ -2,15 +2,27 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Linq;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
 public class PlayerTagMovement : NetworkBehaviour
 {
+    [SerializeField] private SkinnedMeshRenderer playerSkinRenderer;
+
     [Header("Movement Settings")]
     public float walkSpeed = 3f;
     public float sprintSpeed = 8f;
     public float RotateSpeed = 30f;
+    
+    [Header("Player Customization")]
+    public List<string> playerColors = new List<string>()
+    {
+        "#D6877F",
+        "#7fb3d6",
+        "#92d67f",
+        "#d6d37f",
+    };
 
     private NetworkVariable<bool> isWalkingNet = new NetworkVariable<bool>(
         false,
@@ -84,6 +96,15 @@ public class PlayerTagMovement : NetworkBehaviour
         sprintAction.Enable();
         attackAction.Enable();
         interactAction.Enable();
+
+        // Give each player model a unique color
+        // TODO : Use GUIDs once implemented to re-assign upon reconnect.
+        try
+        {
+            var skinMaterial = playerSkinRenderer.material;
+            UnityEngine.ColorUtility.TryParseHtmlString(playerColors[(int) OwnerClientId % playerColors.Count], out var skinColor);
+            skinMaterial.color = skinColor;            
+        } catch{}
     }
 
     // There is arguably a lot of logic in onGUI, which runs often.
