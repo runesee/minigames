@@ -233,6 +233,11 @@ MonoBehaviour:
   walkSpeed: 3
   sprintSpeed: 8
   RotateSpeed: 30
+  playerColors:
+  - '#D6877F'
+  - '#7fb3d6'
+  - '#92d67f'
+  - '#d6d37f'
   isTaggedNet:
     m_InternalValue: 0
 --- !u!1001 &2472634209218968432
