@@ -54,12 +54,12 @@ public class PlayerTagMovement : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner
     );
-    private NetworkVariable<double> timeSpentTaggedNet = new NetworkVariable<double>(
+    public NetworkVariable<double> timeSpentTaggedNet = new NetworkVariable<double>(
         0,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
-    private NetworkVariable<double> lastTagTimeNet = new NetworkVariable<double>(
+    public NetworkVariable<double> lastTagTimeNet = new NetworkVariable<double>(
         0,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
@@ -165,7 +165,11 @@ public class PlayerTagMovement : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        // If tagged, client does nothing until roughly 1.8 seconds have passed
+        if (TagGameState.Instance != null && TagGameState.Instance.gameState.Value != TagGameState.GameState.Running)
+        {
+            return;
+        }
+
         double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
         if (isHitNet.Value)
         {
