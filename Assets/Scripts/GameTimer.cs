@@ -6,8 +6,7 @@ public class GameTimer : NetworkBehaviour
 {
     [Header("Timer Settings")]
     [SerializeField] private float gameDurationInSeconds = 60f;
-
-    private TextMeshProUGUI timerText;
+    [SerializeField] private TextMeshProUGUI timerText;
 
     private NetworkVariable<float> remainingTime = new NetworkVariable<float>(
         0f,
@@ -23,10 +22,17 @@ public class GameTimer : NetworkBehaviour
 
     private void Start()
     {
-        GameObject timerTextObj = GameObject.Find("TimerText");
-        if (timerTextObj != null)
+        if (timerText == null)
         {
-            timerText = timerTextObj.GetComponent<TextMeshProUGUI>();
+            GameObject timerTextObj = GameObject.Find("TimerText");
+            if (timerTextObj != null)
+            {
+                timerText = timerTextObj.GetComponent<TextMeshProUGUI>();
+            }
+            else
+            {
+                Debug.LogWarning("GameTimer: TimerText GameObject not found!");
+            }
         }
     }
 
@@ -107,6 +113,7 @@ public class GameTimer : NetworkBehaviour
     {
         if (timerText == null)
         {
+            Debug.LogError("GameTimer: Cannot update timer display - timerText is null!");
             return;
         }
 
