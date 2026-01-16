@@ -40,12 +40,9 @@ public class GameTimer : NetworkBehaviour
     {
         base.OnNetworkSpawn();
 
-        Debug.Log($"GameTimer: OnNetworkSpawn called. IsServer: {IsServer}, IsClient: {IsClient}");
-
         if (IsServer)
         {
             remainingTime.Value = gameDurationInSeconds;
-            Debug.Log($"GameTimer: Server initialized remaining time to {remainingTime.Value}s");
         }
 
         remainingTime.OnValueChanged += OnRemainingTimeChanged;
@@ -58,11 +55,9 @@ public class GameTimer : NetworkBehaviour
     {
         while (TagGameState.Instance == null)
         {
-            Debug.Log("GameTimer: Waiting for TagGameState.Instance...");
             yield return new WaitForSeconds(0.1f);
         }
 
-        Debug.Log($"GameTimer: TagGameState found! Current state: {TagGameState.Instance.gameState.Value}");
         TagGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
         
         if (IsServer)
@@ -82,17 +77,8 @@ public class GameTimer : NetworkBehaviour
         }
     }
 
-    private float debugLogTimer = 0f;
-    
     private void Update()
     {
-        debugLogTimer += Time.deltaTime;
-        if (debugLogTimer >= 2f)
-        {
-            Debug.Log($"GameTimer Update: IsServer={IsServer}, timerRunning={timerRunning.Value}, remainingTime={remainingTime.Value:F1}");
-            debugLogTimer = 0f;
-        }
-        
         if (!IsServer)
         {
             return;
@@ -109,15 +95,12 @@ public class GameTimer : NetworkBehaviour
         {
             remainingTime.Value = 0f;
             timerRunning.Value = false;
-            Debug.Log("GameTimer: Time's up! Stopping game.");
             StopGame();
         }
     }
 
     private void OnGameStateChanged(TagGameState.GameState previousState, TagGameState.GameState newState)
     {
-        Debug.Log($"GameTimer: Game state changed from {previousState} to {newState}. IsServer: {IsServer}");
-        
         if (!IsServer)
         {
             return;
@@ -127,12 +110,10 @@ public class GameTimer : NetworkBehaviour
         {
             remainingTime.Value = gameDurationInSeconds;
             timerRunning.Value = true;
-            Debug.Log($"GameTimer: Timer started! Duration: {gameDurationInSeconds}s, Running: {timerRunning.Value}");
         }
         else if (newState == TagGameState.GameState.Stopped || newState == TagGameState.GameState.Idling)
         {
             timerRunning.Value = false;
-            Debug.Log($"GameTimer: Timer stopped. State: {newState}");
         }
     }
 
@@ -145,7 +126,6 @@ public class GameTimer : NetworkBehaviour
     {
         if (timerText == null)
         {
-            Debug.LogError("GameTimer: Cannot update timer display - timerText is null!");
             return;
         }
 
