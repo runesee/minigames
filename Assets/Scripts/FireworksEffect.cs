@@ -17,6 +17,7 @@ public class FireworksEffect : MonoBehaviour
         main.gravityModifier = 0.5f;
         main.maxParticles = 100;
         main.loop = true;
+        main.playOnAwake = false;
 
         var emission = ps.emission;
         emission.rateOverTime = 20f;
@@ -60,5 +61,7 @@ public class FireworksEffect : MonoBehaviour
         {
             renderer.renderMode = ParticleSystemRenderMode.Billboard;
         }
+
+        ps.Stop();
     }
 }

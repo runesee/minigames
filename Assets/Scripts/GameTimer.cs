@@ -5,7 +5,7 @@ using TMPro;
 public class GameTimer : NetworkBehaviour
 {
     [Header("Timer Settings")]
-    [SerializeField] private float gameDurationInSeconds = 60f;
+    [SerializeField] private float gameDurationInSeconds = 30f;
     [SerializeField] private TextMeshProUGUI timerText;
 
     private NetworkVariable<float> remainingTime = new NetworkVariable<float>(
@@ -59,7 +59,7 @@ public class GameTimer : NetworkBehaviour
         }
 
         TagGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
-        
+
         if (IsServer)
         {
             OnGameStateChanged(TagGameState.GameState.Initializing, TagGameState.Instance.gameState.Value);
@@ -83,7 +83,7 @@ public class GameTimer : NetworkBehaviour
         {
             return;
         }
-        
+
         if (!timerRunning.Value)
         {
             return;
