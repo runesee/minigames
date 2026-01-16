@@ -8,6 +8,12 @@ public class MainMenuController : MonoBehaviour
     {
         GUILayout.BeginArea(new Rect(10, 10, 200, 200));
 
+        if (NetworkManager.Singleton == null)
+        {
+            GUILayout.EndArea();
+            return;
+        }
+
         if (!NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer)
         {
             if (GUILayout.Button("Host"))
