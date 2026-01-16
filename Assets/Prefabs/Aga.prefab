@@ -269,7 +269,7 @@ MonoBehaviour:
   playerSkinRenderer: {fileID: 8576045237320093323}
   glowColor: {r: 1, g: 0, b: 0, a: 1}
   glowIntensity: 2
-  markerPrefab: {fileID: 4976489201878259265, guid: fc63f49baae5147f49803f8c16ac8520, type: 3}
+  markerPrefab: {fileID: 8327965218418516786, guid: ce768e0bc4f764138a7592edd23b9b92, type: 3}
   markerOffset: {x: 0, y: 2.5, z: 0}
 --- !u!1001 &2472634209218968432
 PrefabInstance:
