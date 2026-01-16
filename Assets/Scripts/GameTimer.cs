@@ -71,7 +71,12 @@ public class GameTimer : NetworkBehaviour
 
     private void Update()
     {
-        if (!IsServer || !timerRunning.Value)
+        if (!IsServer)
+        {
+            return;
+        }
+        
+        if (!timerRunning.Value)
         {
             return;
         }
@@ -82,12 +87,15 @@ public class GameTimer : NetworkBehaviour
         {
             remainingTime.Value = 0f;
             timerRunning.Value = false;
+            Debug.Log("GameTimer: Time's up! Stopping game.");
             StopGame();
         }
     }
 
     private void OnGameStateChanged(TagGameState.GameState previousState, TagGameState.GameState newState)
     {
+        Debug.Log($"GameTimer: Game state changed from {previousState} to {newState}. IsServer: {IsServer}");
+        
         if (!IsServer)
         {
             return;
@@ -97,10 +105,12 @@ public class GameTimer : NetworkBehaviour
         {
             remainingTime.Value = gameDurationInSeconds;
             timerRunning.Value = true;
+            Debug.Log($"GameTimer: Timer started! Duration: {gameDurationInSeconds}s, Running: {timerRunning.Value}");
         }
         else if (newState == TagGameState.GameState.Stopped || newState == TagGameState.GameState.Idling)
         {
             timerRunning.Value = false;
+            Debug.Log($"GameTimer: Timer stopped. State: {newState}");
         }
     }
 
