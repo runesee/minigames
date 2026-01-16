@@ -28,7 +28,7 @@ public class GameResultsUI : MonoBehaviour
             {
                 panelCanvasGroup = resultsPanel.AddComponent<CanvasGroup>();
             }
-            
+
             resultsPanel.SetActive(false);
         }
 
@@ -138,7 +138,7 @@ public class GameResultsUI : MonoBehaviour
         if (resultsText == null) yield break;
 
         Color originalColor = resultsText.color;
-        
+
         while (true)
         {
             float pulse = (Mathf.Sin(Time.time * 2f) + 1f) / 2f;
@@ -174,24 +174,24 @@ public class GameResultsUI : MonoBehaviour
         results = results.OrderBy(r => r.timeTagged).ToList();
 
         string resultText = "<size=48><b>*** GAME OVER ***</b></size>\n\n<size=36><b>Final Results:</b></size>\n\n";
-        
+
         for (int i = 0; i < results.Count; i++)
         {
             string rank = (i + 1).ToString();
             string playerName = $"Player {results[i].clientId}";
             string time = results[i].timeTagged.ToString("F2") + "s";
-            
+
             if (i == 0)
             {
-                resultText += $"<color=yellow><size=32>>>> {rank}. {playerName}: {time} - WINNER! <<<<</size></color>\n";
+                resultText += $"<color=yellow><size=32> {rank}. {playerName}: {time} - WINNER! </size></color>\n";
             }
             else if (i == 1)
             {
-                resultText += $"<color=#C0C0C0><size=28>>> {rank}. {playerName}: {time} <<</size></color>\n";
+                resultText += $"<color=#C0C0C0><size=28> {rank}. {playerName}: {time} </size></color>\n";
             }
             else if (i == 2)
             {
-                resultText += $"<color=#CD7F32><size=28>> {rank}. {playerName}: {time} <</size></color>\n";
+                resultText += $"<color=#CD7F32><size=28> {rank}. {playerName}: {time} </size></color>\n";
             }
             else
             {
