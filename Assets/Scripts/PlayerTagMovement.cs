@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Linq;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
@@ -77,9 +79,26 @@ public class PlayerTagMovement : NetworkBehaviour
     private bool isTaunting;
     private bool canTaunt;
 
+    //private double sprintToggleTime;
+    private float pedalResistance;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+    }
+
+    void Start() {
+        PlayPulse.PlayPulseService.Initialize(
+            string.Empty,
+            connectToBikeService: true,
+            appSocketPathOverride: "127.0.0.1:13337", // Add this line
+            shellSocketPathOverride: "127.0.0.1:13337",
+            useTcpSocket: true
+        );
+
+        PlayPulse.Input.Input.ResistanceSetPoint = 0.2f;
+        pedalResistance = 0.2f;
+        
     }
 
     public override void OnNetworkSpawn()
@@ -96,6 +115,7 @@ public class PlayerTagMovement : NetworkBehaviour
         sprintAction.Enable();
         attackAction.Enable();
         interactAction.Enable();
+        //sprintToggleTime = 0.0f;
 
         // Give each player model a unique color
         // TODO : Use GUIDs once implemented to re-assign upon reconnect.
@@ -165,6 +185,19 @@ public class PlayerTagMovement : NetworkBehaviour
     {
         if (!IsOwner) return;
 
+        if (PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.RightTrigger))
+        {
+            float newResistance = pedalResistance + 0.2f;
+            pedalResistance = Math.Clamp(newResistance, 0.0f, 1.0f);
+            PlayPulse.Input.Input.ResistanceSetPoint = pedalResistance;
+        }
+        else if (PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.LeftTrigger))
+        {
+            float newResistance = pedalResistance - 0.2f;
+            pedalResistance = Math.Clamp(newResistance, 0.0f, 1.0f);
+            PlayPulse.Input.Input.ResistanceSetPoint = pedalResistance;
+        }
+
         // If tagged, client does nothing until roughly 1.8 seconds have passed
         double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
         if (isHitNet.Value)
@@ -173,13 +206,39 @@ public class PlayerTagMovement : NetworkBehaviour
             if (timeSinceTagged < 1.8f) return;
             else UnfreezePlayerServerRpc();
         }
-        
+
         // Parse InputInteractions
         Vector2 input = moveAction.ReadValue<Vector2>();
-        isSprinting = sprintAction.IsPressed();
+
+        /*if (PlayPulse.Input.Input.Speed > 0.4f || sprintAction.IsPressed() && !isSprinting) {
+            // Was walking, now starting to sprint
+            if (serverTime - sprintToggleTime > 0.5f) {
+                UnityEngine.Debug.Log(serverTime);
+                UnityEngine.Debug.Log(sprintToggleTime);
+                sprintToggleTime = serverTime;
+                isSprinting = true;
+            }
+            else {
+                isSprinting = false;
+            }
+        }
+        else if (PlayPulse.Input.Input.Speed < 0.4f || !sprintAction.IsPressed() && isSprinting) {
+            // Was sprinting, now below threshhold/stopped sprinting
+            if (serverTime - sprintToggleTime > 0.5f) {
+                UnityEngine.Debug.Log("aa");
+                sprintToggleTime = serverTime;
+                isSprinting = false;
+            }
+            else {
+                isSprinting = true;
+            }
+        }*/
+        
+
+        isSprinting = PlayPulse.Input.Input.Speed > 0.4f || sprintAction.IsPressed();
         Vector3 movement = new Vector3(input.x, 0, input.y);
-        isTaunting = interactAction.ReadValue<float>() > 0f;
-        isPunching = attackAction.WasPerformedThisFrame();
+        isTaunting = (interactAction.ReadValue<float>() > 0f && interactAction.WasPressedThisFrame()) || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.Y);
+        isPunching = attackAction.WasPerformedThisFrame() || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A);
         isPunchingNet.Value = isPunching && isTaggedNet.Value;
         isSprintingNet.Value = isSprinting;
 
@@ -196,26 +255,32 @@ public class PlayerTagMovement : NetworkBehaviour
         }
 
         // Handle animations and update position based on input actions
+        float pedalSpeed = PlayPulse.Input.Input.Speed > 0f ? Math.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f) : 1f;
+        float pedalAnimationSpeed = PlayPulse.Input.Input.Speed > 0f ? 2 * pedalSpeed : pedalSpeed;
+        movement = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ? new Vector3((-1)*PlayPulse.Input.Input.JoystickX, 0, (-1)*PlayPulse.Input.Input.JoystickY) : movement;
         if (movement.sqrMagnitude > 0.01f)
         {
             Quaternion lastRotation = Quaternion.LookRotation(movement);
             transform.rotation = Quaternion.Slerp(transform.rotation, lastRotation, 10f * Time.deltaTime);
+            float currentSpeed =animator.GetCurrentAnimatorStateInfo(0).speed;
+            animator.speed = currentSpeed * pedalAnimationSpeed;
             isWalkingNet.Value = !isSprinting;
         }
         else
         {
           isWalkingNet.Value = false;
           isSprintingNet.Value = false;
+          animator.speed = 1.0f;
         } 
         float moveSpeed =  isSprinting ? sprintSpeed : walkSpeed;
-        rb.MovePosition(rb.position + movement * moveSpeed * Time.deltaTime);
+        rb.MovePosition(rb.position + movement * pedalSpeed * moveSpeed * Time.deltaTime);
 
         // Lastly, if neither moving or tagging, check if taunting.
         // Sets both trigger and bool value in Animator.
         // Limits animation to loop once if key is held down,
         // otherwise cancels on other actions or letting go of key
-        canTaunt = !isWalkingNet.Value && !isSprinting && !isPunching;
-        if (interactAction.WasPressedThisFrame() && canTaunt)
+        bool canTaunt = !isWalkingNet.Value && !isSprinting && !isPunching;
+        if (/*interactAction.WasPressedThisFrame()*/ isTaunting && canTaunt)
         {
             animator.SetTrigger("isTauntingTrigger");
             isTauntingNet.Value = true;
@@ -255,7 +320,7 @@ public class PlayerTagMovement : NetworkBehaviour
         victim.isTaggedNet.Value = true;
 
         // Add timediff to current player
-        timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
+        timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;//a
         victim.lastTagTimeNet.Value = serverTime;
         TagGameState.Instance.taggedPlayerIdNet.Value = victimId;
     }
