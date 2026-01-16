@@ -5,7 +5,7 @@ using TMPro;
 public class GameTimer : NetworkBehaviour
 {
     [Header("Timer Settings")]
-    [SerializeField] private float gameDurationInSeconds = 30f;
+    [SerializeField] private float gameDurationInSeconds = 60f;
     [SerializeField] private TextMeshProUGUI timerText;
 
     private NetworkVariable<float> remainingTime = new NetworkVariable<float>(

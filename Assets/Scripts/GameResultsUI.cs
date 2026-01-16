@@ -173,7 +173,7 @@ public class GameResultsUI : MonoBehaviour
 
         results = results.OrderBy(r => r.timeTagged).ToList();
 
-        string resultText = "<size=48><b>🎉 GAME OVER 🎉</b></size>\n\n<size=36><b>Results:</b></size>\n\n";
+        string resultText = "<size=48><b>*** GAME OVER ***</b></size>\n\n<size=36><b>Final Results:</b></size>\n\n";
         
         for (int i = 0; i < results.Count; i++)
         {
@@ -183,15 +183,15 @@ public class GameResultsUI : MonoBehaviour
             
             if (i == 0)
             {
-                resultText += $"<color=yellow><size=32>🏆 {rank}. {playerName}: {time} - WINNER! 🏆</size></color>\n";
+                resultText += $"<color=yellow><size=32>>>> {rank}. {playerName}: {time} - WINNER! <<<<</size></color>\n";
             }
             else if (i == 1)
             {
-                resultText += $"<color=#C0C0C0><size=28>🥈 {rank}. {playerName}: {time}</size></color>\n";
+                resultText += $"<color=#C0C0C0><size=28>>> {rank}. {playerName}: {time} <<</size></color>\n";
             }
             else if (i == 2)
             {
-                resultText += $"<color=#CD7F32><size=28>🥉 {rank}. {playerName}: {time}</size></color>\n";
+                resultText += $"<color=#CD7F32><size=28>> {rank}. {playerName}: {time} <</size></color>\n";
             }
             else
             {
