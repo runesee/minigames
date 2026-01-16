@@ -15,6 +15,12 @@ public class PlayerTagMovement : NetworkBehaviour
     public float sprintSpeed = 8f;
     public float RotateSpeed = 30f;
     
+    [Header("Map Boundaries")]
+    public float minX = -17f;
+    public float maxX = 17f;
+    public float minZ = -13f;
+    public float maxZ = 12f;
+    
     [Header("Player Customization")]
     public List<string> playerColors = new List<string>()
     {
@@ -212,7 +218,10 @@ public class PlayerTagMovement : NetworkBehaviour
           isSprintingNet.Value = false;
         } 
         float moveSpeed =  isSprinting ? sprintSpeed : walkSpeed;
-        rb.MovePosition(rb.position + movement * moveSpeed * Time.deltaTime);
+        Vector3 newPosition = rb.position + movement * moveSpeed * Time.deltaTime;
+        newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
+        newPosition.z = Mathf.Clamp(newPosition.z, minZ, maxZ);
+        rb.MovePosition(newPosition);
 
         // Lastly, if neither moving or tagging, check if taunting.
         // Sets both trigger and bool value in Animator.
