@@ -40,9 +40,12 @@ public class GameTimer : NetworkBehaviour
     {
         base.OnNetworkSpawn();
 
+        Debug.Log($"GameTimer: OnNetworkSpawn called. IsServer: {IsServer}, IsClient: {IsClient}");
+
         if (IsServer)
         {
             remainingTime.Value = gameDurationInSeconds;
+            Debug.Log($"GameTimer: Server initialized remaining time to {remainingTime.Value}s");
         }
 
         remainingTime.OnValueChanged += OnRemainingTimeChanged;
@@ -55,6 +58,10 @@ public class GameTimer : NetworkBehaviour
             {
                 OnGameStateChanged(TagGameState.GameState.Initializing, TagGameState.Instance.gameState.Value);
             }
+        }
+        else
+        {
+            Debug.LogWarning("GameTimer: TagGameState.Instance is null!");
         }
     }
 
