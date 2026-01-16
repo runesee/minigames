@@ -51,18 +51,23 @@ public class GameTimer : NetworkBehaviour
         remainingTime.OnValueChanged += OnRemainingTimeChanged;
         OnRemainingTimeChanged(0f, remainingTime.Value);
 
-        if (TagGameState.Instance != null)
+        StartCoroutine(WaitForTagGameState());
+    }
+
+    private System.Collections.IEnumerator WaitForTagGameState()
+    {
+        while (TagGameState.Instance == null)
         {
-            Debug.Log($"GameTimer: TagGameState found. Current state: {TagGameState.Instance.gameState.Value}");
-            TagGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
-            if (IsServer)
-            {
-                OnGameStateChanged(TagGameState.GameState.Initializing, TagGameState.Instance.gameState.Value);
-            }
+            Debug.Log("GameTimer: Waiting for TagGameState.Instance...");
+            yield return new WaitForSeconds(0.1f);
         }
-        else
+
+        Debug.Log($"GameTimer: TagGameState found! Current state: {TagGameState.Instance.gameState.Value}");
+        TagGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
+        
+        if (IsServer)
         {
-            Debug.LogWarning("GameTimer: TagGameState.Instance is null!");
+            OnGameStateChanged(TagGameState.GameState.Initializing, TagGameState.Instance.gameState.Value);
         }
     }
 
