@@ -53,6 +53,7 @@ public class GameTimer : NetworkBehaviour
 
         if (TagGameState.Instance != null)
         {
+            Debug.Log($"GameTimer: TagGameState found. Current state: {TagGameState.Instance.gameState.Value}");
             TagGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
             if (IsServer)
             {
@@ -76,8 +77,17 @@ public class GameTimer : NetworkBehaviour
         }
     }
 
+    private float debugLogTimer = 0f;
+    
     private void Update()
     {
+        debugLogTimer += Time.deltaTime;
+        if (debugLogTimer >= 2f)
+        {
+            Debug.Log($"GameTimer Update: IsServer={IsServer}, timerRunning={timerRunning.Value}, remainingTime={remainingTime.Value:F1}");
+            debugLogTimer = 0f;
+        }
+        
         if (!IsServer)
         {
             return;
