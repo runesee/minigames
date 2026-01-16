@@ -267,9 +267,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TaggedPlayerVisualizer
   ShowTopMostFoldoutHeaderGroup: 1
   playerSkinRenderer: {fileID: 8576045237320093323}
-  glowColor: {r: 1, g: 0.3, b: 0.3, a: 1}
+  glowColor: {r: 1, g: 0, b: 0, a: 1}
   glowIntensity: 2
-  markerPrefab: {fileID: 7936458366009084383, guid: 8204dce3a579542eeaadd31917deb14b, type: 3}
+  markerPrefab: {fileID: 4976489201878259265, guid: fc63f49baae5147f49803f8c16ac8520, type: 3}
   markerOffset: {x: 0, y: 2.5, z: 0}
 --- !u!1001 &2472634209218968432
 PrefabInstance:
