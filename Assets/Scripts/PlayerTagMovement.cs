@@ -88,17 +88,17 @@ public class PlayerTagMovement : NetworkBehaviour
     }
 
     void Start() {
+        // Initialize connection with PP-service
         PlayPulse.PlayPulseService.Initialize(
             string.Empty,
             connectToBikeService: true,
-            appSocketPathOverride: "127.0.0.1:13337", // Add this line
+            appSocketPathOverride: "127.0.0.1:13337",
             shellSocketPathOverride: "127.0.0.1:13337",
             useTcpSocket: true
         );
-
-        PlayPulse.Input.Input.ResistanceSetPoint = 0.2f;
-        pedalResistance = 0.2f;
-        
+        // Reset resistance
+        pedalResistance = 0.2f; 
+        PlayPulse.Input.Input.ResistanceSetPoint = pedalResistance;
     }
 
     public override void OnNetworkSpawn()
@@ -185,16 +185,12 @@ public class PlayerTagMovement : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        if (PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.RightTrigger))
+        // Attempt to change gears if user presses right or left trigger
+        float deltaResistance = PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.RightTrigger) ? 0.2f : -0.2f;
+        if (PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.LeftTrigger) 
+        || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.LeftTrigger))
         {
-            float newResistance = pedalResistance + 0.2f;
-            pedalResistance = Math.Clamp(newResistance, 0.0f, 1.0f);
-            PlayPulse.Input.Input.ResistanceSetPoint = pedalResistance;
-        }
-        else if (PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.LeftTrigger))
-        {
-            float newResistance = pedalResistance - 0.2f;
-            pedalResistance = Math.Clamp(newResistance, 0.0f, 1.0f);
+            pedalResistance = Math.Clamp(pedalResistance + deltaResistance, 0.0f, 1.0f);
             PlayPulse.Input.Input.ResistanceSetPoint = pedalResistance;
         }
 
@@ -210,6 +206,7 @@ public class PlayerTagMovement : NetworkBehaviour
         // Parse InputInteractions
         Vector2 input = moveAction.ReadValue<Vector2>();
 
+        // TODO : Fix jitter when moving at speed close to boundary of running av walking. 
         /*if (PlayPulse.Input.Input.Speed > 0.4f || sprintAction.IsPressed() && !isSprinting) {
             // Was walking, now starting to sprint
             if (serverTime - sprintToggleTime > 0.5f) {
@@ -233,11 +230,11 @@ public class PlayerTagMovement : NetworkBehaviour
                 isSprinting = true;
             }
         }*/
-        
 
         isSprinting = PlayPulse.Input.Input.Speed > 0.4f || sprintAction.IsPressed();
         Vector3 movement = new Vector3(input.x, 0, input.y);
-        isTaunting = (interactAction.ReadValue<float>() > 0f && interactAction.WasPressedThisFrame()) || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.Y);
+        isTaunting = (interactAction.ReadValue<float>() > 0f && interactAction.WasPressedThisFrame()) || 
+        PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.Y);
         isPunching = attackAction.WasPerformedThisFrame() || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A);
         isPunchingNet.Value = isPunching && isTaggedNet.Value;
         isSprintingNet.Value = isSprinting;
@@ -257,12 +254,13 @@ public class PlayerTagMovement : NetworkBehaviour
         // Handle animations and update position based on input actions
         float pedalSpeed = PlayPulse.Input.Input.Speed > 0f ? Math.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f) : 1f;
         float pedalAnimationSpeed = PlayPulse.Input.Input.Speed > 0f ? 2 * pedalSpeed : pedalSpeed;
-        movement = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ? new Vector3((-1)*PlayPulse.Input.Input.JoystickX, 0, (-1)*PlayPulse.Input.Input.JoystickY) : movement;
+        movement = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ? 
+        new Vector3((-1)*PlayPulse.Input.Input.JoystickX, 0, (-1)*PlayPulse.Input.Input.JoystickY) : movement;
         if (movement.sqrMagnitude > 0.01f)
         {
             Quaternion lastRotation = Quaternion.LookRotation(movement);
             transform.rotation = Quaternion.Slerp(transform.rotation, lastRotation, 10f * Time.deltaTime);
-            float currentSpeed =animator.GetCurrentAnimatorStateInfo(0).speed;
+            float currentSpeed = animator.GetCurrentAnimatorStateInfo(0).speed;
             animator.speed = currentSpeed * pedalAnimationSpeed;
             isWalkingNet.Value = !isSprinting;
         }
@@ -270,7 +268,7 @@ public class PlayerTagMovement : NetworkBehaviour
         {
           isWalkingNet.Value = false;
           isSprintingNet.Value = false;
-          animator.speed = 1.0f;
+          animator.speed = 1.0f; // Only use custom speed for walking and running anims
         } 
         float moveSpeed =  isSprinting ? sprintSpeed : walkSpeed;
         rb.MovePosition(rb.position + movement * pedalSpeed * moveSpeed * Time.deltaTime);
@@ -279,7 +277,7 @@ public class PlayerTagMovement : NetworkBehaviour
         // Sets both trigger and bool value in Animator.
         // Limits animation to loop once if key is held down,
         // otherwise cancels on other actions or letting go of key
-        bool canTaunt = !isWalkingNet.Value && !isSprinting && !isPunching;
+        canTaunt = !isWalkingNet.Value && !isSprinting && !isPunching;
         if (/*interactAction.WasPressedThisFrame()*/ isTaunting && canTaunt)
         {
             animator.SetTrigger("isTauntingTrigger");
