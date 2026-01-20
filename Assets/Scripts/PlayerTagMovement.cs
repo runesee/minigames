@@ -1,9 +1,14 @@
 using Unity.Netcode;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Linq;
 using System.Collections.Generic;
 using System;
+using static SessionState;
+using PlayPulse.Api.Utils;
+using UnityEngine.UIElements;
+using Unity.Netcode.Components;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
@@ -83,6 +88,7 @@ public class PlayerTagMovement : NetworkBehaviour
     private bool isPunching;
     private bool isTaunting;
     private bool canTaunt;
+    private Vector3 savedPosition = default;
 
     private void Awake()
     {
@@ -107,29 +113,63 @@ public class PlayerTagMovement : NetworkBehaviour
 
         if (!IsOwner) return;
 
-        // Set GUID on first connect
-        Debug.Log(PlayerPrefs.GetString("Guid"));
-        Debug.Log(OwnerClientId);
-        if (PlayerPrefs.GetString("Guid") == "")
-        {
-            PlayerPrefs.SetString("Guid", System.Guid.NewGuid().ToString());
+        // Try to update client data based on stored data
 
-            // Give each player model a unique color
-            try
-            {
-                string color = playerColors[(int) OwnerClientId % playerColors.Count];
-                UnityEngine.ColorUtility.TryParseHtmlString(color, out var skinColor);
-                skinMaterial.color = skinColor;
-                PlayerPrefs.SetString("Color", color);
-            } catch{}
-        }
-        else // Reconnecting, check for existing data
+        // Give each player model a unique color
+        try
         {
-            UnityEngine.ColorUtility.TryParseHtmlString(PlayerPrefs.GetString("Color"), out var skinColor);
-            skinMaterial.color = skinColor;
-        }
+            string color = PlayerPrefs.GetString("Color");
+            UnityEngine.ColorUtility.TryParseHtmlString(color, out var skinColor);
+            skinMaterial.color = skinColor; // TODO : make player color a network variable
+        } catch{}
+        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
+        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnect;
+    }
 
-        
+
+
+    public override void OnNetworkDespawn()
+    {
+        NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
+        NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnect;
+    }
+
+    private void OnClientConnect(ulong clientId)
+    {
+        if (!SessionState.Instance) return;
+
+        try
+        {
+            FixedString64Bytes guid = new FixedString64Bytes(PlayerPrefs.GetString("Guid"));
+            if (SessionState.Instance.playerData.Value.Keys.Contains(guid)) {
+                PlayerData playerData = SessionState.Instance.playerData.Value[guid];
+                savedPosition = new Vector3(playerData.XPos, 1f, playerData.ZPos);
+                ResyncPlayerDataServerRpc(playerData);
+            }
+        }
+        catch (KeyNotFoundException) {}
+    }
+
+    private void OnClientDisconnect(ulong clientId)
+    {
+        if (!IsServer) return;
+        var position = transform.position;
+
+        PlayerData playerData = new PlayerData(
+            PlayerPrefs.GetString("Guid"),
+            position.x,
+            position.z,
+            timeSpentTaggedNet.Value,
+            lastTagTimeNet.Value,
+            isTaggedNet.Value
+        );
+        SaveDataServerRpc(playerData);
+    }
+
+    [ServerRpc]
+    private void SaveDataServerRpc(PlayerData playerData)
+    {
+        SessionState.Instance.SaveDataServerRpc(playerData);
     }
 
     // There is arguably a lot of logic in onGUI, which runs often.
@@ -188,12 +228,21 @@ public class PlayerTagMovement : NetworkBehaviour
 
     private void Update()
     {
-        if (!IsOwner) return;
+        
 
         if (TagGameState.Instance != null && TagGameState.Instance.gameState.Value != TagGameState.GameState.Running)
         {
             return;
         }
+
+        if (savedPosition.magnitude != 0f) {
+            rb.MovePosition(savedPosition);
+            Debug.Log(savedPosition.x);
+            savedPosition = default;
+            return;
+        }
+
+        if (!IsOwner) return;
 
         double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
         if (isHitNet.Value)
@@ -262,6 +311,16 @@ public class PlayerTagMovement : NetworkBehaviour
         }
     }
 
+
+    // TODO : XML comment
+    [ServerRpc]
+    public void ResyncPlayerDataServerRpc(PlayerData playerData)
+    {
+        timeSpentTaggedNet.Value = playerData.TimeSpentTagged;
+        lastTagTimeNet.Value = playerData.LastTagTime;
+        isTaggedNet.Value = playerData.IsTagged;
+    }
+
     /// <summary>
     /// Re-enable user actions after freeze period.
     /// </summary>
@@ -289,7 +348,7 @@ public class PlayerTagMovement : NetworkBehaviour
         // Add timediff to current player
         timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
         victim.lastTagTimeNet.Value = serverTime;
-        TagGameState.Instance.taggedPlayerIdNet.Value = victimId;
+        TagGameState.Instance.taggedPlayerIdNet.Value = victimId; // TODO : change victimID to GUID
     }
 
     /// <summary>

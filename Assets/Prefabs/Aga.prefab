@@ -103,6 +103,10 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   walkSpeed: 3
   sprintSpeed: 8
+  minX: -17
+  maxX: 17
+  minZ: -13
+  maxZ: 12
   RotateSpeed: 30
 --- !u!54 &2317850879932105327
 Rigidbody:
@@ -233,12 +237,20 @@ MonoBehaviour:
   walkSpeed: 3
   sprintSpeed: 8
   RotateSpeed: 30
+  minX: -17
+  maxX: 17
+  minZ: -13
+  maxZ: 12
   playerColors:
   - '#D6877F'
   - '#7fb3d6'
   - '#92d67f'
   - '#d6d37f'
   isTaggedNet:
+    m_InternalValue: 0
+  timeSpentTaggedNet:
+    m_InternalValue: 0
+  lastTagTimeNet:
     m_InternalValue: 0
 --- !u!1001 &2472634209218968432
 PrefabInstance:
