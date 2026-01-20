@@ -444,7 +444,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InGameMenuController
   menuPanel: {fileID: 955552708}
-  firstButton: {fileID: 2001743421}
   menuKey: 27
 --- !u!4 &431995759
 Transform:
