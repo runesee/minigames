@@ -1,10 +1,13 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class InGameMenuController : MonoBehaviour
 {
     [Header("Menu Settings")]
     [SerializeField] private GameObject menuPanel;
+    [SerializeField] private Button firstButton;
     [SerializeField] private Key menuKey = Key.M;
 
     private bool isMenuOpen = false;
@@ -22,13 +25,9 @@ public class InGameMenuController : MonoBehaviour
         isMenuOpen = !isMenuOpen;
         menuPanel.SetActive(isMenuOpen);
         
-        if (isMenuOpen)
+        if (isMenuOpen && firstButton != null)
         {
-            Time.timeScale = 0f;
-        }
-        else
-        {
-            Time.timeScale = 1f;
+            EventSystem.current.SetSelectedGameObject(firstButton.gameObject);
         }
     }
 
