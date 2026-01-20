@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Linq;
 using System.Collections.Generic;
+using System;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
@@ -92,6 +93,7 @@ public class PlayerTagMovement : NetworkBehaviour
     {
         animator = GetComponentInChildren<Animator>();
         animator.applyRootMotion = false;
+        var skinMaterial = playerSkinRenderer.material;
 
         // Init key bindings
         moveAction = InputSystem.actions.FindAction("Move");
@@ -103,14 +105,31 @@ public class PlayerTagMovement : NetworkBehaviour
         attackAction.Enable();
         interactAction.Enable();
 
-        // Give each player model a unique color
-        // TODO : Use GUIDs once implemented to re-assign upon reconnect.
-        try
+        if (!IsOwner) return;
+
+        // Set GUID on first connect
+        Debug.Log(PlayerPrefs.GetString("Guid"));
+        Debug.Log(OwnerClientId);
+        if (PlayerPrefs.GetString("Guid") == "")
         {
-            var skinMaterial = playerSkinRenderer.material;
-            UnityEngine.ColorUtility.TryParseHtmlString(playerColors[(int) OwnerClientId % playerColors.Count], out var skinColor);
-            skinMaterial.color = skinColor;            
-        } catch{}
+            PlayerPrefs.SetString("Guid", System.Guid.NewGuid().ToString());
+
+            // Give each player model a unique color
+            try
+            {
+                string color = playerColors[(int) OwnerClientId % playerColors.Count];
+                UnityEngine.ColorUtility.TryParseHtmlString(color, out var skinColor);
+                skinMaterial.color = skinColor;
+                PlayerPrefs.SetString("Color", color);
+            } catch{}
+        }
+        else // Reconnecting, check for existing data
+        {
+            UnityEngine.ColorUtility.TryParseHtmlString(PlayerPrefs.GetString("Color"), out var skinColor);
+            skinMaterial.color = skinColor;
+        }
+
+        
     }
 
     // There is arguably a lot of logic in onGUI, which runs often.
