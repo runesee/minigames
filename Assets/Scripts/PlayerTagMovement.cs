@@ -125,25 +125,7 @@ public class PlayerTagMovement : NetworkBehaviour
         if (!IsOwner) return;
         UpdateColorServerRpc(color);
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
-        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnect;  // IDEA / TODO : Try owner or not
-    }
-
-    private void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
-    {
-        SetSkinColor(new string(newValue.Value));
-    }
-
-    private void SetSkinColor(string color)
-    {
-        UnityEngine.ColorUtility.TryParseHtmlString(color, out var skinColor);
-        playerSkinRenderer.material.color = skinColor;
-    }
-
-    // TODO : xml comment & move
-    [ServerRpc]
-    public void UpdateColorServerRpc(string color)
-    {
-        colorNet.Value = new FixedString64Bytes(color);
+        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnect;
     }
 
     public override void OnNetworkDespawn()
@@ -153,6 +135,25 @@ public class PlayerTagMovement : NetworkBehaviour
         colorNet.OnValueChanged -= OnSkinColorChanged;
     }
 
+    private void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
+    {
+        SetSkinColor(new string(newValue.Value));
+    }
+
+    /// <summary>
+    /// Helper method for changing a player model's color.
+    /// </summary>
+    /// <param name="color">Updated hex-code color.</param>
+    private void SetSkinColor(string color)
+    {
+        UnityEngine.ColorUtility.TryParseHtmlString(color, out var skinColor);
+        playerSkinRenderer.material.color = skinColor;
+    }
+
+    /// <summary>
+    /// Reconstructs a disconnected player's data, if saved on host.
+    /// </summary>
+    /// <param name="clientId">Required, not used.</param>
     private void OnClientConnect(ulong clientId)
     {
         if (!TagSessionManager.Instance) return;
@@ -169,6 +170,11 @@ public class PlayerTagMovement : NetworkBehaviour
         catch (KeyNotFoundException) {}
     }
 
+    /// <summary>
+    /// Saves a disconnecting player's data as long as the host keeps running.
+    /// Used to resync player data on reconnect.
+    /// </summary>
+    /// <param name="clientId">Required, not used.</param>
     private void OnClientDisconnect(ulong clientId)
     {
         if (!IsServer) return;
@@ -183,12 +189,6 @@ public class PlayerTagMovement : NetworkBehaviour
             isTaggedNet.Value
         );
         SaveDataServerRpc(playerData);
-    }
-
-    [ServerRpc]
-    private void SaveDataServerRpc(PlayerData playerData)
-    {
-        TagSessionManager.Instance.SaveDataServerRpc(playerData);
     }
 
     // There is arguably a lot of logic in onGUI, which runs often.
@@ -247,12 +247,7 @@ public class PlayerTagMovement : NetworkBehaviour
 
     private void Update()
     {
-        
-
-        if (TagGameState.Instance != null && TagGameState.Instance.gameState.Value != TagGameState.GameState.Running)
-        {
-            return;
-        }
+        if (TagGameState.Instance != null && TagGameState.Instance.gameState.Value != TagGameState.GameState.Running) return;
 
         if (savedPosition.magnitude != 0f) {
             rb.MovePosition(savedPosition);
@@ -330,8 +325,31 @@ public class PlayerTagMovement : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Sets player model color to specified hexcode.
+    /// </summary>
+    /// <param name="color">New player model color.</param>
+    [ServerRpc]
+    public void UpdateColorServerRpc(string color)
+    {
+        colorNet.Value = new FixedString64Bytes(color);
+    }
 
-    // TODO : XML comment
+    /// <summary>
+    /// Saves Tag game data tied to a GUID on the host.
+    /// Used to re-construct game state upon reconnect.
+    /// </summary>
+    /// <param name="playerData">Tag-specific data to save on disconnect.</param>
+    [ServerRpc]
+    private void SaveDataServerRpc(PlayerData playerData)
+    {
+        TagSessionManager.Instance.SaveDataServerRpc(playerData);
+    }
+
+    /// <summary>
+    /// Reads saved Tag game data tied to a GUID, and reconstructs that player's netvars.
+    /// </summary>
+    /// <param name="playerData">Tag-specific data read on reconnect.</param>
     [ServerRpc]
     public void ResyncPlayerDataServerRpc(PlayerData playerData)
     {
