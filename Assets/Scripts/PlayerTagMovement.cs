@@ -24,6 +24,7 @@ public class PlayerTagMovement : NetworkBehaviour
     public float walkSpeedThreshold = 0.2f;
     public float exhaustedSpeedMultiplier = 0.3f;
     public float minStaminaToSprint = 5f;
+    public float taggedStaminaBoostMultiplier = 1.5f;
     
     [Header("Map Boundaries")]
     public float minX = -17f;
@@ -98,6 +99,7 @@ public class PlayerTagMovement : NetworkBehaviour
     private bool isTaunting;
     private bool canTaunt;
     private float currentSpeed;
+    private bool wasTaggedLastFrame;
 
     private void Awake()
     {
@@ -206,7 +208,8 @@ public class PlayerTagMovement : NetworkBehaviour
         GUI.color = new Color(0.2f, 0.2f, 0.2f, 0.8f);
         GUI.DrawTexture(backgroundRect, Texture2D.whiteTexture);
         
-        float staminaPercent = staminaNet.Value / maxStamina;
+        float currentMaxStamina = GetCurrentMaxStamina();
+        float staminaPercent = staminaNet.Value / currentMaxStamina;
         Rect fillRect = new Rect(xPos, yPos, barWidth * staminaPercent, barHeight);
         
         Color fillColor = Color.Lerp(Color.red, Color.green, staminaPercent);
@@ -231,6 +234,12 @@ public class PlayerTagMovement : NetworkBehaviour
             double timeSinceTagged = serverTime - lastTagTimeNet.Value;
             if (timeSinceTagged < 1.8f) return;
             else UnfreezePlayerServerRpc();
+        }
+        
+        if (isTaggedNet.Value != wasTaggedLastFrame)
+        {
+            OnTagStatusChanged(isTaggedNet.Value);
+            wasTaggedLastFrame = isTaggedNet.Value;
         }
         
         // Parse InputInteractions
@@ -392,17 +401,35 @@ public class PlayerTagMovement : NetworkBehaviour
     {
         if (!IsOwner) return;
         
+        float currentMaxStamina = GetCurrentMaxStamina();
+        float regenMultiplier = isTaggedNet.Value ? taggedStaminaBoostMultiplier : 1f;
+        
         if (normalizedSpeed > sprintSpeedThreshold)
         {
             staminaNet.Value = Mathf.Max(0f, staminaNet.Value - staminaDrainRate * Time.deltaTime);
         }
         else if (normalizedSpeed > walkSpeedThreshold)
         {
-            staminaNet.Value = Mathf.Min(maxStamina, staminaNet.Value + staminaRegenRateSlow * Time.deltaTime);
+            staminaNet.Value = Mathf.Min(currentMaxStamina, staminaNet.Value + staminaRegenRateSlow * regenMultiplier * Time.deltaTime);
         }
         else
         {
-            staminaNet.Value = Mathf.Min(maxStamina, staminaNet.Value + staminaRegenRateFast * Time.deltaTime);
+            staminaNet.Value = Mathf.Min(currentMaxStamina, staminaNet.Value + staminaRegenRateFast * regenMultiplier * Time.deltaTime);
+        }
+    }
+    
+    private float GetCurrentMaxStamina()
+    {
+        return isTaggedNet.Value ? maxStamina * taggedStaminaBoostMultiplier : maxStamina;
+    }
+    
+    private void OnTagStatusChanged(bool isNowTagged)
+    {
+        float currentMaxStamina = GetCurrentMaxStamina();
+        
+        if (staminaNet.Value > currentMaxStamina)
+        {
+            staminaNet.Value = currentMaxStamina;
         }
     }
 }
