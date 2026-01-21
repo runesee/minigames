@@ -3,10 +3,9 @@ using Unity.Netcode;
 using Unity.Collections;
 using System.Collections.Generic;
 
-public class SessionState : NetworkBehaviour
+public class TagSessionState : NetworkBehaviour
 {
-    // TODO : MOVE and RENAME to TagSessionState etc.
-    public static SessionState Instance { get; private set; }
+    public static TagSessionState Instance { get; private set; }
 
     public NetworkVariable<Dictionary<FixedString64Bytes, PlayerData>> playerData = 
     new NetworkVariable<Dictionary<FixedString64Bytes, PlayerData>>(
@@ -49,7 +48,7 @@ public class SessionState : NetworkBehaviour
     {
         DontDestroyOnLoad(this);
 
-        // New client connected, need to assign them a unique GUID
+        // New client connected, need to assign them a unique GUID  // TODO : Move into separate SessionState (global)
         if (PlayerPrefs.GetString("Guid") == "")
         {
             PlayerPrefs.SetString("Guid", System.Guid.NewGuid().ToString());

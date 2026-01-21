@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 using System.Linq;
 using System.Collections.Generic;
 using System;
-using static SessionState;
+using static TagSessionState;
 using PlayPulse.Api.Utils;
 using UnityEngine.UIElements;
 using Unity.Netcode.Components;
@@ -77,6 +77,12 @@ public class PlayerTagMovement : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
+    public NetworkVariable<FixedString64Bytes> colorNet = new NetworkVariable<FixedString64Bytes>(
+    "#D6877F",
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server
+    );
+
     private InputAction attackAction;
     private InputAction moveAction;
     private InputAction sprintAction;
@@ -99,7 +105,6 @@ public class PlayerTagMovement : NetworkBehaviour
     {
         animator = GetComponentInChildren<Animator>();
         animator.applyRootMotion = false;
-        var skinMaterial = playerSkinRenderer.material;
 
         // Init key bindings
         moveAction = InputSystem.actions.FindAction("Move");
@@ -111,38 +116,51 @@ public class PlayerTagMovement : NetworkBehaviour
         attackAction.Enable();
         interactAction.Enable();
 
+        // Set player color to the one determined by PlayerPrefs
+        colorNet.OnValueChanged += OnSkinColorChanged;
+        string color = PlayerPrefs.GetString("Color");
+        SetSkinColor(color);
+
         if (!IsOwner) return;
-
-        // Try to update client data based on stored data
-
-        // Give each player model a unique color
-        try
-        {
-            string color = PlayerPrefs.GetString("Color");
-            UnityEngine.ColorUtility.TryParseHtmlString(color, out var skinColor);
-            skinMaterial.color = skinColor; // TODO : make player color a network variable
-        } catch{}
+        UpdateColorServerRpc(color);
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
-        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnect;
+        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnect;  // IDEA / TODO : Try owner or not
     }
 
+    private void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
+    {
+        SetSkinColor(new string(newValue.Value));
+    }
 
+    private void SetSkinColor(string color)
+    {
+        UnityEngine.ColorUtility.TryParseHtmlString(color, out var skinColor);
+        playerSkinRenderer.material.color = skinColor;
+    }
+
+    // TODO : xml comment & move
+    [ServerRpc]
+    public void UpdateColorServerRpc(string color)
+    {
+        colorNet.Value = new FixedString64Bytes(color);
+    }
 
     public override void OnNetworkDespawn()
     {
         NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
         NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnect;
+        colorNet.OnValueChanged -= OnSkinColorChanged;
     }
 
     private void OnClientConnect(ulong clientId)
     {
-        if (!SessionState.Instance) return;
+        if (!TagSessionState.Instance) return;
 
         try
         {
             FixedString64Bytes guid = new FixedString64Bytes(PlayerPrefs.GetString("Guid"));
-            if (SessionState.Instance.playerData.Value.Keys.Contains(guid)) {
-                PlayerData playerData = SessionState.Instance.playerData.Value[guid];
+            if (TagSessionState.Instance.playerData.Value.Keys.Contains(guid)) {
+                PlayerData playerData = TagSessionState.Instance.playerData.Value[guid];
                 savedPosition = new Vector3(playerData.XPos, 1f, playerData.ZPos);
                 ResyncPlayerDataServerRpc(playerData);
             }
@@ -169,7 +187,7 @@ public class PlayerTagMovement : NetworkBehaviour
     [ServerRpc]
     private void SaveDataServerRpc(PlayerData playerData)
     {
-        SessionState.Instance.SaveDataServerRpc(playerData);
+        TagSessionState.Instance.SaveDataServerRpc(playerData);
     }
 
     // There is arguably a lot of logic in onGUI, which runs often.
