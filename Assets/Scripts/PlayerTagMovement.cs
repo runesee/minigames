@@ -96,7 +96,6 @@ public class PlayerTagMovement : NetworkBehaviour
     private bool isTaunting;
     private bool canTaunt;
     private float currentSpeed;
-    private StaminaBarUI staminaBarUI;
 
     private void Awake()
     {
@@ -131,8 +130,6 @@ public class PlayerTagMovement : NetworkBehaviour
         {
             staminaNet.Value = maxStamina;
         }
-        
-        CreateStaminaBar();
     }
 
     // There is arguably a lot of logic in onGUI, which runs often.
@@ -187,6 +184,34 @@ public class PlayerTagMovement : NetworkBehaviour
             }
         }
         GUILayout.EndArea();
+        
+        if (IsOwner)
+        {
+            DrawStaminaBar();
+        }
+    }
+    
+    private void DrawStaminaBar()
+    {
+        float barWidth = 200f;
+        float barHeight = 20f;
+        float padding = 20f;
+        
+        float xPos = Screen.width - barWidth - padding;
+        float yPos = Screen.height - barHeight - padding;
+        
+        Rect backgroundRect = new Rect(xPos, yPos, barWidth, barHeight);
+        GUI.color = new Color(0.2f, 0.2f, 0.2f, 0.8f);
+        GUI.DrawTexture(backgroundRect, Texture2D.whiteTexture);
+        
+        float staminaPercent = staminaNet.Value / maxStamina;
+        Rect fillRect = new Rect(xPos, yPos, barWidth * staminaPercent, barHeight);
+        
+        Color fillColor = Color.Lerp(Color.red, Color.green, staminaPercent);
+        GUI.color = fillColor;
+        GUI.DrawTexture(fillRect, Texture2D.whiteTexture);
+        
+        GUI.color = Color.white;
     }
 
     private void Update()
@@ -320,11 +345,6 @@ public class PlayerTagMovement : NetworkBehaviour
         animator.SetBool("isPunching", isPunchingNet.Value);
         animator.SetBool("isHit", isHitNet.Value);
         animator.SetBool("isTaunting", isTauntingNet.Value);
-        
-        if (staminaBarUI != null)
-        {
-            staminaBarUI.UpdateStamina(staminaNet.Value / maxStamina);
-        }
     }
 
     /// <summary>
@@ -372,72 +392,6 @@ public class PlayerTagMovement : NetworkBehaviour
         else
         {
             staminaNet.Value = Mathf.Min(maxStamina, staminaNet.Value + staminaRegenRateFast * Time.deltaTime);
-        }
-    }
-    
-    private void CreateStaminaBar()
-    {
-        if (!IsOwner) return;
-        
-        Canvas canvas = FindFirstObjectByType<Canvas>();
-        if (canvas == null)
-        {
-            GameObject canvasObject = new GameObject("StaminaBarsCanvas");
-            canvas = canvasObject.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 1000;
-            
-            UnityEngine.UI.CanvasScaler scaler = canvasObject.AddComponent<UnityEngine.UI.CanvasScaler>();
-            scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080);
-            
-            canvasObject.AddComponent<UnityEngine.UI.GraphicRaycaster>();
-        }
-        else
-        {
-            if (canvas.sortingOrder < 1000)
-            {
-                canvas.sortingOrder = 1000;
-            }
-        }
-        
-        GameObject staminaBarObject = new GameObject("StaminaBar");
-        staminaBarObject.transform.SetParent(canvas.transform, false);
-        
-        RectTransform barRect = staminaBarObject.AddComponent<RectTransform>();
-        barRect.sizeDelta = new Vector2(200f, 20f);
-        barRect.anchorMin = new Vector2(1f, 0f);
-        barRect.anchorMax = new Vector2(1f, 0f);
-        barRect.pivot = new Vector2(1f, 0f);
-        barRect.anchoredPosition = new Vector2(-20f, 20f);
-        
-        GameObject backgroundObject = new GameObject("Background");
-        backgroundObject.transform.SetParent(staminaBarObject.transform, false);
-        RectTransform bgRect = backgroundObject.AddComponent<RectTransform>();
-        bgRect.anchorMin = Vector2.zero;
-        bgRect.anchorMax = Vector2.one;
-        bgRect.sizeDelta = Vector2.zero;
-        UnityEngine.UI.Image bgImage = backgroundObject.AddComponent<UnityEngine.UI.Image>();
-        bgImage.color = new Color(0.2f, 0.2f, 0.2f, 0.8f);
-        
-        GameObject fillObject = new GameObject("Fill");
-        fillObject.transform.SetParent(staminaBarObject.transform, false);
-        RectTransform fillRect = fillObject.AddComponent<RectTransform>();
-        fillRect.anchorMin = Vector2.zero;
-        fillRect.anchorMax = Vector2.one;
-        fillRect.sizeDelta = Vector2.zero;
-        UnityEngine.UI.Image fillImage = fillObject.AddComponent<UnityEngine.UI.Image>();
-        fillImage.type = UnityEngine.UI.Image.Type.Filled;
-        fillImage.fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
-        fillImage.color = Color.green;
-        
-        staminaBarUI = staminaBarObject.AddComponent<StaminaBarUI>();
-        
-        System.Reflection.FieldInfo fillImageField = typeof(StaminaBarUI).GetField("fillImage", 
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        if (fillImageField != null)
-        {
-            fillImageField.SetValue(staminaBarUI, fillImage);
         }
     }
 }
