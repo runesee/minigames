@@ -385,8 +385,20 @@ public class PlayerTagMovement : NetworkBehaviour
             GameObject canvasObject = new GameObject("StaminaBarsCanvas");
             canvas = canvasObject.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvasObject.AddComponent<UnityEngine.UI.CanvasScaler>();
+            canvas.sortingOrder = 1000;
+            
+            UnityEngine.UI.CanvasScaler scaler = canvasObject.AddComponent<UnityEngine.UI.CanvasScaler>();
+            scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920, 1080);
+            
             canvasObject.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+        }
+        else
+        {
+            if (canvas.sortingOrder < 1000)
+            {
+                canvas.sortingOrder = 1000;
+            }
         }
         
         GameObject staminaBarObject = new GameObject("StaminaBar");
