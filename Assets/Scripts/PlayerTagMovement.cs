@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 using System.Linq;
 using System.Collections.Generic;
 using System;
-using static TagSessionState;
+using static TagSessionManager;
 using PlayPulse.Api.Utils;
 using UnityEngine.UIElements;
 using Unity.Netcode.Components;
@@ -116,6 +116,7 @@ public class PlayerTagMovement : NetworkBehaviour
         attackAction.Enable();
         interactAction.Enable();
 
+        // ONLY used for syncing colors on connect. Does not allow changing color during Tag otherwise.
         // Set player color to the one determined by PlayerPrefs
         colorNet.OnValueChanged += OnSkinColorChanged;
         string color = PlayerPrefs.GetString("Color");
@@ -154,13 +155,13 @@ public class PlayerTagMovement : NetworkBehaviour
 
     private void OnClientConnect(ulong clientId)
     {
-        if (!TagSessionState.Instance) return;
+        if (!TagSessionManager.Instance) return;
 
         try
         {
             FixedString64Bytes guid = new FixedString64Bytes(PlayerPrefs.GetString("Guid"));
-            if (TagSessionState.Instance.playerData.Value.Keys.Contains(guid)) {
-                PlayerData playerData = TagSessionState.Instance.playerData.Value[guid];
+            if (TagSessionManager.Instance.ContainsGuid(guid)) {
+                PlayerData playerData = (PlayerData) TagSessionManager.Instance.GetDataByGuid(guid); // Already know Guid exists, ignore null case
                 savedPosition = new Vector3(playerData.XPos, 1f, playerData.ZPos);
                 ResyncPlayerDataServerRpc(playerData);
             }
@@ -187,7 +188,7 @@ public class PlayerTagMovement : NetworkBehaviour
     [ServerRpc]
     private void SaveDataServerRpc(PlayerData playerData)
     {
-        TagSessionState.Instance.SaveDataServerRpc(playerData);
+        TagSessionManager.Instance.SaveDataServerRpc(playerData);
     }
 
     // There is arguably a lot of logic in onGUI, which runs often.
