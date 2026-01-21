@@ -22,6 +22,8 @@ public class PlayerTagMovement : NetworkBehaviour
     public float staminaRegenRateFast = 15f;
     public float sprintSpeedThreshold = 0.5f;
     public float walkSpeedThreshold = 0.2f;
+    public float exhaustedSpeedMultiplier = 0.3f;
+    public float minStaminaToSprint = 5f;
     
     [Header("Map Boundaries")]
     public float minX = -17f;
@@ -233,11 +235,14 @@ public class PlayerTagMovement : NetworkBehaviour
         
         // Parse InputInteractions
         Vector2 input = moveAction.ReadValue<Vector2>();
-        isSprinting = sprintAction.IsPressed();
+        bool wantsToSprint = sprintAction.IsPressed();
         Vector3 movement = new Vector3(input.x, 0, input.y);
         isTaunting = interactAction.ReadValue<float>() > 0f;
         isPunching = attackAction.WasPerformedThisFrame();
         isPunchingNet.Value = isPunching && isTaggedNet.Value;
+        
+        bool canSprint = wantsToSprint && staminaNet.Value >= minStaminaToSprint;
+        isSprinting = canSprint;
         isSprintingNet.Value = isSprinting;
 
         // Set target player as isHit if punched by punching player
@@ -265,6 +270,12 @@ public class PlayerTagMovement : NetworkBehaviour
           isSprintingNet.Value = false;
         } 
         float moveSpeed =  isSprinting ? sprintSpeed : walkSpeed;
+        
+        if (staminaNet.Value <= 0f)
+        {
+            moveSpeed *= exhaustedSpeedMultiplier;
+        }
+        
         Vector3 newPosition = rb.position + movement * moveSpeed * Time.deltaTime;
         newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
         newPosition.z = Mathf.Clamp(newPosition.z, minZ, maxZ);
