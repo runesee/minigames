@@ -21,17 +21,6 @@ public class InGameMenuController : MonoBehaviour
     private bool isMenuOpen = false;
     private float joystickTimer = 0f;
 
-    void Start()
-    {
-        PlayPulse.PlayPulseService.Initialize(
-            string.Empty,
-            connectToBikeService: true,
-            appSocketPathOverride: "127.0.0.1:13337",
-            shellSocketPathOverride: "127.0.0.1:13337",
-            useTcpSocket: true
-        );
-    }
-
     private void Update()
     {
         joystickTimer -= Time.unscaledDeltaTime;
