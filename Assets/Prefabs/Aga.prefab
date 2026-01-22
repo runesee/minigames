@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 3680293497773164783}
   - component: {fileID: 1155656977587591010}
   - component: {fileID: 8235293641429638268}
+  - component: {fileID: 5568033458682530780}
   m_Layer: 0
   m_Name: Aga
   m_TagString: Untagged
@@ -75,7 +76,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3990490726
+  GlobalObjectIdHash: 3051191352
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -103,6 +104,10 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   walkSpeed: 3
   sprintSpeed: 8
+  minX: -17
+  maxX: 17
+  minZ: -13
+  maxZ: 12
   RotateSpeed: 30
 --- !u!54 &2317850879932105327
 Rigidbody:
@@ -233,6 +238,10 @@ MonoBehaviour:
   walkSpeed: 3
   sprintSpeed: 8
   RotateSpeed: 30
+  minX: -17
+  maxX: 17
+  minZ: -13
+  maxZ: 12
   playerColors:
   - '#D6877F'
   - '#7fb3d6'
@@ -240,6 +249,28 @@ MonoBehaviour:
   - '#d6d37f'
   isTaggedNet:
     m_InternalValue: 0
+  timeSpentTaggedNet:
+    m_InternalValue: 0
+  lastTagTimeNet:
+    m_InternalValue: 0
+--- !u!114 &5568033458682530780
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8587370964938106638}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29351066e2a5a40469c2be99a1036168, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TaggedPlayerVisualizer
+  ShowTopMostFoldoutHeaderGroup: 1
+  playerSkinRenderer: {fileID: 8576045237320093323}
+  glowColor: {r: 1, g: 0.3, b: 0.3, a: 1}
+  glowIntensity: 2
+  markerPrefab: {fileID: 2861896397478858066, guid: 7c48f679abde14eaa9db02b4b115a613, type: 3}
+  markerOffset: {x: 0, y: 2.5, z: 0}
 --- !u!1001 &2472634209218968432
 PrefabInstance:
   m_ObjectHideFlags: 0
