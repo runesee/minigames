@@ -206,31 +206,6 @@ public class PlayerTagMovement : NetworkBehaviour
         // Parse InputInteractions
         Vector2 input = moveAction.ReadValue<Vector2>();
 
-        // TODO : Fix jitter when moving at speed close to boundary of running av walking. 
-        /*if (PlayPulse.Input.Input.Speed > 0.4f || sprintAction.IsPressed() && !isSprinting) {
-            // Was walking, now starting to sprint
-            if (serverTime - sprintToggleTime > 0.5f) {
-                UnityEngine.Debug.Log(serverTime);
-                UnityEngine.Debug.Log(sprintToggleTime);
-                sprintToggleTime = serverTime;
-                isSprinting = true;
-            }
-            else {
-                isSprinting = false;
-            }
-        }
-        else if (PlayPulse.Input.Input.Speed < 0.4f || !sprintAction.IsPressed() && isSprinting) {
-            // Was sprinting, now below threshhold/stopped sprinting
-            if (serverTime - sprintToggleTime > 0.5f) {
-                UnityEngine.Debug.Log("aa");
-                sprintToggleTime = serverTime;
-                isSprinting = false;
-            }
-            else {
-                isSprinting = true;
-            }
-        }*/
-
         isSprinting = PlayPulse.Input.Input.Speed > 0.4f || sprintAction.IsPressed();
         Vector3 movement = new Vector3(input.x, 0, input.y);
         isTaunting = (interactAction.ReadValue<float>() > 0f && interactAction.WasPressedThisFrame()) || 
