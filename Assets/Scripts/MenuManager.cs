@@ -12,6 +12,7 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button generateNicknameButton;
     [SerializeField] private UnityEngine.UI.Dropdown colorDropdown;
     [SerializeField] private UnityEngine.UI.Image colorPreview;
+    [SerializeField] private CharacterPreview characterPreview;
     [SerializeField] private UnityEngine.UI.Button confirmButton;
     [SerializeField] private UnityEngine.UI.Text confirmButtonText;
 
@@ -48,9 +49,16 @@ public class MenuManager : MonoBehaviour
 
     private void OnColorChanged(int colorIndex)
     {
+        Color selectedColor = PlayerColorManager.GetColor(colorIndex);
+        
         if (colorPreview != null)
         {
-            colorPreview.color = PlayerColorManager.GetColor(colorIndex);
+            colorPreview.color = selectedColor;
+        }
+        
+        if (characterPreview != null)
+        {
+            characterPreview.SetColor(selectedColor);
         }
     }
 
