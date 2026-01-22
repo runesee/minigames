@@ -10,6 +10,12 @@ public class NetworkPlayer : NetworkBehaviour
     public float walkSpeed = 3f;
     public float sprintSpeed = 8f;
 
+    [Header("Map Boundaries")]
+    public float minX = -17f;
+    public float maxX = 17f;
+    public float minZ = -13f;
+    public float maxZ = 12f;
+
     private Animator animator;
 
     private NetworkVariable<bool> isWalkingNet = new NetworkVariable<bool>(
@@ -81,7 +87,10 @@ public class NetworkPlayer : NetworkBehaviour
           isFightingNet.Value = CheckNearbyPlayers(3f); 
         } 
         float moveSpeed =  isSprinting ? sprintSpeed : walkSpeed;
-        rb.MovePosition(rb.position + movement * moveSpeed * Time.deltaTime);
+        Vector3 newPosition = rb.position + movement * moveSpeed * Time.deltaTime;
+        newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
+        newPosition.z = Mathf.Clamp(newPosition.z, minZ, maxZ);
+        rb.MovePosition(newPosition);
         SubmitPositionServerRpc(rb.position);
     }
 

@@ -17,6 +17,12 @@ public class PlayerTagMovement : NetworkBehaviour
     public float sprintSpeed = 8f;
     public float RotateSpeed = 30f;
     
+    [Header("Map Boundaries")]
+    public float minX = -17f;
+    public float maxX = 17f;
+    public float minZ = -13f;
+    public float maxZ = 12f;
+    
     [Header("Player Customization")]
     public List<string> playerColors = new List<string>()
     {
@@ -56,12 +62,12 @@ public class PlayerTagMovement : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner
     );
-    private NetworkVariable<double> timeSpentTaggedNet = new NetworkVariable<double>(
+    public NetworkVariable<double> timeSpentTaggedNet = new NetworkVariable<double>(
         0,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
-    private NetworkVariable<double> lastTagTimeNet = new NetworkVariable<double>(
+    public NetworkVariable<double> lastTagTimeNet = new NetworkVariable<double>(
         0,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
@@ -89,7 +95,8 @@ public class PlayerTagMovement : NetworkBehaviour
 
     void Start() {
         // Initialize connection with PP-service
-        PlayPulse.PlayPulseService.Initialize(
+        if (!PlayPulse.PlayPulseService.IsInitialized) {
+            PlayPulse.PlayPulseService.Initialize(
             string.Empty,
             connectToBikeService: true,
             appSocketPathOverride: "127.0.0.1:13337",
@@ -99,6 +106,7 @@ public class PlayerTagMovement : NetworkBehaviour
         // Reset resistance
         pedalResistance = 0.2f; 
         PlayPulse.Input.Input.ResistanceSetPoint = pedalResistance;
+        }
     }
 
     public override void OnNetworkSpawn()
@@ -185,6 +193,11 @@ public class PlayerTagMovement : NetworkBehaviour
     {
         if (!IsOwner) return;
 
+        if (TagGameState.Instance != null && TagGameState.Instance.gameState.Value != TagGameState.GameState.Running)
+        {
+            return;
+        }
+
         // Attempt to change gears if user presses right or left trigger
         float deltaResistance = PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.RightTrigger) ? 0.2f : -0.2f;
         if (PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.LeftTrigger) 
@@ -194,7 +207,6 @@ public class PlayerTagMovement : NetworkBehaviour
             PlayPulse.Input.Input.ResistanceSetPoint = pedalResistance;
         }
 
-        // If tagged, client does nothing until roughly 1.8 seconds have passed
         double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
         if (isHitNet.Value)
         {
@@ -227,8 +239,8 @@ public class PlayerTagMovement : NetworkBehaviour
         }
 
         // Handle animations and update position based on input actions
-        float pedalSpeed = PlayPulse.Input.Input.Speed > 0f ? Math.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f) : 1f;
-        float pedalAnimationSpeed = PlayPulse.Input.Input.Speed > 0f ? 2 * pedalSpeed : pedalSpeed;
+        float pedalSpeed = PlayPulse.Input.Input.Speed > 0f ? Math.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f) : 0f;
+        float pedalAnimationSpeed = PlayPulse.Input.Input.Speed > 0f ? 2 * pedalSpeed : 1f;
         movement = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ? 
         new Vector3((-1)*PlayPulse.Input.Input.JoystickX, 0, (-1)*PlayPulse.Input.Input.JoystickY) : movement;
         if (movement.sqrMagnitude > 0.01f)
@@ -246,7 +258,10 @@ public class PlayerTagMovement : NetworkBehaviour
           animator.speed = 1.0f; // Only use custom speed for walking and running anims
         } 
         float moveSpeed =  isSprinting ? sprintSpeed : walkSpeed;
-        rb.MovePosition(rb.position + movement * pedalSpeed * moveSpeed * Time.deltaTime);
+        Vector3 newPosition = rb.position + movement * pedalSpeed * moveSpeed * Time.deltaTime;
+        newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
+        newPosition.z = Mathf.Clamp(newPosition.z, minZ, maxZ);
+        rb.MovePosition(newPosition);
 
         // Lastly, if neither moving or tagging, check if taunting.
         // Sets both trigger and bool value in Animator.
