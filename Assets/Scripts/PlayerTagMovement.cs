@@ -249,9 +249,9 @@ public class PlayerTagMovement : NetworkBehaviour
     {
         if (TagGameState.Instance != null && TagGameState.Instance.gameState.Value != TagGameState.GameState.Running) return;
 
+        // TODO : add flag instead of constant checks
         if (savedPosition.magnitude != 0f) {
             rb.MovePosition(savedPosition);
-            Debug.Log(savedPosition.x);
             savedPosition = default;
             return;
         }
