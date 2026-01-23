@@ -1,10 +1,15 @@
 using Unity.Netcode;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System;
+using static TagSessionManager;
+using PlayPulse.Api.Utils;
+using UnityEngine.UIElements;
+using Unity.Netcode.Components;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
@@ -83,6 +88,13 @@ public class PlayerTagMovement : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
+
+    public NetworkVariable<FixedString64Bytes> colorNet = new NetworkVariable<FixedString64Bytes>(
+    "#D6877F",
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server
+    );
+
     private NetworkVariable<float> staminaNet = new NetworkVariable<float>(
         100f,
         NetworkVariableReadPermission.Everyone,
@@ -100,10 +112,9 @@ public class PlayerTagMovement : NetworkBehaviour
     private bool isPunching;
     private bool isTaunting;
     private bool canTaunt;
+    private Vector3 savedPosition = default;
     private float currentSpeed;
     private bool wasTaggedLastFrame;
-
-    //private double sprintToggleTime;
     private float pedalResistance;
 
     private void Awake()
@@ -141,21 +152,85 @@ public class PlayerTagMovement : NetworkBehaviour
         sprintAction.Enable();
         attackAction.Enable();
         interactAction.Enable();
-        //sprintToggleTime = 0.0f;
 
-        // Give each player model a unique color
-        // TODO : Use GUIDs once implemented to re-assign upon reconnect.
-        try
-        {
-            var skinMaterial = playerSkinRenderer.material;
-            UnityEngine.ColorUtility.TryParseHtmlString(playerColors[(int) OwnerClientId % playerColors.Count], out var skinColor);
-            skinMaterial.color = skinColor;            
-        } catch{}
-        
+        // ONLY used for syncing colors on connect. Does not allow changing color during Tag otherwise.
+        // Set player color to the one determined by PlayerPrefs
+        colorNet.OnValueChanged += OnSkinColorChanged;
+        string color = PlayerPrefs.GetString("Color");
+        SetSkinColor(color);
+
         if (IsOwner)
         {
             staminaNet.Value = maxStamina;
         }
+
+        if (!IsOwner) return;
+        UpdateColorServerRpc(color);
+        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
+        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnect;
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
+        NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnect;
+        colorNet.OnValueChanged -= OnSkinColorChanged;
+    }
+
+    private void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
+    {
+        SetSkinColor(new string(newValue.Value));
+    }
+
+    /// <summary>
+    /// Helper method for changing a player model's color.
+    /// </summary>
+    /// <param name="color">Updated hex-code color.</param>
+    private void SetSkinColor(string color)
+    {
+        UnityEngine.ColorUtility.TryParseHtmlString(color, out var skinColor);
+        playerSkinRenderer.material.color = skinColor;
+    }
+
+    /// <summary>
+    /// Reconstructs a disconnected player's data, if saved on host.
+    /// </summary>
+    /// <param name="clientId">Required, not used.</param>
+    private void OnClientConnect(ulong clientId)
+    {
+        if (!TagSessionManager.Instance) return;
+
+        try
+        {
+            FixedString64Bytes guid = new FixedString64Bytes(PlayerPrefs.GetString("Guid"));
+            if (TagSessionManager.Instance.ContainsGuid(guid)) {
+                PlayerData playerData = (PlayerData) TagSessionManager.Instance.GetDataByGuid(guid); // Already know Guid exists, ignore null case
+                savedPosition = new Vector3(playerData.XPos, 1f, playerData.ZPos);
+                ResyncPlayerDataServerRpc(playerData);
+            }
+        }
+        catch (KeyNotFoundException) {}
+    }
+
+    /// <summary>
+    /// Saves a disconnecting player's data as long as the host keeps running.
+    /// Used to resync player data on reconnect.
+    /// </summary>
+    /// <param name="clientId">Required, not used.</param>
+    private void OnClientDisconnect(ulong clientId)
+    {
+        if (!IsServer) return;
+        var position = transform.position;
+
+        PlayerData playerData = new PlayerData(
+            PlayerPrefs.GetString("Guid"),
+            position.x,
+            position.z,
+            timeSpentTaggedNet.Value,
+            lastTagTimeNet.Value,
+            isTaggedNet.Value
+        );
+        SaveDataServerRpc(playerData);
     }
 
     // There is arguably a lot of logic in onGUI, which runs often.
@@ -243,13 +318,14 @@ public class PlayerTagMovement : NetworkBehaviour
 
     private void Update()
     {
-        if (!IsOwner) return;
+        if (TagGameState.Instance != null && TagGameState.Instance.gameState.Value != TagGameState.GameState.Running) return;
 
-        if (TagGameState.Instance != null && TagGameState.Instance.gameState.Value != TagGameState.GameState.Running)
-        {
+        // TODO : add flag instead of constant checks
+        if (savedPosition.magnitude != 0f) {
+            rb.MovePosition(savedPosition);
+            savedPosition = default;
             return;
         }
-
         // Attempt to change gears if user presses right or left trigger
         float deltaResistance = PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.RightTrigger) ? 0.2f : -0.2f;
         if (PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.LeftTrigger) 
@@ -259,6 +335,7 @@ public class PlayerTagMovement : NetworkBehaviour
             PlayPulse.Input.Input.ResistanceSetPoint = pedalResistance;
         }
 
+        if (!IsOwner) return;
         double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
         if (isHitNet.Value)
         {
@@ -354,6 +431,39 @@ public class PlayerTagMovement : NetworkBehaviour
     }
 
     /// <summary>
+    /// Sets player model color to specified hexcode.
+    /// </summary>
+    /// <param name="color">New player model color.</param>
+    [ServerRpc]
+    public void UpdateColorServerRpc(string color)
+    {
+        colorNet.Value = new FixedString64Bytes(color);
+    }
+
+    /// <summary>
+    /// Saves Tag game data tied to a GUID on the host.
+    /// Used to re-construct game state upon reconnect.
+    /// </summary>
+    /// <param name="playerData">Tag-specific data to save on disconnect.</param>
+    [ServerRpc]
+    private void SaveDataServerRpc(PlayerData playerData)
+    {
+        TagSessionManager.Instance.SaveDataServerRpc(playerData);
+    }
+
+    /// <summary>
+    /// Reads saved Tag game data tied to a GUID, and reconstructs that player's netvars.
+    /// </summary>
+    /// <param name="playerData">Tag-specific data read on reconnect.</param>
+    [ServerRpc]
+    public void ResyncPlayerDataServerRpc(PlayerData playerData)
+    {
+        timeSpentTaggedNet.Value = playerData.TimeSpentTagged;
+        lastTagTimeNet.Value = playerData.LastTagTime;
+        isTaggedNet.Value = playerData.IsTagged;
+    }
+
+    /// <summary>
     /// Re-enable user actions after freeze period.
     /// </summary>
     [ServerRpc]
@@ -380,7 +490,7 @@ public class PlayerTagMovement : NetworkBehaviour
         // Add timediff to current player
         timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;//a
         victim.lastTagTimeNet.Value = serverTime;
-        TagGameState.Instance.taggedPlayerIdNet.Value = victimId;
+        TagGameState.Instance.taggedPlayerIdNet.Value = victimId; // TODO : change victimID to GUID
     }
 
     /// <summary>
