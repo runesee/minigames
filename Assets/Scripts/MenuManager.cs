@@ -213,7 +213,9 @@ public class MenuManager : MonoBehaviour
         }
 
         NetworkManager.Singleton.StartHost();
-        LoadGameScene();
+        
+        NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnSceneLoadCompleted;
+        NetworkManager.Singleton.SceneManager.LoadScene("TagScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
     }
 
     private void StartClient()
@@ -232,18 +234,13 @@ public class MenuManager : MonoBehaviour
         }
 
         NetworkManager.Singleton.StartClient();
-        LoadGameScene();
     }
 
-    private void LoadGameScene()
+    private void OnSceneLoadCompleted(string sceneName, UnityEngine.SceneManagement.LoadSceneMode loadSceneMode, System.Collections.Generic.List<ulong> clientsCompleted, System.Collections.Generic.List<ulong> clientsTimedOut)
     {
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+        if (NetworkManager.Singleton != null)
         {
-            NetworkManager.Singleton.SceneManager.LoadScene("TagScene", LoadSceneMode.Single);
-        }
-        else
-        {
-            SceneManager.LoadScene("TagScene");
+            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnSceneLoadCompleted;
         }
     }
 
