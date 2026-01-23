@@ -2774,7 +2774,6 @@ MonoBehaviour:
   characterPreview: {fileID: 1683821220}
   confirmButton: {fileID: 288099762}
   confirmButtonText: {fileID: 1920874485}
-  isHostMode: 0
 --- !u!1 &1920874483
 GameObject:
   m_ObjectHideFlags: 0
