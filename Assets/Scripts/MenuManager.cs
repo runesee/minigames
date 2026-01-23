@@ -209,13 +209,22 @@ public class MenuManager : MonoBehaviour
         var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
         if (transport != null)
         {
-            transport.SetConnectionData(GetLocalIPAddress(), PORT);
+            string localIP = GetLocalIPAddress();
+            Debug.Log($"[Host] Setting connection data - IP: {localIP}, Port: {PORT}");
+            transport.SetConnectionData(localIP, PORT);
         }
 
-        NetworkManager.Singleton.StartHost();
-        
-        NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnSceneLoadCompleted;
-        NetworkManager.Singleton.SceneManager.LoadScene("TagScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
+        bool started = NetworkManager.Singleton.StartHost();
+        if (started)
+        {
+            Debug.Log("[Host] Started successfully, loading TagScene...");
+            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnSceneLoadCompleted;
+            NetworkManager.Singleton.SceneManager.LoadScene("TagScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
+        }
+        else
+        {
+            Debug.LogError("[Host] Failed to start!");
+        }
     }
 
     private void StartClient()
@@ -230,10 +239,37 @@ public class MenuManager : MonoBehaviour
         if (transport != null)
         {
             string ipAddress = ipInputField != null ? ipInputField.text : "127.0.0.1";
+            Debug.Log($"[Client] Setting connection data - IP: {ipAddress}, Port: {PORT}");
             transport.SetConnectionData(ipAddress, PORT);
         }
 
-        NetworkManager.Singleton.StartClient();
+        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
+
+        bool started = NetworkManager.Singleton.StartClient();
+        if (started)
+        {
+            Debug.Log("[Client] Connection attempt started...");
+        }
+        else
+        {
+            Debug.LogError("[Client] Failed to start connection!");
+        }
+    }
+
+    private void OnClientConnected(ulong clientId)
+    {
+        Debug.Log($"[Client] Connected with ID: {clientId}");
+    }
+
+    private void OnClientDisconnected(ulong clientId)
+    {
+        Debug.LogWarning($"[Client] Disconnected with ID: {clientId}");
+        if (NetworkManager.Singleton != null)
+        {
+            NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
+            NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
+        }
     }
 
     private void OnSceneLoadCompleted(string sceneName, UnityEngine.SceneManagement.LoadSceneMode loadSceneMode, System.Collections.Generic.List<ulong> clientsCompleted, System.Collections.Generic.List<ulong> clientsTimedOut)
