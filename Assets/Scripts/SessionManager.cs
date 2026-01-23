@@ -49,8 +49,6 @@ public class SessionManager : NetworkBehaviour
         if (PlayerPrefs.GetString("Guid") == "")
         {
             PlayerPrefs.SetString("Guid", System.Guid.NewGuid().ToString());
-            PlayerPrefs.SetString("Color", "#7fb3d6");
-            PlayerPrefs.SetString("Username", "Placeholder");
         }
     }
 
