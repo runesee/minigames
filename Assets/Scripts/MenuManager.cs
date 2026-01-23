@@ -149,7 +149,7 @@ public class MenuManager : MonoBehaviour
     {
         string nickname = nicknameInputField.text;
         int colorIndex = colorDropdown.value;
-        PlayerPrefs.SetString("Color", ColorUtility.ToHtmlStringRGB(PlayerColorManager.GetColor(colorIndex)));
+        PlayerPrefs.SetString("Color", "#" + ColorUtility.ToHtmlStringRGB(PlayerColorManager.GetColor(colorIndex)));
 
         if (string.IsNullOrWhiteSpace(nickname))
         {
