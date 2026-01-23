@@ -353,7 +353,7 @@ public class PlayerTagMovement : NetworkBehaviour
         // Parse InputInteractions
         Vector2 input = moveAction.ReadValue<Vector2>();
 
-        bool wantsToSprint = PlayPulse.Input.Input.Speed > 0.4f || sprintAction.IsPressed();
+        bool wantsToSprint = sprintAction.IsPressed();
         Vector3 movement = new Vector3(input.x, 0, input.y);
         isTaunting = (interactAction.ReadValue<float>() > 0f && interactAction.WasPressedThisFrame()) || 
         PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.Y);
@@ -407,8 +407,7 @@ public class PlayerTagMovement : NetworkBehaviour
         newPosition.z = Mathf.Clamp(newPosition.z, minZ, maxZ);
         rb.MovePosition(newPosition);
         
-        currentSpeed = movement.magnitude * moveSpeed / sprintSpeed;
-        UpdateStamina(currentSpeed);
+        UpdateStamina(isSprinting);
 
         // Lastly, if neither moving or tagging, check if taunting.
         // Sets both trigger and bool value in Animator.
@@ -547,20 +546,16 @@ public class PlayerTagMovement : NetworkBehaviour
         return isWithinBounds ? closest : null;
     }
     
-    private void UpdateStamina(float normalizedSpeed)
+    private void UpdateStamina(bool isCurrentlySprinting)
     {
         if (!IsOwner) return;
         
         float currentMaxStamina = GetCurrentMaxStamina();
         float regenMultiplier = isTaggedNet.Value ? taggedStaminaBoostMultiplier : 1f;
         
-        if (normalizedSpeed > sprintSpeedThreshold)
+        if (isCurrentlySprinting)
         {
             staminaNet.Value = Mathf.Max(0f, staminaNet.Value - staminaDrainRate * Time.deltaTime);
-        }
-        else if (normalizedSpeed > walkSpeedThreshold)
-        {
-            staminaNet.Value = Mathf.Min(currentMaxStamina, staminaNet.Value + staminaRegenRateSlow * regenMultiplier * Time.deltaTime);
         }
         else
         {
