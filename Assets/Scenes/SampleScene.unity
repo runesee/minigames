@@ -227,7 +227,7 @@ GameObject:
   - component: {fileID: 869136228}
   - component: {fileID: 869136230}
   - component: {fileID: 869136229}
-  - component: {fileID: 869136232}
+  - component: {fileID: 869136231}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -321,7 +321,7 @@ MonoBehaviour:
     OldPrefabList: []
   RunInBackground: 1
   LogLevel: 1
---- !u!114 &869136232
+--- !u!114 &869136231
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -330,9 +330,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 869136226}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5703791a77defc46898e88ebe564844, type: 3}
+  m_Script: {fileID: 11500000, guid: da17eb8bab37c4b5db2194b4f268d7e0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MainMenuController
+  m_EditorClassIdentifier: Assembly-CSharp::NetworkManagerPersistence
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
