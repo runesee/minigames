@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using System.Net;
@@ -12,6 +14,12 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private GameObject mainMenuPanel;
     [SerializeField] private GameObject setupMenuPanel;
 
+    [Header("Main Menu Buttons")]
+    [SerializeField] private UnityEngine.UI.Button hostButton;
+    [SerializeField] private UnityEngine.UI.Button joinButton;
+    [SerializeField] private UnityEngine.UI.Button settingsButton;
+    [SerializeField] private UnityEngine.UI.Button quitButton;
+
     [Header("Setup Menu")]
     [SerializeField] private UnityEngine.UI.InputField nicknameInputField;
     [SerializeField] private UnityEngine.UI.Button generateNicknameButton;
@@ -22,10 +30,16 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Text confirmButtonText;
     [SerializeField] private GameObject ipLabel;
     [SerializeField] private UnityEngine.UI.InputField ipInputField;
+    [SerializeField] private UnityEngine.UI.Button backButton;
+
+    [Header("Joystick Navigation")]
+    [SerializeField] private float joystickDeadzone = 0.5f;
+    [SerializeField] private float joystickRepeatDelay = 0.25f;
 
     private bool isHostMode;
     private const ushort PORT = 7777;
     private static Sprite whiteSprite;
+    private float joystickTimer = 0f;
 
     private static readonly string[] randomNicknames = new string[]
     {
@@ -45,6 +59,15 @@ public class MenuManager : MonoBehaviour
         ShowMainMenu();
         colorDropdown.onValueChanged.AddListener(OnColorChanged);
         OnColorChanged(colorDropdown.value);
+        SelectButton(hostButton);
+    }
+
+    private void Update()
+    {
+        joystickTimer -= Time.unscaledDeltaTime;
+        
+        HandleKeyboardNavigation();
+        HandleJoystickNavigation();
     }
 
     private void OnDestroy()
@@ -184,6 +207,8 @@ public class MenuManager : MonoBehaviour
     {
         mainMenuPanel.SetActive(true);
         setupMenuPanel.SetActive(false);
+        joystickTimer = 0f;
+        SelectButton(hostButton);
     }
 
     private void ShowSetupMenu()
@@ -198,6 +223,9 @@ public class MenuManager : MonoBehaviour
         
         if (ipLabel != null) ipLabel.SetActive(false);
         if (ipInputField != null) ipInputField.gameObject.SetActive(false);
+        
+        joystickTimer = 0f;
+        SelectSelectable(nicknameInputField);
     }
 
     private void StartHost()
@@ -301,5 +329,214 @@ public class MenuManager : MonoBehaviour
         }
 
         return "127.0.0.1";
+    }
+
+    private void HandleKeyboardNavigation()
+    {
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard == null)
+            return;
+
+        if (keyboard.upArrowKey.wasPressedThisFrame || keyboard.wKey.wasPressedThisFrame)
+        {
+            NavigateUp();
+        }
+        else if (keyboard.downArrowKey.wasPressedThisFrame || keyboard.sKey.wasPressedThisFrame)
+        {
+            NavigateDown();
+        }
+        else if (keyboard.enterKey.wasPressedThisFrame ||
+                 keyboard.spaceKey.wasPressedThisFrame ||
+                 PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A))
+        {
+            SubmitSelection();
+        }
+        else if (keyboard.escapeKey.wasPressedThisFrame && setupMenuPanel.activeSelf)
+        {
+            OnBackButtonClicked();
+        }
+    }
+
+    private void HandleJoystickNavigation()
+    {
+        if (joystickTimer > 0f)
+            return;
+
+        float y = PlayPulse.Input.Input.JoystickY;
+
+        if (y < -joystickDeadzone)
+        {
+            NavigateUp();
+            joystickTimer = joystickRepeatDelay;
+        }
+        else if (y > joystickDeadzone)
+        {
+            NavigateDown();
+            joystickTimer = joystickRepeatDelay;
+        }
+    }
+
+    private void NavigateUp()
+    {
+        GameObject currentSelected = EventSystem.current.currentSelectedGameObject;
+
+        if (mainMenuPanel.activeSelf)
+        {
+            if (currentSelected == null)
+            {
+                SelectButton(hostButton);
+            }
+            else if (currentSelected == hostButton.gameObject)
+            {
+                SelectButton(quitButton);
+            }
+            else if (currentSelected == joinButton.gameObject)
+            {
+                SelectButton(hostButton);
+            }
+            else if (currentSelected == settingsButton.gameObject)
+            {
+                SelectButton(joinButton);
+            }
+            else if (currentSelected == quitButton.gameObject)
+            {
+                SelectButton(settingsButton);
+            }
+        }
+        else if (setupMenuPanel.activeSelf)
+        {
+            if (currentSelected == null)
+            {
+                SelectSelectable(nicknameInputField);
+            }
+            else if (currentSelected == nicknameInputField.gameObject)
+            {
+                SelectButton(backButton);
+            }
+            else if (currentSelected == backButton.gameObject)
+            {
+                SelectButton(confirmButton);
+            }
+            else if (currentSelected == confirmButton.gameObject)
+            {
+                if (ipInputField != null && ipInputField.gameObject.activeSelf)
+                {
+                    SelectSelectable(ipInputField);
+                }
+                else
+                {
+                    SelectSelectable(colorDropdown);
+                }
+            }
+            else if (currentSelected == ipInputField.gameObject)
+            {
+                SelectSelectable(colorDropdown);
+            }
+            else if (currentSelected == colorDropdown.gameObject)
+            {
+                SelectButton(generateNicknameButton);
+            }
+            else if (currentSelected == generateNicknameButton.gameObject)
+            {
+                SelectSelectable(nicknameInputField);
+            }
+        }
+    }
+
+    private void NavigateDown()
+    {
+        GameObject currentSelected = EventSystem.current.currentSelectedGameObject;
+
+        if (mainMenuPanel.activeSelf)
+        {
+            if (currentSelected == null)
+            {
+                SelectButton(hostButton);
+            }
+            else if (currentSelected == hostButton.gameObject)
+            {
+                SelectButton(joinButton);
+            }
+            else if (currentSelected == joinButton.gameObject)
+            {
+                SelectButton(settingsButton);
+            }
+            else if (currentSelected == settingsButton.gameObject)
+            {
+                SelectButton(quitButton);
+            }
+            else if (currentSelected == quitButton.gameObject)
+            {
+                SelectButton(hostButton);
+            }
+        }
+        else if (setupMenuPanel.activeSelf)
+        {
+            if (currentSelected == null)
+            {
+                SelectSelectable(nicknameInputField);
+            }
+            else if (currentSelected == nicknameInputField.gameObject)
+            {
+                SelectButton(generateNicknameButton);
+            }
+            else if (currentSelected == generateNicknameButton.gameObject)
+            {
+                SelectSelectable(colorDropdown);
+            }
+            else if (currentSelected == colorDropdown.gameObject)
+            {
+                if (ipInputField != null && ipInputField.gameObject.activeSelf)
+                {
+                    SelectSelectable(ipInputField);
+                }
+                else
+                {
+                    SelectButton(confirmButton);
+                }
+            }
+            else if (currentSelected == ipInputField.gameObject)
+            {
+                SelectButton(confirmButton);
+            }
+            else if (currentSelected == confirmButton.gameObject)
+            {
+                SelectButton(backButton);
+            }
+            else if (currentSelected == backButton.gameObject)
+            {
+                SelectSelectable(nicknameInputField);
+            }
+        }
+    }
+
+    private void SelectButton(Button button)
+    {
+        if (button != null)
+        {
+            EventSystem.current.SetSelectedGameObject(button.gameObject);
+        }
+    }
+
+    private void SelectSelectable(Selectable selectable)
+    {
+        if (selectable != null)
+        {
+            EventSystem.current.SetSelectedGameObject(selectable.gameObject);
+        }
+    }
+
+    private void SubmitSelection()
+    {
+        GameObject currentSelected = EventSystem.current.currentSelectedGameObject;
+
+        if (currentSelected == null)
+            return;
+
+        Button button = currentSelected.GetComponent<Button>();
+        if (button != null && button.interactable)
+        {
+            button.onClick.Invoke();
+        }
     }
 }

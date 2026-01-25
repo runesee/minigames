@@ -291,7 +291,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Dropdown
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -300,10 +300,10 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_HighlightedColor: {r: 0.96, g: 0.96, b: 0.96, a: 1}
+    m_PressedColor: {r: 0.78, g: 0.78, b: 0.78, a: 1}
+    m_SelectedColor: {r: 0.7, g: 0.9, b: 1, a: 1}
+    m_DisabledColor: {r: 0.78, g: 0.78, b: 0.78, a: 0.5}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -395,7 +395,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -403,10 +403,10 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 0.2, g: 0.6, b: 0.9, a: 1}
-    m_HighlightedColor: {r: 0.3, g: 0.7, b: 1, a: 1}
-    m_PressedColor: {r: 0.15, g: 0.45, b: 0.7, a: 1}
-    m_SelectedColor: {r: 0.2, g: 0.6, b: 0.9, a: 1}
+    m_NormalColor: {r: 0.9, g: 0.3, b: 0.3, a: 1}
+    m_HighlightedColor: {r: 1, g: 0.4, b: 0.4, a: 1}
+    m_PressedColor: {r: 0.85, g: 0.15, b: 0.1, a: 1}
+    m_SelectedColor: {r: 1, g: 0.5, b: 0.5, a: 1}
     m_DisabledColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -528,7 +528,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -539,7 +539,7 @@ MonoBehaviour:
     m_NormalColor: {r: 0.2, g: 0.6, b: 0.9, a: 1}
     m_HighlightedColor: {r: 0.3, g: 0.7, b: 1, a: 1}
     m_PressedColor: {r: 0.15, g: 0.45, b: 0.7, a: 1}
-    m_SelectedColor: {r: 0.2, g: 0.6, b: 0.9, a: 1}
+    m_SelectedColor: {r: 0.3, g: 0.75, b: 1, a: 1}
     m_DisabledColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -661,7 +661,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -671,8 +671,8 @@ MonoBehaviour:
   m_Colors:
     m_NormalColor: {r: 0.4, g: 0.8, b: 0.4, a: 1}
     m_HighlightedColor: {r: 0.5, g: 0.9, b: 0.5, a: 1}
-    m_PressedColor: {r: 0.3, g: 0.6, b: 0.3, a: 1}
-    m_SelectedColor: {r: 0.4, g: 0.8, b: 0.4, a: 1}
+    m_PressedColor: {r: 0.35, g: 0.65, b: 0.2, a: 1}
+    m_SelectedColor: {r: 0.5, g: 0.9, b: 0.5, a: 1}
     m_DisabledColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -1076,7 +1076,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -1087,7 +1087,7 @@ MonoBehaviour:
     m_NormalColor: {r: 0.2, g: 0.6, b: 0.9, a: 1}
     m_HighlightedColor: {r: 0.3, g: 0.7, b: 1, a: 1}
     m_PressedColor: {r: 0.15, g: 0.45, b: 0.7, a: 1}
-    m_SelectedColor: {r: 0.2, g: 0.6, b: 0.9, a: 1}
+    m_SelectedColor: {r: 0.3, g: 0.75, b: 1, a: 1}
     m_DisabledColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -1371,7 +1371,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.InputField
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -1380,10 +1380,10 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_HighlightedColor: {r: 0.96, g: 0.96, b: 0.96, a: 1}
+    m_PressedColor: {r: 0.78, g: 0.78, b: 0.78, a: 1}
+    m_SelectedColor: {r: 0.7, g: 0.9, b: 1, a: 1}
+    m_DisabledColor: {r: 0.78, g: 0.78, b: 0.78, a: 0.5}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -1516,7 +1516,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -1527,7 +1527,7 @@ MonoBehaviour:
     m_NormalColor: {r: 0.2, g: 0.6, b: 0.9, a: 1}
     m_HighlightedColor: {r: 0.3, g: 0.7, b: 1, a: 1}
     m_PressedColor: {r: 0.15, g: 0.45, b: 0.7, a: 1}
-    m_SelectedColor: {r: 0.2, g: 0.6, b: 0.9, a: 1}
+    m_SelectedColor: {r: 0.3, g: 0.75, b: 1, a: 1}
     m_DisabledColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -2083,7 +2083,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.InputField
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -2092,10 +2092,10 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_HighlightedColor: {r: 0.96, g: 0.96, b: 0.96, a: 1}
+    m_PressedColor: {r: 0.78, g: 0.78, b: 0.78, a: 1}
+    m_SelectedColor: {r: 0.7, g: 0.9, b: 1, a: 1}
+    m_DisabledColor: {r: 0.78, g: 0.78, b: 0.78, a: 0.5}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -2818,7 +2818,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -2829,7 +2829,7 @@ MonoBehaviour:
     m_NormalColor: {r: 0.2, g: 0.6, b: 0.9, a: 1}
     m_HighlightedColor: {r: 0.3, g: 0.7, b: 1, a: 1}
     m_PressedColor: {r: 0.15, g: 0.45, b: 0.7, a: 1}
-    m_SelectedColor: {r: 0.2, g: 0.6, b: 0.9, a: 1}
+    m_SelectedColor: {r: 0.3, g: 0.75, b: 1, a: 1}
     m_DisabledColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -3273,6 +3273,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MenuManager
   mainMenuPanel: {fileID: 1421178582}
   setupMenuPanel: {fileID: 903450562}
+  hostButton: {fileID: 882313607}
+  joinButton: {fileID: 1529783800}
+  settingsButton: {fileID: 610882684}
+  quitButton: {fileID: 87395654}
   nicknameInputField: {fileID: 813555944}
   generateNicknameButton: {fileID: 375293100}
   colorDropdown: {fileID: 23074991}
@@ -3282,6 +3286,9 @@ MonoBehaviour:
   confirmButtonText: {fileID: 1920874485}
   ipLabel: {fileID: 1286020413}
   ipInputField: {fileID: 1048922104}
+  backButton: {fileID: 2001838079}
+  joystickDeadzone: 0.5
+  joystickRepeatDelay: 0.25
 --- !u!1 &1920874483
 GameObject:
   m_ObjectHideFlags: 0
@@ -3650,7 +3657,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -3660,8 +3667,8 @@ MonoBehaviour:
   m_Colors:
     m_NormalColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
     m_HighlightedColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}
-    m_PressedColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
-    m_SelectedColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+    m_PressedColor: {r: 0.65, g: 0.55, b: 0.5, a: 1}
+    m_SelectedColor: {r: 0.9, g: 0.9, b: 0.9, a: 1}
     m_DisabledColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
