@@ -10,6 +10,7 @@ using static TagSessionManager;
 using PlayPulse.Api.Utils;
 using UnityEngine.UIElements;
 using Unity.Netcode.Components;
+using Unity.VisualScripting;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
@@ -527,6 +528,8 @@ public class PlayerTagMovement : NetworkBehaviour
         PlayerTagMovement closest = null;
         float shortest = Mathf.Infinity;
         bool isWithinBounds = false;
+        GameObject _player = new GameObject();
+        PlayerTagMovement taggedPlayer = this;
         foreach (var player in FindObjectsByType(typeof(PlayerTagMovement), FindObjectsSortMode.None))
         {
             if (player == this) continue;
@@ -542,6 +545,16 @@ public class PlayerTagMovement : NetworkBehaviour
                 // Within bounds if angle between position diff vector and tagged player's forward vector < 45 degrees
                 Quaternion.FromToRotation(transform.forward, targetVector).ToAngleAxis(out float angle, out Vector3 axis);
                 isWithinBounds = Mathf.Abs(angle) <= (distance > range / 2 ? 70f : 45f);
+                taggedPlayer = (PlayerTagMovement) player;
+                _player = player.GameObject();
+            }  
+        }
+        // Need to check whether a GameObject is blocking the player's view (e.g. a Cube)
+        if (Physics.Linecast(transform.position, taggedPlayer.transform.position, out RaycastHit hit))
+        {
+            if (hit.collider.gameObject != _player)
+            {
+                isWithinBounds = false;
             }
         }
         return isWithinBounds ? closest : null;
