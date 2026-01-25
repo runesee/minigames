@@ -66,6 +66,7 @@ public class MenuManager : MonoBehaviour
     {
         joystickTimer -= Time.unscaledDeltaTime;
         
+        HandleDropdownNavigation();
         HandleKeyboardNavigation();
         HandleJoystickNavigation();
     }
@@ -331,25 +332,36 @@ public class MenuManager : MonoBehaviour
         return "127.0.0.1";
     }
 
+    private void HandleDropdownNavigation()
+    {
+        bool dropdownOpen = colorDropdown != null && 
+                           colorDropdown.transform.Find("Dropdown List") != null;
+        
+        if (EventSystem.current != null)
+        {
+            EventSystem.current.sendNavigationEvents = dropdownOpen;
+        }
+    }
+
     private void HandleKeyboardNavigation()
     {
         Keyboard keyboard = Keyboard.current;
         if (keyboard == null)
             return;
 
-        if (keyboard.upArrowKey.wasPressedThisFrame || keyboard.wKey.wasPressedThisFrame)
+        if (keyboard.enterKey.wasPressedThisFrame ||
+                 keyboard.spaceKey.wasPressedThisFrame ||
+                 PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A))
+        {
+            SubmitSelection();
+        }
+        else if (keyboard.upArrowKey.wasPressedThisFrame || keyboard.wKey.wasPressedThisFrame)
         {
             NavigateUp();
         }
         else if (keyboard.downArrowKey.wasPressedThisFrame || keyboard.sKey.wasPressedThisFrame)
         {
             NavigateDown();
-        }
-        else if (keyboard.enterKey.wasPressedThisFrame ||
-                 keyboard.spaceKey.wasPressedThisFrame ||
-                 PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A))
-        {
-            SubmitSelection();
         }
         else if (keyboard.escapeKey.wasPressedThisFrame && setupMenuPanel.activeSelf)
         {
@@ -533,10 +545,24 @@ public class MenuManager : MonoBehaviour
         if (currentSelected == null)
             return;
 
+        Dropdown dropdown = currentSelected.GetComponent<Dropdown>();
+        if (dropdown != null && dropdown.interactable)
+        {
+            dropdown.Show();
+            return;
+        }
+
         Button button = currentSelected.GetComponent<Button>();
         if (button != null && button.interactable)
         {
             button.onClick.Invoke();
+            return;
+        }
+
+        InputField inputField = currentSelected.GetComponent<InputField>();
+        if (inputField != null)
+        {
+            NavigateDown();
         }
     }
 }
