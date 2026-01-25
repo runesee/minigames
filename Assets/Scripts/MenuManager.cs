@@ -349,17 +349,21 @@ public class MenuManager : MonoBehaviour
         if (keyboard == null)
             return;
 
+        GameObject currentSelected = EventSystem.current.currentSelectedGameObject;
+        InputField activeInputField = currentSelected != null ? currentSelected.GetComponent<InputField>() : null;
+        bool isTypingInInputField = activeInputField != null && activeInputField.isFocused;
+
         if (keyboard.enterKey.wasPressedThisFrame ||
                  keyboard.spaceKey.wasPressedThisFrame ||
                  PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A))
         {
             SubmitSelection();
         }
-        else if (keyboard.upArrowKey.wasPressedThisFrame || keyboard.wKey.wasPressedThisFrame)
+        else if (keyboard.upArrowKey.wasPressedThisFrame || (!isTypingInInputField && keyboard.wKey.wasPressedThisFrame))
         {
             NavigateUp();
         }
-        else if (keyboard.downArrowKey.wasPressedThisFrame || keyboard.sKey.wasPressedThisFrame)
+        else if (keyboard.downArrowKey.wasPressedThisFrame || (!isTypingInInputField && keyboard.sKey.wasPressedThisFrame))
         {
             NavigateDown();
         }
