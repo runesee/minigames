@@ -153,19 +153,25 @@ public class PlayerTagMovement : NetworkBehaviour
         attackAction.Enable();
         interactAction.Enable();
 
-        // ONLY used for syncing colors on connect. Does not allow changing color during Tag otherwise.
-        // Set player color to the one determined by PlayerPrefs
+        // Subscribe to color changes
         colorNet.OnValueChanged += OnSkinColorChanged;
-        string color = PlayerPrefs.GetString("Color");
-        SetSkinColor(color);
-
+        
+        // Apply initial color
         if (IsOwner)
         {
+            // For local player, use PlayerPrefs and sync to server
+            string color = PlayerPrefs.GetString("Color");
+            SetSkinColor(color);
+            UpdateColorServerRpc(color);
             staminaNet.Value = maxStamina;
+        }
+        else
+        {
+            // For remote players, use the networked color value
+            SetSkinColor(new string(colorNet.Value.Value));
         }
 
         if (!IsOwner) return;
-        UpdateColorServerRpc(color);
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnect;
     }
