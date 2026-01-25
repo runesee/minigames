@@ -124,7 +124,7 @@ public class PlayerTagMovement : NetworkBehaviour
 
     void Start() {
         // Initialize connection with PP-service
-        if (!PlayPulse.PlayPulseService.IsInitialized) {
+        /*if (!PlayPulse.PlayPulseService.IsInitialized) {
             PlayPulse.PlayPulseService.Initialize(
             string.Empty,
             connectToBikeService: true,
@@ -135,7 +135,7 @@ public class PlayerTagMovement : NetworkBehaviour
         // Reset resistance
         pedalResistance = 0.2f; 
         PlayPulse.Input.Input.ResistanceSetPoint = pedalResistance;
-        }
+        }*/
     }
 
     public override void OnNetworkSpawn()
@@ -377,7 +377,7 @@ public class PlayerTagMovement : NetworkBehaviour
         }
 
         // Handle animations and update position based on input actions
-        float pedalSpeed = PlayPulse.Input.Input.Speed > 0f ? Math.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f) : 0f;
+        float pedalSpeed = PlayPulse.Input.Input.Speed > 0f ? Math.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f) : 1f;
         float pedalAnimationSpeed = PlayPulse.Input.Input.Speed > 0f ? 2 * pedalSpeed : 1f;
         movement = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ? 
         new Vector3((-1)*PlayPulse.Input.Input.JoystickX, 0, (-1)*PlayPulse.Input.Input.JoystickY) : movement;
@@ -488,9 +488,9 @@ public class PlayerTagMovement : NetworkBehaviour
         victim.isTaggedNet.Value = true;
 
         // Add timediff to current player
-        timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;//a
+        timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
         victim.lastTagTimeNet.Value = serverTime;
-        TagGameState.Instance.taggedPlayerIdNet.Value = victimId; // TODO : change victimID to GUID
+        TagGameState.Instance.taggedPlayerIdNet.Value = victimId;
     }
 
     /// <summary>
