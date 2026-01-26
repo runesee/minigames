@@ -1,8 +1,7 @@
 using UnityEngine;
 using Unity.Netcode;
 using System.Collections.Generic;
-using System.Linq;
-using System;
+using PlayPulse.Api.Utils;
 
 public class TagPlayerSpawner : NetworkBehaviour
 {
@@ -10,36 +9,35 @@ public class TagPlayerSpawner : NetworkBehaviour
     [SerializeField] private List<Vector3> spawnPoints = new List<Vector3>();
     public static TagPlayerSpawner Instance { get; private set; }
 
-
-    void Start()
+    private void Awake()
     {
-        spawnPoints.Add(new Vector3(14f, 1f, -0.5f));
-        spawnPoints.Add(new Vector3(-14f, 1f, -0.5f));
-        spawnPoints.Add(new Vector3(0f, 1f, -5f));
-        spawnPoints.Add(new Vector3(0f, 1f, 5f));
+        Instance = this;
     }
 
     public override void OnNetworkSpawn()
     {
-        Instance = this;
-        if (IsServer) NetworkManager.Singleton.OnClientConnectedCallback += SpawnPlayer;
+        if (!IsServer) return;
+
+        spawnPoints.Add(new Vector3(14f, 1f, -0.5f));
+        spawnPoints.Add(new Vector3(-14f, 1f, -0.5f));
+        spawnPoints.Add(new Vector3(0f, 1f, -5f));
+        spawnPoints.Add(new Vector3(0f, 1f, 5f));
+
+        NetworkManager.Singleton.OnClientConnectedCallback += SpawnPlayer;
+        SpawnPlayer(NetworkManager.Singleton.LocalClientId); // explicitly spawn host player
     }
+
 
     private void SpawnPlayer(ulong clientId)
     {
-        // Need to check if space is occupied for late-joining clients
-        System.Random rnd  = new System.Random();
-        var index = rnd.Next(0, 3);
-        Vector3 _point = spawnPoints[index];
-        Debug.Log(_point);
-
-        /*Vector3 spawnPoint = GetNextSpawnPoint();
-        GameObject playerInstance = Instantiate(playerPrefab, spawnPoint, spawnPoint.rotation);
+        if (!IsServer) return;
+        // TODO : Need to check if space is occupied for late-joining clients
+        Vector3 spawnPoint = spawnPoints.GetRandom();
+        spawnPoints.Remove(spawnPoint);
+        GameObject playerInstance = Instantiate(playerPrefab, spawnPoint, Quaternion.identity);
         NetworkObject networkObject = playerInstance.GetComponent<NetworkObject>();
-        networkObject.SpawnAsPlayerObject(clientId, true);*/
+        networkObject.SpawnAsPlayerObject(clientId, true);
     }
-
-    private void GetNextSpawnPoint(){}
 
     private void OnNetworkDestroy()
     {
