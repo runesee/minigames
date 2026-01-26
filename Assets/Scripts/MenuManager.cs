@@ -347,9 +347,42 @@ public class MenuManager : MonoBehaviour
         bool dropdownOpen = colorDropdown != null && 
                            colorDropdown.transform.Find("Dropdown List") != null;
         
-        if (EventSystem.current != null)
+        if (dropdownOpen)
         {
-            EventSystem.current.sendNavigationEvents = dropdownOpen;
+            if (EventSystem.current != null)
+            {
+                EventSystem.current.sendNavigationEvents = true;
+            }
+            
+            float y = PlayPulse.Input.Input.JoystickY;
+            
+            if (joystickTimer <= 0f)
+            {
+                if (y < -joystickDeadzone)
+                {
+                    AxisEventData axisData = new AxisEventData(EventSystem.current);
+                    axisData.moveDir = MoveDirection.Up;
+                    ExecuteEvents.Execute(colorDropdown.gameObject, axisData, ExecuteEvents.moveHandler);
+                    joystickTimer = joystickRepeatDelay;
+                }
+                else if (y > joystickDeadzone)
+                {
+                    AxisEventData axisData = new AxisEventData(EventSystem.current);
+                    axisData.moveDir = MoveDirection.Down;
+                    ExecuteEvents.Execute(colorDropdown.gameObject, axisData, ExecuteEvents.moveHandler);
+                    joystickTimer = joystickRepeatDelay;
+                }
+            }
+            
+            if (PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A))
+            {
+                BaseEventData eventData = new BaseEventData(EventSystem.current);
+                ExecuteEvents.Execute(colorDropdown.gameObject, eventData, ExecuteEvents.submitHandler);
+            }
+        }
+        else if (EventSystem.current != null)
+        {
+            EventSystem.current.sendNavigationEvents = false;
         }
     }
 
