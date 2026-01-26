@@ -76,7 +76,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3051191352
+  GlobalObjectIdHash: 3990490726
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -345,8 +345,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TaggedPlayerVisualizer
   ShowTopMostFoldoutHeaderGroup: 1
   playerSkinRenderer: {fileID: 8576045237320093323}
-  glowColor: {r: 1, g: 0.3, b: 0.3, a: 1}
-  glowIntensity: 2
+  glowColor: {r: 0.7803922, g: 0.3137255, b: 0.3137255, a: 1}
+  glowIntensity: 1.25
   markerPrefab: {fileID: 2861896397478858066, guid: 7c48f679abde14eaa9db02b4b115a613, type: 3}
   markerOffset: {x: 0, y: 2.5, z: 0}
 --- !u!1001 &2472634209218968432

@@ -56,6 +56,10 @@ public class MenuManager : MonoBehaviour
 
     private void Start()
     {   
+        ShowMainMenu();
+        colorDropdown.onValueChanged.AddListener(OnColorChanged);
+        OnColorChanged(colorDropdown.value);
+        SelectButton(hostButton);
         // Initialize connection with PP-service
         if (!PlayPulse.PlayPulseService.IsInitialized)
         {
@@ -66,10 +70,6 @@ public class MenuManager : MonoBehaviour
             shellSocketPathOverride: "127.0.0.1:13337",
             useTcpSocket: true
         );}
-        ShowMainMenu();
-        colorDropdown.onValueChanged.AddListener(OnColorChanged);
-        OnColorChanged(colorDropdown.value);
-        SelectButton(hostButton);
         }
 
     private void Update()
