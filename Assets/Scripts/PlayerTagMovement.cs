@@ -10,6 +10,7 @@ using static TagSessionManager;
 using PlayPulse.Api.Utils;
 using UnityEngine.UIElements;
 using Unity.Netcode.Components;
+using Unity.VisualScripting;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
@@ -381,7 +382,7 @@ public class PlayerTagMovement : NetworkBehaviour
         }
 
         // Handle animations and update position based on input actions
-        float pedalSpeed = PlayPulse.Input.Input.Speed > 0f ? Math.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f) : 0f;
+        float pedalSpeed = PlayPulse.Input.Input.Speed > 0f ? Math.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f) : 1f;
         float pedalAnimationSpeed = PlayPulse.Input.Input.Speed > 0f ? 2 * pedalSpeed : 1f;
         movement = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ?
         new Vector3((-1) * PlayPulse.Input.Input.JoystickX, 0, (-1) * PlayPulse.Input.Input.JoystickY) : movement;
@@ -491,9 +492,9 @@ public class PlayerTagMovement : NetworkBehaviour
         victim.isTaggedNet.Value = true;
 
         // Add timediff to current player
-        timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;//a
+        timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
         victim.lastTagTimeNet.Value = serverTime;
-        TagGameState.Instance.taggedPlayerIdNet.Value = victimId; // TODO : change victimID to GUID
+        TagGameState.Instance.taggedPlayerIdNet.Value = victimId;
     }
 
     /// <summary>
@@ -530,6 +531,8 @@ public class PlayerTagMovement : NetworkBehaviour
         PlayerTagMovement closest = null;
         float shortest = Mathf.Infinity;
         bool isWithinBounds = false;
+        GameObject _player = new GameObject();
+        PlayerTagMovement taggedPlayer = this;
         foreach (var player in FindObjectsByType(typeof(PlayerTagMovement), FindObjectsSortMode.None))
         {
             if (player == this) continue;
@@ -545,6 +548,16 @@ public class PlayerTagMovement : NetworkBehaviour
                 // Within bounds if angle between position diff vector and tagged player's forward vector < 45 degrees
                 Quaternion.FromToRotation(transform.forward, targetVector).ToAngleAxis(out float angle, out Vector3 axis);
                 isWithinBounds = Mathf.Abs(angle) <= (distance > range / 2 ? 70f : 45f);
+                taggedPlayer = (PlayerTagMovement) player;
+                _player = player.GameObject();
+            }  
+        }
+        // Need to check whether a GameObject is blocking the player's view (e.g. a Cube)
+        if (Physics.Linecast(transform.position, taggedPlayer.transform.position, out RaycastHit hit))
+        {
+            if (hit.collider.gameObject != _player)
+            {
+                isWithinBounds = false;
             }
         }
         return isWithinBounds ? closest : null;
