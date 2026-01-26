@@ -6,8 +6,8 @@ public class TaggedPlayerVisualizer : NetworkBehaviour
 {
     [Header("Glow Settings")]
     [SerializeField] private SkinnedMeshRenderer playerSkinRenderer;
-    [SerializeField] private Color glowColor = new Color(1f, 0.3f, 0.3f);
-    [SerializeField] private float glowIntensity = 2f;
+    [SerializeField] private Color glowColor;
+    [SerializeField] private float glowIntensity;
 
     [Header("Marker Settings")]
     [SerializeField] private GameObject markerPrefab;
@@ -62,6 +62,8 @@ public class TaggedPlayerVisualizer : NetworkBehaviour
             playerMovement.isTaggedNet.OnValueChanged += OnTaggedStateChanged;
             UpdateVisualization(playerMovement.isTaggedNet.Value);
         }
+        UnityEngine.ColorUtility.TryParseHtmlString(PlayerPrefs.GetString("Color"), out var skinColor);
+        glowColor = skinColor;
     }
 
     public override void OnNetworkDespawn()
