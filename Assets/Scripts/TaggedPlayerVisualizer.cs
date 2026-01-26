@@ -18,7 +18,6 @@ public class TaggedPlayerVisualizer : NetworkBehaviour
     private Material glowMaterial;
     private GameObject markerInstance;
     private Color originalEmissionColor;
-    private bool wasTagged = false;
 
     private void Awake()
     {
@@ -88,8 +87,6 @@ public class TaggedPlayerVisualizer : NetworkBehaviour
 
     private void UpdateVisualization(bool isTagged)
     {
-        wasTagged = isTagged;
-
         if (playerSkinRenderer != null && glowMaterial != null)
         {
             if (isTagged)

@@ -204,17 +204,6 @@ public class GameResultsUI : MonoBehaviour
         resultsText.text = resultText;
     }
 
-    private void ShowResults()
-    {
-        if (resultsPanel == null || resultsText == null || NetworkManager.Singleton == null)
-        {
-            return;
-        }
-
-        BuildResultsText();
-        resultsPanel.SetActive(true);
-    }
-
     private struct PlayerResult
     {
         public ulong clientId;
