@@ -55,12 +55,22 @@ public class MenuManager : MonoBehaviour
     }
 
     private void Start()
-    {
+    {   
+        // Initialize connection with PP-service
+        if (!PlayPulse.PlayPulseService.IsInitialized)
+        {
+            PlayPulse.PlayPulseService.Initialize(
+            string.Empty,
+            connectToBikeService: true,
+            appSocketPathOverride: "127.0.0.1:13337",
+            shellSocketPathOverride: "127.0.0.1:13337",
+            useTcpSocket: true
+        );}
         ShowMainMenu();
         colorDropdown.onValueChanged.AddListener(OnColorChanged);
         OnColorChanged(colorDropdown.value);
         SelectButton(hostButton);
-    }
+        }
 
     private void Update()
     {
