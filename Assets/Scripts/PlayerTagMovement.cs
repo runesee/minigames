@@ -357,7 +357,7 @@ public class PlayerTagMovement : NetworkBehaviour
         // Parse InputInteractions
         Vector2 input = moveAction.ReadValue<Vector2>();
 
-        bool wantsToSprint = sprintAction.IsPressed() || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.B);
+        bool wantsToSprint = sprintAction.IsPressed() || PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.B);
         Vector3 movement = new Vector3(input.x, 0, input.y);
         isTaunting = (interactAction.ReadValue<float>() > 0f && interactAction.WasPressedThisFrame()) ||
         PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.Y);
