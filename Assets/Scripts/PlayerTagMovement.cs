@@ -431,9 +431,8 @@ public class PlayerTagMovement : NetworkBehaviour
             float currentAnimSpeed = animator.GetCurrentAnimatorStateInfo(0).speed;
             animator.speed = currentAnimSpeed * pedalAnimationSpeed;
             
-            // Speed-based animation: under 0.5 is walking, above 0.5 is running
-            float speedThreshold = 0.5f;
-            if (currentActualSpeed < speedThreshold)
+            // Animation based on pedaling speed: pedalSpeed ranges from 0-1
+            if (pedalSpeed < sprintSpeedThreshold)
             {
                 isWalkingNet.Value = true;
                 isSprintingNet.Value = false;
