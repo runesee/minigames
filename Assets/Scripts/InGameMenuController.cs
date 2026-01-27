@@ -159,7 +159,7 @@ public class InGameMenuController : MonoBehaviour
             EventSystem.current.SetSelectedGameObject(null);
         }
     }
-
+   
     public void ContinueGame()
     {
         ToggleMenu();
