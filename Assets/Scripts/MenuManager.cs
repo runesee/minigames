@@ -76,9 +76,13 @@ public class MenuManager : MonoBehaviour
     {
         joystickTimer -= Time.unscaledDeltaTime;
         
-        HandleDropdownNavigation();
-        HandleKeyboardNavigation();
-        HandleJoystickNavigation();
+        bool dropdownOpen = HandleDropdownNavigation();
+        
+        if (!dropdownOpen)
+        {
+            HandleKeyboardNavigation();
+            HandleJoystickNavigation();
+        }
     }
 
     private void OnDestroy()
@@ -342,15 +346,97 @@ public class MenuManager : MonoBehaviour
         return "127.0.0.1";
     }
 
-    private void HandleDropdownNavigation()
+    private bool HandleDropdownNavigation()
     {
-        bool dropdownOpen = colorDropdown != null && 
-                           colorDropdown.transform.Find("Dropdown List") != null;
+        if (colorDropdown == null)
+            return false;
+            
+        Transform dropdownList = colorDropdown.transform.Find("Dropdown List");
+        bool dropdownOpen = dropdownList != null;
         
-        if (EventSystem.current != null)
+        if (dropdownOpen)
         {
-            EventSystem.current.sendNavigationEvents = dropdownOpen;
+            Debug.Log("Dropdown is open, handling joystick navigation");
+            
+            if (EventSystem.current != null)
+            {
+                EventSystem.current.sendNavigationEvents = true;
+            }
+            
+            GameObject scrollRect = dropdownList.Find("Viewport/Content")?.gameObject;
+            if (scrollRect != null)
+            {
+                GameObject currentSelected = EventSystem.current.currentSelectedGameObject;
+                Debug.Log($"Current selected in dropdown: {(currentSelected != null ? currentSelected.name : "null")}");
+            }
+            
+            float y = PlayPulse.Input.Input.JoystickY;
+            Keyboard keyboard = Keyboard.current;
+            
+            if (joystickTimer <= 0f)
+            {
+                if (y < -joystickDeadzone || (keyboard != null && keyboard.upArrowKey.wasPressedThisFrame))
+                {
+                    Debug.Log("UP input detected in dropdown");
+                    GameObject currentItem = EventSystem.current.currentSelectedGameObject;
+                    if (currentItem != null)
+                    {
+                        Selectable selectable = currentItem.GetComponent<Selectable>();
+                        if (selectable != null)
+                        {
+                            Selectable nextSelectable = selectable.FindSelectableOnUp();
+                            if (nextSelectable != null)
+                            {
+                                EventSystem.current.SetSelectedGameObject(nextSelectable.gameObject);
+                                Debug.Log($"Selected: {nextSelectable.name}");
+                            }
+                        }
+                    }
+                    joystickTimer = joystickRepeatDelay;
+                }
+                else if (y > joystickDeadzone || (keyboard != null && keyboard.downArrowKey.wasPressedThisFrame))
+                {
+                    Debug.Log("DOWN input detected in dropdown");
+                    GameObject currentItem = EventSystem.current.currentSelectedGameObject;
+                    if (currentItem != null)
+                    {
+                        Selectable selectable = currentItem.GetComponent<Selectable>();
+                        if (selectable != null)
+                        {
+                            Selectable nextSelectable = selectable.FindSelectableOnDown();
+                            if (nextSelectable != null)
+                            {
+                                EventSystem.current.SetSelectedGameObject(nextSelectable.gameObject);
+                                Debug.Log($"Selected: {nextSelectable.name}");
+                            }
+                        }
+                    }
+                    joystickTimer = joystickRepeatDelay;
+                }
+            }
+            
+            if (PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A) ||
+                (keyboard != null && (keyboard.enterKey.wasPressedThisFrame || keyboard.spaceKey.wasPressedThisFrame)))
+            {
+                Debug.Log("Confirm button pressed in dropdown");
+                GameObject currentItem = EventSystem.current.currentSelectedGameObject;
+                if (currentItem != null)
+                {
+                    Toggle toggle = currentItem.GetComponent<Toggle>();
+                    if (toggle != null)
+                    {
+                        toggle.isOn = true;
+                        Debug.Log($"Toggled item: {currentItem.name}");
+                    }
+                }
+            }
         }
+        else if (EventSystem.current != null)
+        {
+            EventSystem.current.sendNavigationEvents = false;
+        }
+        
+        return dropdownOpen;
     }
 
     private void HandleKeyboardNavigation()
@@ -563,6 +649,7 @@ public class MenuManager : MonoBehaviour
         if (dropdown != null && dropdown.interactable)
         {
             dropdown.Show();
+            Debug.Log("Dropdown opened via SubmitSelection");
             return;
         }
 

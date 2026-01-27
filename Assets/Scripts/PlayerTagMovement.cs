@@ -420,6 +420,7 @@ public class PlayerTagMovement : NetworkBehaviour
         Vector3 movement = new Vector3(input.x, 0, input.y);
         isTaunting = (interactAction.ReadValue<float>() > 0f && interactAction.WasPressedThisFrame()) ||
         PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.Y);
+        isTaunting = interactAction.IsPressed() || PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.Y);
         isPunching = attackAction.WasPerformedThisFrame() || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A);
         isPunchingNet.Value = isPunching && isTaggedNet.Value;
 
@@ -497,7 +498,7 @@ public class PlayerTagMovement : NetworkBehaviour
         // Limits animation to loop once if key is held down,
         // otherwise cancels on other actions or letting go of key
         canTaunt = !isWalkingNet.Value && !isSprinting && !isPunching;
-        if (/*interactAction.WasPressedThisFrame()*/ isTaunting && canTaunt)
+        if (isTaunting && canTaunt)
         {
             animator.SetTrigger("isTauntingTrigger");
             isTauntingNet.Value = true;
@@ -568,6 +569,9 @@ public class PlayerTagMovement : NetworkBehaviour
         var victim = NetworkManager.Singleton.SpawnManager.SpawnedObjects[victimId].GetComponent<PlayerTagMovement>();
         victim.isHitNet.Value = true;
         victim.isTaggedNet.Value = true;
+        victim.isWalkingNet.Value = false;
+        victim.isSprintingNet.Value = false;
+        victim.isTauntingNet.Value = false;
 
         // Add timediff to current player
         timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
