@@ -114,6 +114,7 @@ public class PlayerTagMovement : NetworkBehaviour
     private InputAction moveAction;
     private InputAction sprintAction;
     private InputAction interactAction;
+    private InputAction resetTaggedPlayerDebug;
     private Animator animator;
     private Rigidbody rb;
 
@@ -176,10 +177,12 @@ public class PlayerTagMovement : NetworkBehaviour
         sprintAction = InputSystem.actions.FindAction("Sprint");
         attackAction = InputSystem.actions.FindAction("Attack");
         interactAction = InputSystem.actions.FindAction("Interact");
+        resetTaggedPlayerDebug = InputSystem.actions.FindAction("Crouch");
         moveAction.Enable();
         sprintAction.Enable();
         attackAction.Enable();
         interactAction.Enable();
+        resetTaggedPlayerDebug.Enable();
 
         // Subscribe to color changes
         colorNet.OnValueChanged += OnSkinColorChanged;
@@ -333,14 +336,7 @@ public class PlayerTagMovement : NetworkBehaviour
             if (GUILayout.Button("Start Game"))
             {
                 TagGameState.Instance.SetGameStateServerRpc(TagGameState.GameState.Running);
-                // We have to do a lot of parsing as custom class objects are not serializable with Netcode (currently)
-                var players = NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values
-                .Select(playerObject => playerObject.GetComponent<PlayerTagMovement>())
-                .Where(player => player != null)
-                .ToList();
-                var random = UnityEngine.Random.Range(0, players.Count);
-                var selectedPlayer = players[random];
-                SetInitialTaggedPlayerServerRpc(selectedPlayer.NetworkObjectId);
+                SetInitialTaggedPlayer();
             }
         }
         GUILayout.EndArea();
@@ -349,6 +345,17 @@ public class PlayerTagMovement : NetworkBehaviour
         {
             DrawStaminaBar();
         }
+    }
+
+    private void SetInitialTaggedPlayer() {
+        // We have to do a lot of parsing as custom class objects are not serializable with Netcode (currently)
+        var players = NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values
+        .Select(playerObject => playerObject.GetComponent<PlayerTagMovement>())
+        .Where(player => player != null)
+        .ToList();
+        var random = UnityEngine.Random.Range(0, players.Count);
+        var selectedPlayer = players[random];
+        SetInitialTaggedPlayerServerRpc(selectedPlayer.NetworkObjectId);
     }
 
     private void DrawStaminaBar()
@@ -510,6 +517,10 @@ public class PlayerTagMovement : NetworkBehaviour
         if (!isTaunting || !canTaunt || interactAction.WasReleasedThisFrame())
         {
             isTauntingNet.Value = false;
+        }
+
+        if (resetTaggedPlayerDebug.WasPressedThisFrame() && IsHost) {
+            SetInitialTaggedPlayer();
         }
     }
 
