@@ -34,6 +34,9 @@ public class PlayerTagMovement : NetworkBehaviour
     public float minStaminaToSprint = 5f;
     public float taggedStaminaBoostMultiplier = 1.5f;
 
+    [Header("Sprint Visual Effect")]
+    public ParticleSystem sprintParticleEffect;
+
     [Header("Map Boundaries")]
     public float minX = -17f;
     public float maxX = 17f;
@@ -399,25 +402,60 @@ public class PlayerTagMovement : NetworkBehaviour
         float pedalAnimationSpeed = USING_PLAYPULSE ? 2 * pedalSpeed : 1f;
         movement = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ? 
         new Vector3((-1)*PlayPulse.Input.Input.JoystickX, 0, (-1)*PlayPulse.Input.Input.JoystickY) : movement;
-        if (movement.sqrMagnitude > 0.01f)
-        {
-            Quaternion lastRotation = Quaternion.LookRotation(movement);
-            transform.rotation = Quaternion.Slerp(transform.rotation, lastRotation, 10f * Time.deltaTime);
-            float currentSpeed = animator.GetCurrentAnimatorStateInfo(0).speed;
-            animator.speed = currentSpeed * pedalAnimationSpeed;
-            isWalkingNet.Value = !isSprinting;
-        }
-        else
-        {
-            isWalkingNet.Value = false;
-            isSprintingNet.Value = false;
-            animator.speed = 1.0f; // Only use custom speed for walking and running anims
-        }
+        
         float moveSpeed = isSprinting ? sprintSpeed : walkSpeed;
 
         if (staminaNet.Value <= 0f)
         {
             moveSpeed *= exhaustedSpeedMultiplier;
+        }
+
+        float currentActualSpeed = pedalSpeed * moveSpeed;
+        
+        if (movement.sqrMagnitude > 0.01f)
+        {
+            Quaternion lastRotation = Quaternion.LookRotation(movement);
+            transform.rotation = Quaternion.Slerp(transform.rotation, lastRotation, 10f * Time.deltaTime);
+            float currentAnimSpeed = animator.GetCurrentAnimatorStateInfo(0).speed;
+            animator.speed = currentAnimSpeed * pedalAnimationSpeed;
+            
+            // Speed-based animation: under 0.5 is walking, above 0.5 is running
+            float speedThreshold = 0.5f;
+            if (currentActualSpeed < speedThreshold)
+            {
+                isWalkingNet.Value = true;
+                isSprintingNet.Value = false;
+            }
+            else
+            {
+                isWalkingNet.Value = false;
+                isSprintingNet.Value = true;
+            }
+        }
+        else
+        {
+            isWalkingNet.Value = false;
+            isSprintingNet.Value = false;
+            animator.speed = 1.0f;
+        }
+
+        // Update sprint particle effect
+        if (sprintParticleEffect != null)
+        {
+            if (isSprintingNet.Value && movement.sqrMagnitude > 0.01f)
+            {
+                if (!sprintParticleEffect.isPlaying)
+                {
+                    sprintParticleEffect.Play();
+                }
+            }
+            else
+            {
+                if (sprintParticleEffect.isPlaying)
+                {
+                    sprintParticleEffect.Stop();
+                }
+            }
         }
 
         Vector3 newPosition = rb.position + movement * pedalSpeed * moveSpeed * Time.deltaTime;
