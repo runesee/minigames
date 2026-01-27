@@ -20,6 +20,12 @@ public class GameTimer : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
+    private NetworkVariable<double> timerEndTime = new NetworkVariable<double>(
+        0.0,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
     private void Start()
     {
         if (timerText == null)
@@ -79,23 +85,27 @@ public class GameTimer : NetworkBehaviour
 
     private void Update()
     {
-        if (!IsServer)
-        {
-            return;
-        }
-
         if (!timerRunning.Value)
         {
             return;
         }
 
-        remainingTime.Value -= Time.deltaTime;
+        double currentTime = IsServer ? NetworkManager.ServerTime.Time : NetworkManager.LocalTime.Time;
+        float newRemainingTime = Mathf.Max(0f, (float)(timerEndTime.Value - currentTime));
 
-        if (remainingTime.Value <= 0f)
+        if (IsServer)
         {
-            remainingTime.Value = 0f;
-            timerRunning.Value = false;
-            StopGame();
+            remainingTime.Value = newRemainingTime;
+
+            if (remainingTime.Value <= 0f)
+            {
+                timerRunning.Value = false;
+                StopGame();
+            }
+        }
+        else
+        {
+            UpdateTimerDisplay(newRemainingTime);
         }
     }
 
@@ -108,6 +118,7 @@ public class GameTimer : NetworkBehaviour
 
         if (newState == TagGameState.GameState.Running)
         {
+            timerEndTime.Value = NetworkManager.ServerTime.Time + gameDurationInSeconds;
             remainingTime.Value = gameDurationInSeconds;
             timerRunning.Value = true;
         }
