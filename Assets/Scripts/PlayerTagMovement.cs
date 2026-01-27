@@ -503,6 +503,9 @@ public class PlayerTagMovement : NetworkBehaviour
         var victim = NetworkManager.Singleton.SpawnManager.SpawnedObjects[victimId].GetComponent<PlayerTagMovement>();
         victim.isHitNet.Value = true;
         victim.isTaggedNet.Value = true;
+        victim.isWalkingNet.Value = false;
+        victim.isSprintingNet.Value = false;
+        victim.isTauntingNet.Value = false;
 
         // Add timediff to current player
         timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
