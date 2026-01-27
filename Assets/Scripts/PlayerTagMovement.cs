@@ -40,15 +40,6 @@ public class PlayerTagMovement : NetworkBehaviour
     public float minZ = -13f;
     public float maxZ = 12f;
 
-    [Header("Player Customization")]
-    public List<string> playerColors = new List<string>()
-    {
-        "#D6877F",
-        "#7fb3d6",
-        "#92d67f",
-        "#d6d37f",
-    };
-
     private NetworkVariable<bool> isWalkingNet = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
@@ -89,13 +80,11 @@ public class PlayerTagMovement : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
-
     public NetworkVariable<FixedString64Bytes> colorNet = new NetworkVariable<FixedString64Bytes>(
     "#D6877F",
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Server
     );
-
     private NetworkVariable<float> staminaNet = new NetworkVariable<float>(
         100f,
         NetworkVariableReadPermission.Everyone,
@@ -114,7 +103,6 @@ public class PlayerTagMovement : NetworkBehaviour
     private bool isTaunting;
     private bool canTaunt;
     private Vector3 savedPosition = default;
-    private float currentSpeed;
     private bool wasTaggedLastFrame;
     private float pedalResistance;
     private bool USING_PLAYPULSE = false; // Flag for dev/bike movement toggling.
