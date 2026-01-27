@@ -153,6 +153,18 @@ public class PlayerTagMovement : NetworkBehaviour
         animator = GetComponentInChildren<Animator>();
         animator.applyRootMotion = false;
 
+        // Configure sprint particle effect
+        if (sprintParticleEffect != null)
+        {
+            var main = sprintParticleEffect.main;
+            main.playOnAwake = false;
+            main.startLifetime = 0.5f;
+            main.startSpeed = 2f;
+            main.startSize = 0.3f;
+            main.startColor = new Color(1f, 0.5f, 0f, 1f);
+            sprintParticleEffect.Stop();
+        }
+
         // Init key bindings
         moveAction = InputSystem.actions.FindAction("Move");
         sprintAction = InputSystem.actions.FindAction("Sprint");
@@ -439,10 +451,11 @@ public class PlayerTagMovement : NetworkBehaviour
             animator.speed = 1.0f;
         }
 
-        // Update sprint particle effect
+        // Update sprint particle effect (only show when actively sprinting, not just moving fast)
         if (sprintParticleEffect != null)
         {
-            if (isSprintingNet.Value && movement.sqrMagnitude > 0.01f)
+            bool shouldShowEffect = isSprinting && movement.sqrMagnitude > 0.01f && currentActualSpeed >= 0.5f;
+            if (shouldShowEffect)
             {
                 if (!sprintParticleEffect.isPlaying)
                 {
