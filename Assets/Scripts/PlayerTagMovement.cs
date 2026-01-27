@@ -104,6 +104,12 @@ public class PlayerTagMovement : NetworkBehaviour
     NetworkVariableWritePermission.Server
     );
 
+    public NetworkVariable<FixedString64Bytes> nicknameNet = new NetworkVariable<FixedString64Bytes>(
+    "Player",
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server
+    );
+
     private NetworkVariable<float> staminaNet = new NetworkVariable<float>(
         100f,
         NetworkVariableReadPermission.Everyone,
@@ -187,13 +193,17 @@ public class PlayerTagMovement : NetworkBehaviour
         // Subscribe to sprint particle changes
         isShowingSprintParticlesNet.OnValueChanged += OnSprintParticlesChanged;
 
-        // Apply initial color
+        // Apply initial color and nickname
         if (IsOwner)
         {
             // For local player, use PlayerPrefs and sync to server
             string color = PlayerPrefs.GetString("Color");
             SetSkinColor(color);
             UpdateColorServerRpc(color);
+            
+            string nickname = PlayerPrefs.GetString("Username", "Player");
+            UpdateNicknameServerRpc(nickname);
+            
             staminaNet.Value = maxStamina;
         }
         else
@@ -315,7 +325,14 @@ public class PlayerTagMovement : NetworkBehaviour
                     double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
                     displayTime += serverTime - player.lastTagTimeNet.Value;
                 }
-                GUILayout.TextArea($"{player.OwnerClientId}: {displayTime:F1}s");
+                
+                string playerName = new string(player.nicknameNet.Value.Value);
+                if (string.IsNullOrEmpty(playerName))
+                {
+                    playerName = $"Player{player.OwnerClientId}";
+                }
+                
+                GUILayout.TextArea($"{playerName}: {displayTime:F1}s");
             }
         }
         GUILayout.EndArea();
@@ -521,6 +538,12 @@ public class PlayerTagMovement : NetworkBehaviour
     public void UpdateColorServerRpc(string color)
     {
         colorNet.Value = new FixedString64Bytes(color);
+    }
+
+    [ServerRpc]
+    public void UpdateNicknameServerRpc(string nickname)
+    {
+        nicknameNet.Value = new FixedString64Bytes(nickname);
     }
 
     /// <summary>

@@ -164,10 +164,17 @@ public class GameResultsUI : MonoBehaviour
                 totalTime += serverTime - player.lastTagTimeNet.Value;
             }
 
+            string nickname = new string(player.nicknameNet.Value.Value);
+            if (string.IsNullOrEmpty(nickname))
+            {
+                nickname = $"Player{player.OwnerClientId}";
+            }
+
             results.Add(new PlayerResult
             {
                 clientId = player.OwnerClientId,
-                timeTagged = totalTime
+                timeTagged = totalTime,
+                nickname = nickname
             });
         }
 
@@ -178,7 +185,7 @@ public class GameResultsUI : MonoBehaviour
         for (int i = 0; i < results.Count; i++)
         {
             string rank = (i + 1).ToString();
-            string playerName = $"Player {results[i].clientId}";
+            string playerName = results[i].nickname;
             string time = results[i].timeTagged.ToString("F2") + "s";
 
             if (i == 0)
@@ -219,5 +226,6 @@ public class GameResultsUI : MonoBehaviour
     {
         public ulong clientId;
         public double timeTagged;
+        public string nickname;
     }
 }
