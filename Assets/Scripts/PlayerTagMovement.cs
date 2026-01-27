@@ -120,7 +120,7 @@ public class PlayerTagMovement : NetworkBehaviour
     private float currentSpeed;
     private bool wasTaggedLastFrame;
     private float pedalResistance;
-    private bool USING_PLAYPULSE = false; // Flag for dev/bike movement toggling.
+    private bool USING_PLAYPULSE = true; // Flag for dev/bike movement toggling.
 
     private void Awake()
     {
@@ -161,7 +161,6 @@ public class PlayerTagMovement : NetworkBehaviour
             main.startLifetime = 0.5f;
             main.startSpeed = 2f;
             main.startSize = 0.3f;
-            main.startColor = new Color(1f, 0.5f, 0f, 1f);
             sprintParticleEffect.Stop();
         }
 
