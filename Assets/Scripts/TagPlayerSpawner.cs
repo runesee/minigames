@@ -22,6 +22,10 @@ public class TagPlayerSpawner : NetworkBehaviour
         spawnPoints.Add(new Vector3(-14f, 1f, -0.5f));
         spawnPoints.Add(new Vector3(0f, 1f, -5f));
         spawnPoints.Add(new Vector3(0f, 1f, 5f));
+        spawnPoints.Add(new Vector3(-7f, 1f, 9f));
+        spawnPoints.Add(new Vector3(7f, 1f, 9f));
+        spawnPoints.Add(new Vector3(-7f, 1f, -10f));
+        spawnPoints.Add(new Vector3(7f, 1f, -10f));
 
         NetworkManager.Singleton.OnClientConnectedCallback += SpawnPlayer;
         SpawnPlayer(NetworkManager.Singleton.LocalClientId); // explicitly spawn host player
