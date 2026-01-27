@@ -1,3 +1,4 @@
+using System;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -67,6 +68,14 @@ public class TaggedPlayerVisualizer : NetworkBehaviour
             playerMovement.isTaggedNet.OnValueChanged += OnTaggedStateChanged;
             UpdateVisualization(playerMovement.isTaggedNet.Value);
         }
+        UnityEngine.ColorUtility.TryParseHtmlString(PlayerPrefs.GetString("Color"), out var skinColor);
+        glowColorNet.Value = skinColor;
+
+        glowColorNet.OnValueChanged += OnGlowColorChanged;
+    }
+
+    private void OnGlowColorChanged(Color previousValue, Color newValue)
+    {
         UnityEngine.ColorUtility.TryParseHtmlString(PlayerPrefs.GetString("Color"), out var skinColor);
         glowColorNet.Value = skinColor;
     }
