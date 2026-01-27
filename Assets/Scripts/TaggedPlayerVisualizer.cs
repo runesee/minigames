@@ -1,3 +1,4 @@
+using System;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -6,12 +7,17 @@ public class TaggedPlayerVisualizer : NetworkBehaviour
 {
     [Header("Glow Settings")]
     [SerializeField] private SkinnedMeshRenderer playerSkinRenderer;
-    [SerializeField] private Color glowColor;
     [SerializeField] private float glowIntensity;
 
     [Header("Marker Settings")]
     [SerializeField] private GameObject markerPrefab;
     [SerializeField] private Vector3 markerOffset = new Vector3(0f, 2.5f, 0f);
+
+    public NetworkVariable<Color> glowColorNet = new NetworkVariable<Color>(
+        Color.red,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Owner
+    );
 
     private PlayerTagMovement playerMovement;
     private Material originalMaterial;
@@ -62,7 +68,15 @@ public class TaggedPlayerVisualizer : NetworkBehaviour
             UpdateVisualization(playerMovement.isTaggedNet.Value);
         }
         UnityEngine.ColorUtility.TryParseHtmlString(PlayerPrefs.GetString("Color"), out var skinColor);
-        glowColor = skinColor;
+        glowColorNet.Value = skinColor;
+
+        glowColorNet.OnValueChanged += OnGlowColorChanged;
+    }
+
+    private void OnGlowColorChanged(Color previousValue, Color newValue)
+    {
+        UnityEngine.ColorUtility.TryParseHtmlString(PlayerPrefs.GetString("Color"), out var skinColor);
+        glowColorNet.Value = skinColor;
     }
 
     public override void OnNetworkDespawn()
@@ -91,7 +105,7 @@ public class TaggedPlayerVisualizer : NetworkBehaviour
         {
             if (isTagged)
             {
-                Color emissionColor = glowColor * glowIntensity;
+                Color emissionColor = glowColorNet.Value * glowIntensity;
                 glowMaterial.SetColor("_EmissionColor", emissionColor);
                 playerSkinRenderer.material = glowMaterial;
             }
@@ -122,9 +136,9 @@ public class TaggedPlayerVisualizer : NetworkBehaviour
         if (renderer != null)
         {
             Material markerMaterial = new Material(Shader.Find("Standard"));
-            markerMaterial.color = glowColor;
+            markerMaterial.color = glowColorNet.Value;
             markerMaterial.EnableKeyword("_EMISSION");
-            markerMaterial.SetColor("_EmissionColor", glowColor * 2f);
+            markerMaterial.SetColor("_EmissionColor", glowColorNet.Value * 2f);
             renderer.material = markerMaterial;
         }
 

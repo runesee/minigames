@@ -34,6 +34,9 @@ public class PlayerTagMovement : NetworkBehaviour
     public float minStaminaToSprint = 5f;
     public float taggedStaminaBoostMultiplier = 1.5f;
 
+    [Header("Sprint Visual Effect")]
+    public ParticleSystem sprintParticleEffect;
+
     [Header("Map Boundaries")]
     public float minX = -17f;
     public float maxX = 17f;
@@ -70,6 +73,11 @@ public class PlayerTagMovement : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner
     );
+    private NetworkVariable<bool> isShowingSprintParticlesNet = new NetworkVariable<bool>(
+        false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Owner
+    );
     public NetworkVariable<double> timeSpentTaggedNet = new NetworkVariable<double>(
         0,
         NetworkVariableReadPermission.Everyone,
@@ -85,6 +93,13 @@ public class PlayerTagMovement : NetworkBehaviour
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Server
     );
+
+    public NetworkVariable<FixedString64Bytes> nicknameNet = new NetworkVariable<FixedString64Bytes>(
+    "Player",
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server
+    );
+
     private NetworkVariable<float> staminaNet = new NetworkVariable<float>(
         100f,
         NetworkVariableReadPermission.Everyone,
@@ -95,6 +110,7 @@ public class PlayerTagMovement : NetworkBehaviour
     private InputAction moveAction;
     private InputAction sprintAction;
     private InputAction interactAction;
+    private InputAction resetTaggedPlayerDebug;
     private Animator animator;
     private Rigidbody rb;
 
@@ -105,19 +121,21 @@ public class PlayerTagMovement : NetworkBehaviour
     private Vector3 savedPosition = default;
     private bool wasTaggedLastFrame;
     private float pedalResistance;
-    private bool USING_PLAYPULSE = false; // Flag for dev/bike movement toggling.
+    private bool USING_PLAYPULSE = true; // Flag for dev/bike movement toggling.
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
     }
 
-    void Start() {
+    void Start()
+    {
         if (!USING_PLAYPULSE) return;
         // Initialize connection with PP-service
         try
         {
-            if (!PlayPulse.PlayPulseService.IsInitialized) {
+            if (!PlayPulse.PlayPulseService.IsInitialized)
+            {
                 PlayPulse.PlayPulseService.Initialize(
                     string.Empty,
                     connectToBikeService: true,
@@ -126,11 +144,11 @@ public class PlayerTagMovement : NetworkBehaviour
                     useTcpSocket: true
                 );
                 // Reset resistance
-                pedalResistance = 0.2f; 
+                pedalResistance = 0.2f;
                 PlayPulse.Input.Input.ResistanceSetPoint = pedalResistance;
             }
         }
-        catch {USING_PLAYPULSE = false;} // Bike connection failed, overriding to use keyboard instead
+        catch { USING_PLAYPULSE = false; } // Bike connection failed, overriding to use keyboard instead
     }
 
     public override void OnNetworkSpawn()
@@ -138,26 +156,46 @@ public class PlayerTagMovement : NetworkBehaviour
         animator = GetComponentInChildren<Animator>();
         animator.applyRootMotion = false;
 
+        // Configure sprint particle effect
+        if (sprintParticleEffect != null)
+        {
+            var main = sprintParticleEffect.main;
+            main.playOnAwake = false;
+            main.startLifetime = 0.5f;
+            main.startSpeed = 2f;
+            main.startSize = 0.3f;
+            sprintParticleEffect.Stop();
+        }
+
         // Init key bindings
         moveAction = InputSystem.actions.FindAction("Move");
         sprintAction = InputSystem.actions.FindAction("Sprint");
         attackAction = InputSystem.actions.FindAction("Attack");
         interactAction = InputSystem.actions.FindAction("Interact");
+        resetTaggedPlayerDebug = InputSystem.actions.FindAction("Crouch");
         moveAction.Enable();
         sprintAction.Enable();
         attackAction.Enable();
         interactAction.Enable();
+        resetTaggedPlayerDebug.Enable();
 
         // Subscribe to color changes
         colorNet.OnValueChanged += OnSkinColorChanged;
-        
-        // Apply initial color
+
+        // Subscribe to sprint particle changes
+        isShowingSprintParticlesNet.OnValueChanged += OnSprintParticlesChanged;
+
+        // Apply initial color and nickname
         if (IsOwner)
         {
             // For local player, use PlayerPrefs and sync to server
             string color = PlayerPrefs.GetString("Color");
             SetSkinColor(color);
             UpdateColorServerRpc(color);
+            
+            string nickname = PlayerPrefs.GetString("Username", "Player");
+            UpdateNicknameServerRpc(nickname);
+            
             staminaNet.Value = maxStamina;
         }
         else
@@ -176,11 +214,32 @@ public class PlayerTagMovement : NetworkBehaviour
         NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
         NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnect;
         colorNet.OnValueChanged -= OnSkinColorChanged;
+        isShowingSprintParticlesNet.OnValueChanged -= OnSprintParticlesChanged;
     }
 
     private void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
     {
         SetSkinColor(new string(newValue.Value));
+    }
+
+    private void OnSprintParticlesChanged(bool previousValue, bool newValue)
+    {
+        if (sprintParticleEffect == null) return;
+
+        if (newValue)
+        {
+            if (!sprintParticleEffect.isPlaying)
+            {
+                sprintParticleEffect.Play();
+            }
+        }
+        else
+        {
+            if (sprintParticleEffect.isPlaying)
+            {
+                sprintParticleEffect.Stop();
+            }
+        }
     }
 
     /// <summary>
@@ -258,7 +317,14 @@ public class PlayerTagMovement : NetworkBehaviour
                     double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
                     displayTime += serverTime - player.lastTagTimeNet.Value;
                 }
-                GUILayout.TextArea($"{player.OwnerClientId}: {displayTime:F1}s");
+                
+                string playerName = new string(player.nicknameNet.Value.Value);
+                if (string.IsNullOrEmpty(playerName))
+                {
+                    playerName = $"Player{player.OwnerClientId}";
+                }
+                
+                GUILayout.TextArea($"{playerName}: {displayTime:F1}s");
             }
         }
         GUILayout.EndArea();
@@ -276,14 +342,7 @@ public class PlayerTagMovement : NetworkBehaviour
             if (GUILayout.Button("Start Game"))
             {
                 TagGameState.Instance.SetGameStateServerRpc(TagGameState.GameState.Running);
-                // We have to do a lot of parsing as custom class objects are not serializable with Netcode (currently)
-                var players = NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values
-                .Select(playerObject => playerObject.GetComponent<PlayerTagMovement>())
-                .Where(player => player != null)
-                .ToList();
-                var random = UnityEngine.Random.Range(0, players.Count);
-                var selectedPlayer = players[random];
-                SetInitialTaggedPlayerServerRpc(selectedPlayer.NetworkObjectId);
+                SetInitialTaggedPlayer();
             }
         }
         GUILayout.EndArea();
@@ -292,6 +351,17 @@ public class PlayerTagMovement : NetworkBehaviour
         {
             DrawStaminaBar();
         }
+    }
+
+    private void SetInitialTaggedPlayer() {
+        // We have to do a lot of parsing as custom class objects are not serializable with Netcode (currently)
+        var players = NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values
+        .Select(playerObject => playerObject.GetComponent<PlayerTagMovement>())
+        .Where(player => player != null)
+        .ToList();
+        var random = UnityEngine.Random.Range(0, players.Count);
+        var selectedPlayer = players[random];
+        SetInitialTaggedPlayerServerRpc(selectedPlayer.NetworkObjectId);
     }
 
     private void DrawStaminaBar()
@@ -333,7 +403,7 @@ public class PlayerTagMovement : NetworkBehaviour
         if (USING_PLAYPULSE)
         {
             float deltaResistance = PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.RightTrigger) ? 0.2f : -0.2f;
-            if (PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.LeftTrigger) 
+            if (PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.LeftTrigger)
             || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.LeftTrigger))
             {
                 pedalResistance = Math.Clamp(pedalResistance + deltaResistance, 0.0f, 1.0f);
@@ -361,8 +431,9 @@ public class PlayerTagMovement : NetworkBehaviour
 
         bool wantsToSprint = sprintAction.IsPressed() || PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.B);
         Vector3 movement = new Vector3(input.x, 0, input.y);
-        isTaunting = (interactAction.ReadValue<float>() > 0f && interactAction.WasPressedThisFrame()) || 
+        isTaunting = (interactAction.ReadValue<float>() > 0f && interactAction.WasPressedThisFrame()) ||
         PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.Y);
+        isTaunting = interactAction.IsPressed() || PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.Y);
         isPunching = attackAction.WasPerformedThisFrame() || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A);
         isPunchingNet.Value = isPunching && isTaggedNet.Value;
 
@@ -385,28 +456,48 @@ public class PlayerTagMovement : NetworkBehaviour
         // Handle animations and update position based on input actions
         float pedalSpeed = USING_PLAYPULSE ? Math.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f) : 1f;
         float pedalAnimationSpeed = USING_PLAYPULSE ? 2 * pedalSpeed : 1f;
-        movement = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ? 
-        new Vector3((-1)*PlayPulse.Input.Input.JoystickX, 0, (-1)*PlayPulse.Input.Input.JoystickY) : movement;
-        if (movement.sqrMagnitude > 0.01f)
-        {
-            Quaternion lastRotation = Quaternion.LookRotation(movement);
-            transform.rotation = Quaternion.Slerp(transform.rotation, lastRotation, 10f * Time.deltaTime);
-            float currentSpeed = animator.GetCurrentAnimatorStateInfo(0).speed;
-            animator.speed = currentSpeed * pedalAnimationSpeed;
-            isWalkingNet.Value = !isSprinting;
-        }
-        else
-        {
-            isWalkingNet.Value = false;
-            isSprintingNet.Value = false;
-            animator.speed = 1.0f; // Only use custom speed for walking and running anims
-        }
+        movement = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ?
+        new Vector3((-1) * PlayPulse.Input.Input.JoystickX, 0, (-1) * PlayPulse.Input.Input.JoystickY) : movement;
+
         float moveSpeed = isSprinting ? sprintSpeed : walkSpeed;
 
         if (staminaNet.Value <= 0f)
         {
             moveSpeed *= exhaustedSpeedMultiplier;
         }
+
+        float currentActualSpeed = pedalSpeed * moveSpeed;
+
+        if (movement.sqrMagnitude > 0.01f)
+        {
+            Quaternion lastRotation = Quaternion.LookRotation(movement);
+            transform.rotation = Quaternion.Slerp(transform.rotation, lastRotation, 10f * Time.deltaTime);
+            float currentAnimSpeed = animator.GetCurrentAnimatorStateInfo(0).speed;
+            animator.speed = currentAnimSpeed * pedalAnimationSpeed;
+
+            // Animation based on pedaling speed: pedalSpeed ranges from 0-1
+            if (pedalSpeed < sprintSpeedThreshold)
+            {
+                isWalkingNet.Value = true;
+                isSprintingNet.Value = false;
+            }
+            else
+            {
+                isWalkingNet.Value = false;
+                isSprintingNet.Value = true;
+            }
+        }
+        else
+        {
+            isWalkingNet.Value = false;
+            isSprintingNet.Value = false;
+            animator.speed = 1.0f;
+        }
+
+        // Update sprint particle effect (only show when actively sprinting, not just moving fast)
+        // This updates the NetworkVariable, which will sync to all clients via the callback
+        bool shouldShowEffect = isSprinting && movement.sqrMagnitude > 0.01f && currentActualSpeed >= 0.5f;
+        isShowingSprintParticlesNet.Value = shouldShowEffect;
 
         Vector3 newPosition = rb.position + movement * pedalSpeed * moveSpeed * Time.deltaTime;
         newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
@@ -420,7 +511,7 @@ public class PlayerTagMovement : NetworkBehaviour
         // Limits animation to loop once if key is held down,
         // otherwise cancels on other actions or letting go of key
         canTaunt = !isWalkingNet.Value && !isSprinting && !isPunching;
-        if (/*interactAction.WasPressedThisFrame()*/ isTaunting && canTaunt)
+        if (isTaunting && canTaunt)
         {
             animator.SetTrigger("isTauntingTrigger");
             isTauntingNet.Value = true;
@@ -433,6 +524,10 @@ public class PlayerTagMovement : NetworkBehaviour
         {
             isTauntingNet.Value = false;
         }
+
+        if (resetTaggedPlayerDebug.WasPressedThisFrame() && IsHost) {
+            SetInitialTaggedPlayer();
+        }
     }
 
     /// <summary>
@@ -443,6 +538,12 @@ public class PlayerTagMovement : NetworkBehaviour
     public void UpdateColorServerRpc(string color)
     {
         colorNet.Value = new FixedString64Bytes(color);
+    }
+
+    [ServerRpc]
+    public void UpdateNicknameServerRpc(string nickname)
+    {
+        nicknameNet.Value = new FixedString64Bytes(nickname);
     }
 
     /// <summary>
@@ -491,6 +592,9 @@ public class PlayerTagMovement : NetworkBehaviour
         var victim = NetworkManager.Singleton.SpawnManager.SpawnedObjects[victimId].GetComponent<PlayerTagMovement>();
         victim.isHitNet.Value = true;
         victim.isTaggedNet.Value = true;
+        victim.isWalkingNet.Value = false;
+        victim.isSprintingNet.Value = false;
+        victim.isTauntingNet.Value = false;
 
         // Add timediff to current player
         timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
@@ -549,9 +653,9 @@ public class PlayerTagMovement : NetworkBehaviour
                 // Within bounds if angle between position diff vector and tagged player's forward vector < 45 degrees
                 Quaternion.FromToRotation(transform.forward, targetVector).ToAngleAxis(out float angle, out Vector3 axis);
                 isWithinBounds = Mathf.Abs(angle) <= (distance > range / 2 ? 70f : 45f);
-                taggedPlayer = (PlayerTagMovement) player;
+                taggedPlayer = (PlayerTagMovement)player;
                 _player = player.GameObject();
-            }  
+            }
         }
         // Need to check whether a GameObject is blocking the player's view (e.g. a Cube)
         if (Physics.Linecast(transform.position, taggedPlayer.transform.position, out RaycastHit hit))
