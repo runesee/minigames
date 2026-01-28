@@ -262,9 +262,9 @@ public class MenuManager : MonoBehaviour
         bool started = NetworkManager.Singleton.StartHost();
         if (started)
         {
-            Debug.Log("[Host] Started successfully, loading TagScene...");
+            Debug.Log("[Host] Started successfully, loading Lobby...");
             NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnSceneLoadCompleted;
-            NetworkManager.Singleton.SceneManager.LoadScene("TagScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
+            NetworkManager.Singleton.SceneManager.LoadScene("Lobby", UnityEngine.SceneManagement.LoadSceneMode.Single);
         }
         else
         {
