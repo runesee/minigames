@@ -2,6 +2,7 @@ using UnityEngine;
 using Unity.Netcode;
 using System.Collections.Generic;
 using PlayPulse.Api.Utils;
+using System.Collections;
 
 public class TagPlayerSpawner : NetworkBehaviour
 {
@@ -28,7 +29,18 @@ public class TagPlayerSpawner : NetworkBehaviour
         spawnPoints.Add(new Vector3(7f, 1f, -10f));
 
         NetworkManager.Singleton.OnClientConnectedCallback += SpawnPlayer;
-        SpawnPlayer(NetworkManager.Singleton.LocalClientId); // explicitly spawn host player
+        
+        StartCoroutine(SpawnAllPlayersAfterDelay());
+    }
+    
+    private IEnumerator SpawnAllPlayersAfterDelay()
+    {
+        yield return new WaitForSeconds(0.5f);
+        
+        foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds)
+        {
+            SpawnPlayer(clientId);
+        }
     }
 
 

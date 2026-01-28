@@ -18,8 +18,10 @@ public class LobbyManager : NetworkBehaviour
     [SerializeField] private Button startGameButton;
     [SerializeField] private TextMeshProUGUI playerCountText;
     [SerializeField] private TextMeshProUGUI waitingText;
+    [SerializeField] private TextMeshProUGUI startButtonStatusText;
     
     private const int MAX_PLAYERS = 4;
+    private const int MIN_PLAYERS_TO_START = 2;
     private Dictionary<ulong, LobbyPlayerData> connectedPlayers = new Dictionary<ulong, LobbyPlayerData>();
     private Dictionary<ulong, GameObject> playerPreviews = new Dictionary<ulong, GameObject>();
     
@@ -60,12 +62,15 @@ public class LobbyManager : NetworkBehaviour
         {
             startGameButton.onClick.AddListener(OnStartGameClicked);
             startGameButton.gameObject.SetActive(isServer);
+            startGameButton.interactable = false;
         }
         
         if (waitingText != null)
         {
             waitingText.gameObject.SetActive(!isServer);
         }
+        
+        UpdatePlayerCount();
     }
     
     public override void OnNetworkSpawn()
@@ -317,11 +322,35 @@ public class LobbyManager : NetworkBehaviour
     
     private void UpdatePlayerCount()
     {
+        bool isServer = NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer;
+        int playerCount = isServer ? connectedPlayers.Count : playerPreviews.Count;
+        
         if (playerCountText != null)
         {
-            bool isServer = NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer;
-            int playerCount = isServer ? connectedPlayers.Count : playerPreviews.Count;
             playerCountText.text = $"Players: {playerCount}/{MAX_PLAYERS}";
+        }
+        
+        if (isServer && startGameButton != null)
+        {
+            bool canStart = playerCount >= MIN_PLAYERS_TO_START;
+            startGameButton.interactable = canStart;
+            
+            if (startButtonStatusText != null)
+            {
+                if (canStart)
+                {
+                    startButtonStatusText.text = "";
+                }
+                else
+                {
+                    startButtonStatusText.text = $"Need {MIN_PLAYERS_TO_START - playerCount} more player{(MIN_PLAYERS_TO_START - playerCount > 1 ? "s" : "")}";
+                }
+            }
+            
+            if (!canStart)
+            {
+                Debug.Log($"[Lobby] Need at least {MIN_PLAYERS_TO_START} players to start (current: {playerCount})");
+            }
         }
     }
     
@@ -330,13 +359,13 @@ public class LobbyManager : NetworkBehaviour
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
             return;
         
-        if (connectedPlayers.Count == 0)
+        if (connectedPlayers.Count < MIN_PLAYERS_TO_START)
         {
-            Debug.LogWarning("[Lobby] Cannot start game with no players");
+            Debug.LogWarning($"[Lobby] Cannot start game - need at least {MIN_PLAYERS_TO_START} players (current: {connectedPlayers.Count})");
             return;
         }
         
-        Debug.Log("[Lobby] Starting game...");
+        Debug.Log($"[Lobby] Starting game with {connectedPlayers.Count} players...");
         NetworkManager.Singleton.SceneManager.LoadScene("TagScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
     }
 }
