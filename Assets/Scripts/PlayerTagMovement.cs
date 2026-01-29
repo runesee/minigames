@@ -18,25 +18,6 @@ public class PlayerTagMovement : NetworkBehaviour
 {
     [SerializeField] private SkinnedMeshRenderer playerSkinRenderer;
 
-    [Header("Movement Settings")]
-    public float walkSpeed = 3f;
-    public float boostSpeed = 8f;
-    public float RotateSpeed = 30f;
-
-    [Header("Stamina Settings")]
-    public float maxStamina = 100f;
-    public float staminaDrainRate = 20f;
-    public float staminaRegenRateSlow = 5f;
-    public float staminaRegenRateFast = 15f;
-    public float sprintSpeedThreshold = 2f;
-    public float walkSpeedThreshold = 0.2f;
-    public float exhaustedSpeedMultiplier = 0.3f;
-    public float minStaminaToBoost = 5f;
-    public float taggedStaminaBoostMultiplier = 1.5f;
-
-    [Header("Sprint Visual Effect")]
-    public ParticleSystem sprintParticleEffect;
-
     [Header("Map Boundaries")]
     public float minX = -17f;
     public float maxX = 17f;
@@ -106,6 +87,7 @@ public class PlayerTagMovement : NetworkBehaviour
         NetworkVariableWritePermission.Owner
     );
 
+    public ParticleSystem sprintParticleEffect;
     private InputAction attackAction;
     private InputAction moveAction;
     private InputAction sprintAction;
@@ -121,6 +103,15 @@ public class PlayerTagMovement : NetworkBehaviour
     private Vector3 savedPosition = default;
     private float pedalResistance;
     private bool USING_PLAYPULSE = true; // Flag for dev/bike movement toggling.
+    private readonly float walkSpeed = 5f;
+    private readonly float boostSpeed = 8f;
+    private readonly float maxStamina = 100f;
+    private readonly float staminaDrainRate = 20f;
+    private readonly float staminaRegenRateFast = 15f;
+    private readonly float sprintSpeedThreshold = 3.3f;
+    private readonly float exhaustedSpeedMultiplier = 0.3f;
+    private readonly float minStaminaToBoost = 5f;
+    private readonly float taggedStaminaBoostMultiplier = 1.5f;
 
     private void Awake()
     {
@@ -356,7 +347,7 @@ public class PlayerTagMovement : NetworkBehaviour
         if (USING_PLAYPULSE)
         {
             float deltaResistance = PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.RightTrigger) ? 0.2f : -0.2f;
-            if (PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.LeftTrigger)
+            if (PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.RightTrigger)
             || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.LeftTrigger))
             {
                 pedalResistance = Math.Clamp(pedalResistance + deltaResistance, 0.0f, 1.0f);
@@ -397,37 +388,31 @@ public class PlayerTagMovement : NetworkBehaviour
 
         // Handle animations and update position based on input actions
         float pedalSpeed = USING_PLAYPULSE ? Math.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f) : 0.4f;
-        float pedalAnimationSpeed = USING_PLAYPULSE ? 2 * pedalSpeed : 1f;
+        float pedalAnimationSpeed = USING_PLAYPULSE ? 1.6f * pedalSpeed : 1f;
         joystickOffset = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ?
         new Vector3((-1) * PlayPulse.Input.Input.JoystickX, 0, (-1) * PlayPulse.Input.Input.JoystickY) : joystickOffset;
         float moveSpeed = (isBoosting ? boostSpeed : walkSpeed) * (staminaNet.Value <= 0f ? exhaustedSpeedMultiplier : 1f) * pedalSpeed;
-        UnityEngine.Debug.Log(moveSpeed);
 
         if (joystickOffset.sqrMagnitude > 0.01f)
         {
             Quaternion lastRotation = Quaternion.LookRotation(joystickOffset);
             transform.rotation = Quaternion.Slerp(transform.rotation, lastRotation, 10f * Time.deltaTime);
-            float currentAnimSpeed = animator.GetCurrentAnimatorStateInfo(0).speed;
-            animator.speed = currentAnimSpeed * pedalAnimationSpeed;
+            animator.speed = pedalAnimationSpeed;
+
+            Vector3 newPosition = rb.position + moveSpeed * Time.deltaTime * joystickOffset.normalized;
+            newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
+            newPosition.z = Mathf.Clamp(newPosition.z, minZ, maxZ);
+            rb.MovePosition(newPosition);
+            UpdateStamina(isBoosting);
 
             // Play running animation if above threshold, and 
             // Update sprint particle effect (only show when actively sprinting, not just moving fast)
             // This updates the NetworkVariable, which will sync to all clients via the callback
             // Animation based on pedaling speed: pedalSpeed ranges from 0-1
-
             // TODO : use a range instead of ONE value to prevent jitter!
-            if (moveSpeed < sprintSpeedThreshold)
-            {
-                isWalkingNet.Value = true;
-                isSprintingNet.Value = false;
-            }
-            else
-            {
-                isWalkingNet.Value = false;
-                isSprintingNet.Value = true;
-            }
-            //isSprintingNet.Value = moveSpeed > sprintSpeedThreshold;
-            //isWalkingNet.Value = !isSprintingNet.Value;
+            isSprintingNet.Value = moveSpeed > sprintSpeedThreshold;
+            isWalkingNet.Value = !isSprintingNet.Value;
+            isShowingBoostParticlesNet.Value = isBoosting;
         }
         else
         {
@@ -435,11 +420,6 @@ public class PlayerTagMovement : NetworkBehaviour
             isSprintingNet.Value = false;
             animator.speed = 1.0f;
         }
-        Vector3 newPosition = rb.position + joystickOffset * moveSpeed * Time.deltaTime;
-        newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
-        newPosition.z = Mathf.Clamp(newPosition.z, minZ, maxZ);
-        rb.MovePosition(newPosition);
-        UpdateStamina(isBoosting);
 
         // Lastly, if neither moving or tagging, check if taunting.
         // Sets both trigger and bool value in Animator.
