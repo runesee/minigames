@@ -4,12 +4,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Linq;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System;
 using static TagSessionManager;
 using PlayPulse.Api.Utils;
-using UnityEngine.UIElements;
-using Unity.Netcode.Components;
 using Unity.VisualScripting;
 
 [RequireComponent(typeof(Rigidbody))]
@@ -121,18 +118,11 @@ public class PlayerTagMovement : NetworkBehaviour
     void Start()
     {
         if (!USING_PLAYPULSE) return;
-        // Initialize connection with PP-service
+        // Initialize connection with PP-service, which should already by started.
         try
         {
             if (!PlayPulse.PlayPulseService.IsInitialized)
             {
-                PlayPulse.PlayPulseService.Initialize(
-                    string.Empty,
-                    connectToBikeService: true,
-                    appSocketPathOverride: "127.0.0.1:13337",
-                    shellSocketPathOverride: "127.0.0.1:13337",
-                    useTcpSocket: true
-                );
                 // Reset resistance
                 pedalResistance = 0.2f;
                 PlayPulse.Input.Input.ResistanceSetPoint = pedalResistance;
@@ -206,21 +196,8 @@ public class PlayerTagMovement : NetworkBehaviour
     private void OnSprintParticlesChanged(bool previousValue, bool newValue)
     {
         if (sprintParticleEffect == null) return;
-
-        if (newValue)
-        {
-            if (!sprintParticleEffect.isPlaying)
-            {
-                sprintParticleEffect.Play();
-            }
-        }
-        else
-        {
-            if (sprintParticleEffect.isPlaying)
-            {
-                sprintParticleEffect.Stop();
-            }
-        }
+        if (newValue && !sprintParticleEffect.isPlaying) sprintParticleEffect.Play();
+        else if (sprintParticleEffect.isPlaying) sprintParticleEffect.Stop();
     }
 
     /// <summary>
@@ -240,7 +217,6 @@ public class PlayerTagMovement : NetworkBehaviour
     private void OnClientConnect(ulong clientId)
     {
         if (!TagSessionManager.Instance) return;
-
         try
         {
             FixedString64Bytes guid = new FixedString64Bytes(PlayerPrefs.GetString("Guid"));
@@ -251,7 +227,7 @@ public class PlayerTagMovement : NetworkBehaviour
                 ResyncPlayerDataServerRpc(playerData);
             }
         }
-        catch (KeyNotFoundException) { }
+        catch (KeyNotFoundException) {}
     }
 
     /// <summary>
@@ -343,6 +319,7 @@ public class PlayerTagMovement : NetworkBehaviour
             savedPosition = default;
             return;
         }*/
+
         // Attempt to change gears if user presses right or left trigger
         if (USING_PLAYPULSE)
         {
@@ -381,8 +358,7 @@ public class PlayerTagMovement : NetworkBehaviour
 
             if (target != null)
             {
-                // Set target as tagged and hit (can tag others, play animation)
-                TagPlayerServerRpc(target.NetworkObjectId);
+                TagPlayerServerRpc(target.NetworkObjectId); // Set target as tagged and hit (can tag others, play animation)
             }
         }
 
@@ -405,10 +381,7 @@ public class PlayerTagMovement : NetworkBehaviour
             rb.MovePosition(newPosition);
             UpdateStamina(isBoosting);
 
-            // Play running animation if above threshold, and 
-            // Update sprint particle effect (only show when actively sprinting, not just moving fast)
-            // This updates the NetworkVariable, which will sync to all clients via the callback
-            // Animation based on pedaling speed: pedalSpeed ranges from 0-1
+            // Play running animation if movement speed above threshold
             // TODO : use a range instead of ONE value to prevent jitter!
             isSprintingNet.Value = moveSpeed > sprintSpeedThreshold;
             isWalkingNet.Value = !isSprintingNet.Value;

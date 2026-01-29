@@ -69,7 +69,8 @@ public class MenuManager : MonoBehaviour
             appSocketPathOverride: "127.0.0.1:13337",
             shellSocketPathOverride: "127.0.0.1:13337",
             useTcpSocket: true
-        );}
+            );
+        }
         }
 
     private void Update()
