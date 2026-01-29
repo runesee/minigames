@@ -4,6 +4,7 @@ using Unity.Netcode;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEngine.InputSystem;
 
 public class LobbyManager : NetworkBehaviour
 {
@@ -71,6 +72,21 @@ public class LobbyManager : NetworkBehaviour
         }
 
         UpdatePlayerCount();
+    }
+
+    private void Update()
+    {
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+        {
+            Keyboard keyboard = Keyboard.current;
+            if ((keyboard != null && keyboard.enterKey.wasPressedThisFrame) || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A))
+            {
+                if (startGameButton != null && startGameButton.interactable)
+                {
+                    OnStartGameClicked();
+                }
+            }
+        }
     }
 
     public override void OnNetworkSpawn()
