@@ -104,7 +104,7 @@ public class LobbyManager : NetworkBehaviour
         }
     }
 
-    private void OnDestroy()
+    public override void OnDestroy()
     {
         if (NetworkManager.Singleton != null)
         {
@@ -116,6 +116,7 @@ public class LobbyManager : NetworkBehaviour
         {
             startGameButton.onClick.RemoveListener(OnStartGameClicked);
         }
+        base.OnDestroy();
     }
 
     private void OnClientConnected(ulong clientId)
@@ -144,7 +145,7 @@ public class LobbyManager : NetworkBehaviour
         UpdatePlayerCount();
     }
 
-    [Rpc(SendTo.Server, RequireOwnership = false)]
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void RequestJoinServerRpc(ulong clientId, string nickname, Color color)
     {
         OnPlayerJoinRequested(clientId, nickname, color);
@@ -156,7 +157,7 @@ public class LobbyManager : NetworkBehaviour
         AddPlayerToSlot(clientId, nickname, color, slotIndex);
     }
 
-    [Rpc(SendTo.Server, RequireOwnership = false)]
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void RemovePlayerServerRpc(ulong clientId)
     {
         OnPlayerLeaveRequested(clientId);
