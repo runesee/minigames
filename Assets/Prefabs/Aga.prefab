@@ -4912,7 +4912,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3051191352
+  GlobalObjectIdHash: 3990490726
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -5052,7 +5052,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   playerSkinRenderer: {fileID: 8576045237320093323}
   walkSpeed: 3
-  sprintSpeed: 8
+  boostSpeed: 8
   RotateSpeed: 30
   maxStamina: 100
   staminaDrainRate: 20
@@ -5061,7 +5061,7 @@ MonoBehaviour:
   sprintSpeedThreshold: 0.5
   walkSpeedThreshold: 0.2
   exhaustedSpeedMultiplier: 0.3
-  minStaminaToSprint: 5
+  minStaminaToBoost: 5
   taggedStaminaBoostMultiplier: 1.5
   sprintParticleEffect: {fileID: 6789903846567414674}
   minX: -17
@@ -5143,6 +5143,75 @@ MonoBehaviour:
         byte0059: 0
         byte0060: 0
         byte0061: 0
+  nicknameNet:
+    m_InternalValue:
+      utf8LengthInBytes: 6
+      bytes:
+        offset0000:
+          byte0000: 80
+          byte0001: 108
+          byte0002: 97
+          byte0003: 121
+          byte0004: 101
+          byte0005: 114
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        offset0016:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        offset0032:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        byte0048: 0
+        byte0049: 0
+        byte0050: 0
+        byte0051: 0
+        byte0052: 0
+        byte0053: 0
+        byte0054: 0
+        byte0055: 0
+        byte0056: 0
+        byte0057: 0
+        byte0058: 0
+        byte0059: 0
+        byte0060: 0
+        byte0061: 0
 --- !u!114 &5568033458682530780
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5157,10 +5226,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TaggedPlayerVisualizer
   ShowTopMostFoldoutHeaderGroup: 1
   playerSkinRenderer: {fileID: 8576045237320093323}
-  glowColor: {r: 0.7803922, g: 0.3137255, b: 0.3137255, a: 1}
   glowIntensity: 1.25
   markerPrefab: {fileID: 2861896397478858066, guid: 7c48f679abde14eaa9db02b4b115a613, type: 3}
   markerOffset: {x: 0, y: 2.5, z: 0}
+  glowColorNet:
+    m_InternalValue: {r: 1, g: 0, b: 0, a: 1}
 --- !u!1001 &2472634209218968432
 PrefabInstance:
   m_ObjectHideFlags: 0
