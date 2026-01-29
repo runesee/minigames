@@ -164,12 +164,10 @@ public class MenuManager : MonoBehaviour
 
     public void OnSettingsButtonClicked()
     {
-        Debug.Log("Settings button clicked - Placeholder");
     }
 
     public void OnQuitButtonClicked()
     {
-        Debug.Log("Quit button clicked - Placeholder");
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #else
@@ -198,7 +196,6 @@ public class MenuManager : MonoBehaviour
 
         if (isHostMode)
         {
-            Debug.Log($"Host confirmed with nickname: {nickname}, color index: {colorIndex}");
             StartHost();
         }
         else
@@ -208,7 +205,6 @@ public class MenuManager : MonoBehaviour
                 Debug.LogWarning("Please enter a host IP address!");
                 return;
             }
-            Debug.Log($"Join confirmed with nickname: {nickname}, color index: {colorIndex}, IP: {ipInputField.text}");
             StartClient();
         }
     }
@@ -255,14 +251,12 @@ public class MenuManager : MonoBehaviour
         if (transport != null)
         {
             string localIP = GetLocalIPAddress();
-            Debug.Log($"[Host] Setting connection data - IP: {localIP}, Port: {PORT}");
             transport.SetConnectionData(localIP, PORT);
         }
 
         bool started = NetworkManager.Singleton.StartHost();
         if (started)
         {
-            Debug.Log("[Host] Started successfully, loading Lobby...");
             NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnSceneLoadCompleted;
             NetworkManager.Singleton.SceneManager.LoadScene("Lobby", UnityEngine.SceneManagement.LoadSceneMode.Single);
         }
@@ -284,7 +278,6 @@ public class MenuManager : MonoBehaviour
         if (transport != null)
         {
             string ipAddress = ipInputField != null ? ipInputField.text : "127.0.0.1";
-            Debug.Log($"[Client] Setting connection data - IP: {ipAddress}, Port: {PORT}");
             transport.SetConnectionData(ipAddress, PORT);
         }
 
@@ -292,11 +285,7 @@ public class MenuManager : MonoBehaviour
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
 
         bool started = NetworkManager.Singleton.StartClient();
-        if (started)
-        {
-            Debug.Log("[Client] Connection attempt started...");
-        }
-        else
+        if (!started)
         {
             Debug.LogError("[Client] Failed to start connection!");
         }
@@ -304,12 +293,10 @@ public class MenuManager : MonoBehaviour
 
     private void OnClientConnected(ulong clientId)
     {
-        Debug.Log($"[Client] Connected with ID: {clientId}");
     }
 
     private void OnClientDisconnected(ulong clientId)
     {
-        Debug.LogWarning($"[Client] Disconnected with ID: {clientId}");
         if (NetworkManager.Singleton != null)
         {
             NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
@@ -356,18 +343,9 @@ public class MenuManager : MonoBehaviour
         
         if (dropdownOpen)
         {
-            Debug.Log("Dropdown is open, handling joystick navigation");
-            
             if (EventSystem.current != null)
             {
                 EventSystem.current.sendNavigationEvents = false;
-            }
-            
-            GameObject scrollRect = dropdownList.Find("Viewport/Content")?.gameObject;
-            if (scrollRect != null)
-            {
-                GameObject currentSelected = EventSystem.current.currentSelectedGameObject;
-                Debug.Log($"Current selected in dropdown: {(currentSelected != null ? currentSelected.name : "null")}");
             }
             
             float y = PlayPulse.Input.Input.JoystickY;
@@ -377,7 +355,6 @@ public class MenuManager : MonoBehaviour
             {
                 if (y < -joystickDeadzone || (keyboard != null && keyboard.upArrowKey.wasPressedThisFrame))
                 {
-                    Debug.Log("UP input detected in dropdown");
                     GameObject currentItem = EventSystem.current.currentSelectedGameObject;
                     if (currentItem != null)
                     {
@@ -388,7 +365,6 @@ public class MenuManager : MonoBehaviour
                             if (nextSelectable != null)
                             {
                                 EventSystem.current.SetSelectedGameObject(nextSelectable.gameObject);
-                                Debug.Log($"Selected: {nextSelectable.name}");
                             }
                         }
                     }
@@ -396,7 +372,6 @@ public class MenuManager : MonoBehaviour
                 }
                 else if (y > joystickDeadzone || (keyboard != null && keyboard.downArrowKey.wasPressedThisFrame))
                 {
-                    Debug.Log("DOWN input detected in dropdown");
                     GameObject currentItem = EventSystem.current.currentSelectedGameObject;
                     if (currentItem != null)
                     {
@@ -407,7 +382,6 @@ public class MenuManager : MonoBehaviour
                             if (nextSelectable != null)
                             {
                                 EventSystem.current.SetSelectedGameObject(nextSelectable.gameObject);
-                                Debug.Log($"Selected: {nextSelectable.name}");
                             }
                         }
                     }
@@ -418,7 +392,6 @@ public class MenuManager : MonoBehaviour
             if (PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A) ||
                 (keyboard != null && (keyboard.enterKey.wasPressedThisFrame || keyboard.spaceKey.wasPressedThisFrame)))
             {
-                Debug.Log("Confirm button pressed in dropdown");
                 GameObject currentItem = EventSystem.current.currentSelectedGameObject;
                 if (currentItem != null)
                 {
@@ -426,7 +399,6 @@ public class MenuManager : MonoBehaviour
                     if (toggle != null)
                     {
                         toggle.isOn = true;
-                        Debug.Log($"Toggled item: {currentItem.name}");
                     }
                 }
             }

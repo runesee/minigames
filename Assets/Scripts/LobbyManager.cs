@@ -100,7 +100,6 @@ public class LobbyManager : NetworkBehaviour
             Color color = Color.white;
             ColorUtility.TryParseHtmlString(colorHex, out color);
 
-            Debug.Log($"[Lobby] Requesting to join with nickname: {nickname}, color: {colorHex}");
             RequestJoinServerRpc(NetworkManager.Singleton.LocalClientId, nickname, color);
         }
     }
@@ -121,8 +120,6 @@ public class LobbyManager : NetworkBehaviour
 
     private void OnClientConnected(ulong clientId)
     {
-        Debug.Log($"[Lobby] Client connected: {clientId}");
-
         if (IsServer)
         {
             foreach (var kvp in connectedPlayers)
@@ -130,7 +127,6 @@ public class LobbyManager : NetworkBehaviour
                 ulong existingClientId = kvp.Key;
                 LobbyPlayerData data = kvp.Value;
 
-                Debug.Log($"[Lobby] Informing all clients about existing player {data.nickname} (client {existingClientId})");
                 AddPlayerClientRpc(existingClientId, data.nickname, data.color, data.slotIndex);
             }
         }
@@ -140,8 +136,6 @@ public class LobbyManager : NetworkBehaviour
 
     private void OnClientDisconnected(ulong clientId)
     {
-        Debug.Log($"[Lobby] Client disconnected: {clientId}");
-
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
         {
             OnPlayerLeaveRequested(clientId);
@@ -153,28 +147,24 @@ public class LobbyManager : NetworkBehaviour
     [Rpc(SendTo.Server, RequireOwnership = false)]
     public void RequestJoinServerRpc(ulong clientId, string nickname, Color color)
     {
-        Debug.Log($"[Lobby] Server received join request from client {clientId}, nickname: {nickname}");
         OnPlayerJoinRequested(clientId, nickname, color);
     }
 
     [Rpc(SendTo.NotServer)]
     public void AddPlayerClientRpc(ulong clientId, string nickname, Color color, int slotIndex)
     {
-        Debug.Log($"[Lobby] Client received add player: {nickname} at slot {slotIndex} (LocalClientId: {NetworkManager.Singleton.LocalClientId})");
         AddPlayerToSlot(clientId, nickname, color, slotIndex);
     }
 
     [Rpc(SendTo.Server, RequireOwnership = false)]
     public void RemovePlayerServerRpc(ulong clientId)
     {
-        Debug.Log($"[Lobby] Server received remove request for client {clientId}");
         OnPlayerLeaveRequested(clientId);
     }
 
     [Rpc(SendTo.NotServer)]
     public void RemovePlayerClientRpc(ulong clientId, int slotIndex)
     {
-        Debug.Log($"[Lobby] Client received remove player at slot {slotIndex}");
         RemovePlayerFromSlot(clientId, slotIndex);
     }
 
@@ -201,7 +191,6 @@ public class LobbyManager : NetworkBehaviour
         };
 
         connectedPlayers[clientId] = playerData;
-        Debug.Log($"[Lobby] Player {nickname} joined in slot {slotIndex}");
 
         if (IsServer)
         {
@@ -229,8 +218,6 @@ public class LobbyManager : NetworkBehaviour
 
     public void AddPlayerToSlot(ulong clientId, string nickname, Color color, int slotIndex)
     {
-        Debug.Log($"[Lobby] AddPlayerToSlot called - ClientId: {clientId}, Nickname: {nickname}, Slot: {slotIndex}");
-
         if (slotIndex < 0 || slotIndex >= MAX_PLAYERS)
         {
             Debug.LogError($"[Lobby] Invalid slot index: {slotIndex}");
@@ -239,14 +226,12 @@ public class LobbyManager : NetworkBehaviour
 
         if (playerPreviews.ContainsKey(clientId))
         {
-            Debug.Log($"[Lobby] Player {clientId} already has a preview, skipping duplicate add");
             return;
         }
 
         if (nicknameTexts[slotIndex] != null)
         {
             nicknameTexts[slotIndex].text = nickname;
-            Debug.Log($"[Lobby] Set nickname text for slot {slotIndex} to: {nickname}");
         }
 
         if (playerSlots[slotIndex] != null && characterPreviewPrefab != null)
@@ -261,13 +246,10 @@ public class LobbyManager : NetworkBehaviour
             preview.transform.rotation = Quaternion.Euler(0, 180, 0);
             preview.transform.localScale = Vector3.one * 0.7f;
 
-            Debug.Log($"[Lobby] Instantiated character preview for slot {slotIndex} at world position {worldPosition}");
-
             CharacterPreview characterPreview = preview.GetComponent<CharacterPreview>();
             if (characterPreview != null)
             {
                 characterPreview.SetColor(color);
-                Debug.Log($"[Lobby] Set character color to: {color}");
             }
             else
             {
@@ -362,11 +344,6 @@ public class LobbyManager : NetworkBehaviour
                     startButtonStatusText.text = $"Need {MIN_PLAYERS_TO_START - playerCount} more player{(MIN_PLAYERS_TO_START - playerCount > 1 ? "s" : "")}";
                 }
             }
-
-            if (!canStart)
-            {
-                Debug.Log($"[Lobby] Need at least {MIN_PLAYERS_TO_START} players to start (current: {playerCount})");
-            }
         }
     }
 
@@ -377,11 +354,10 @@ public class LobbyManager : NetworkBehaviour
 
         if (connectedPlayers.Count < MIN_PLAYERS_TO_START)
         {
-            Debug.LogWarning($"[Lobby] Cannot start game - need at least {MIN_PLAYERS_TO_START} players (current: {connectedPlayers.Count})");
+            Debug.LogWarning($"[Lobby] Cannot start game - need at least {MIN_PLAYERS_TO_START} players");
             return;
         }
 
-        Debug.Log($"[Lobby] Starting game with {connectedPlayers.Count} players...");
         NetworkManager.Singleton.SceneManager.LoadScene("TagScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
     }
 }
