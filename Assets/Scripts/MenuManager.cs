@@ -54,6 +54,10 @@ public class MenuManager : MonoBehaviour
         FixImageSprites();
     }
 
+    /* TODO :
+    Currently, this file feels bloated and hard to follow.
+    We should probably split it up into separate files (e.g. one for navigation, one for starting sessions etc.)
+    */ 
     private void Start()
     {   
         ShowMainMenu();
@@ -171,11 +175,11 @@ public class MenuManager : MonoBehaviour
     public void OnQuitButtonClicked()
     {
         Debug.Log("Quit button clicked - Placeholder");
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#else
-        Application.Quit();
-#endif
+        #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+        #else
+            Application.Quit();
+        #endif
     }
 
     public void OnGenerateNicknameButtonClicked()
@@ -190,28 +194,13 @@ public class MenuManager : MonoBehaviour
         int colorIndex = colorDropdown.value;
         PlayerPrefs.SetString("Color", "#" + ColorUtility.ToHtmlStringRGB(PlayerColorManager.GetColor(colorIndex)));
 
-        if (string.IsNullOrWhiteSpace(nickname))
-        {
-            Debug.LogWarning("Please enter a nickname!");
-            return;
-        }
+        if (string.IsNullOrWhiteSpace(nickname)) return;
         PlayerPrefs.SetString("Username", nickname);
 
-        if (isHostMode)
-        {
-            Debug.Log($"Host confirmed with nickname: {nickname}, color index: {colorIndex}");
-            StartHost();
-        }
-        else
-        {
-            if (ipInputField != null && string.IsNullOrWhiteSpace(ipInputField.text))
-            {
-                Debug.LogWarning("Please enter a host IP address!");
-                return;
-            }
-            Debug.Log($"Join confirmed with nickname: {nickname}, color index: {colorIndex}, IP: {ipInputField.text}");
-            StartClient();
-        }
+        if (ipInputField != null && string.IsNullOrWhiteSpace(ipInputField.text)) return;
+
+        if (isHostMode) StartHost();
+        else StartClient();
     }
 
     public void OnBackButtonClicked()
@@ -231,26 +220,17 @@ public class MenuManager : MonoBehaviour
     {
         mainMenuPanel.SetActive(false);
         setupMenuPanel.SetActive(true);
+        if (string.IsNullOrWhiteSpace(nicknameInputField.text)) OnGenerateNicknameButtonClicked();
         
-        if (string.IsNullOrWhiteSpace(nicknameInputField.text))
-        {
-            OnGenerateNicknameButtonClicked();
-        }
-        
-        if (ipLabel != null) ipLabel.SetActive(false);
-        if (ipInputField != null) ipInputField.gameObject.SetActive(false);
-        
+        ipLabel?.SetActive(false);
+        ipInputField?.gameObject.SetActive(false);
         joystickTimer = 0f;
         SelectSelectable(nicknameInputField);
     }
 
     private void StartHost()
     {
-        if (NetworkManager.Singleton == null)
-        {
-            Debug.LogError("NetworkManager not found in scene!");
-            return;
-        }
+        if (NetworkManager.Singleton == null) return;
 
         var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
         if (transport != null)
@@ -275,11 +255,7 @@ public class MenuManager : MonoBehaviour
 
     private void StartClient()
     {
-        if (NetworkManager.Singleton == null)
-        {
-            Debug.LogError("NetworkManager not found in scene!");
-            return;
-        }
+        if (NetworkManager.Singleton == null) return;
 
         var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
         if (transport != null)

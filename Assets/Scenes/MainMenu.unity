@@ -1731,7 +1731,6 @@ GameObject:
   - component: {fileID: 928948981}
   - component: {fileID: 928948982}
   - component: {fileID: 928948983}
-  - component: {fileID: 928948984}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -1825,18 +1824,6 @@ MonoBehaviour:
     OldPrefabList: []
   RunInBackground: 1
   LogLevel: 1
---- !u!114 &928948984
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 928948980}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: da17eb8bab37c4b5db2194b4f268d7e0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NetworkManagerPersistence
 --- !u!1 &938594689
 GameObject:
   m_ObjectHideFlags: 0
@@ -3136,29 +3123,19 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 8587370964938106638, guid: 8b64197791aa19f459c89b942203bda4, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1683821220}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8b64197791aa19f459c89b942203bda4, type: 3}
---- !u!1 &1683821219 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8587370964938106638, guid: 8b64197791aa19f459c89b942203bda4, type: 3}
+--- !u!114 &1683821220 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1599127975115911076, guid: 8b64197791aa19f459c89b942203bda4, type: 3}
   m_PrefabInstance: {fileID: 1683821218}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1683821220
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1683821219}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 246e570a68f35440189a922cb75b0fef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CharacterPreview
-  playerSkinRenderer: {fileID: 0}
 --- !u!1 &1770016391
 GameObject:
   m_ObjectHideFlags: 0

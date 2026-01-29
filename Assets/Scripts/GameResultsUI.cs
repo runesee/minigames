@@ -137,8 +137,6 @@ public class GameResultsUI : MonoBehaviour
     {
         if (resultsText == null) yield break;
 
-        Color originalColor = resultsText.color;
-
         while (true)
         {
             float pulse = (Mathf.Sin(Time.time * 2f) + 1f) / 2f;

@@ -35,7 +35,7 @@ public class TagPlayerSpawner : NetworkBehaviour
     private void SpawnPlayer(ulong clientId)
     {
         if (!IsServer) return;
-        // TODO : Need to check if space is occupied for late-joining clients
+        // TODO : Need to check if space is occupied for late-joining clients (reconnect)
         Vector3 spawnPoint = spawnPoints.GetRandom();
         spawnPoints.Remove(spawnPoint);
         GameObject playerInstance = Instantiate(playerPrefab, spawnPoint, Quaternion.identity);

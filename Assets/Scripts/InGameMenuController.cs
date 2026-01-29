@@ -31,8 +31,7 @@ public class InGameMenuController : MonoBehaviour
             ToggleMenu();
         }
 
-        if (!isMenuOpen)
-            return;
+        if (!isMenuOpen) return;
 
         HandleKeyboardNavigation();
         HandleJoystickNavigation();

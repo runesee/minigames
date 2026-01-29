@@ -115,6 +115,10 @@ public class PlayerTagMovement : NetworkBehaviour
         rb = GetComponent<Rigidbody>();
     }
 
+    /* TODO :
+    Currently, this file feels bloated and hard to follow.
+    Drawing scoreboard etc. should not reside here, but in separate files.
+    */ 
     void Start()
     {
         if (!USING_PLAYPULSE) return;

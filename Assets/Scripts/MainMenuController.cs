@@ -16,8 +16,7 @@ public class MainMenuController : MonoBehaviour
 
         if (NetworkManager.Singleton == null)
         {
-            GUILayout.EndArea();
-            return;
+            GUILayout.EndArea(); return;
         }
 
         if (!NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer)
@@ -55,7 +54,6 @@ public class MainMenuController : MonoBehaviour
                 GUILayout.Label("Connected to Host", new GUIStyle(GUI.skin.label) { fontSize = 14 });
             }
         }
-
         GUILayout.EndArea();
     }
 

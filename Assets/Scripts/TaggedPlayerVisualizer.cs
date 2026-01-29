@@ -32,23 +32,18 @@ public class TaggedPlayerVisualizer : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        base.OnNetworkSpawn();
-
         if (playerSkinRenderer == null)
         {
             playerSkinRenderer = GetComponentInChildren<SkinnedMeshRenderer>();
         }
 
-        if (playerSkinRenderer != null)
-        {
-            originalMaterial = playerSkinRenderer.material;
-            glowMaterial = new Material(originalMaterial);
-            glowMaterial.EnableKeyword("_EMISSION");
+        originalMaterial = playerSkinRenderer.material;
+        glowMaterial = new Material(originalMaterial);
+        glowMaterial.EnableKeyword("_EMISSION");
 
-            if (glowMaterial.HasProperty("_EmissionColor"))
-            {
-                originalEmissionColor = glowMaterial.GetColor("_EmissionColor");
-            }
+        if (glowMaterial.HasProperty("_EmissionColor"))
+        {
+            originalEmissionColor = glowMaterial.GetColor("_EmissionColor");
         }
 
         if (markerPrefab != null)
