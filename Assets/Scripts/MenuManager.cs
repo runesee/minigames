@@ -360,7 +360,7 @@ public class MenuManager : MonoBehaviour
             
             if (EventSystem.current != null)
             {
-                EventSystem.current.sendNavigationEvents = true;
+                EventSystem.current.sendNavigationEvents = false;
             }
             
             GameObject scrollRect = dropdownList.Find("Viewport/Content")?.gameObject;
