@@ -11,6 +11,7 @@ using System;
 public class SessionManager : NetworkBehaviour
 {
     public NetworkList<PlayerData> PlayerDataList = new NetworkList<PlayerData>();
+    public NetworkList<PlayerData> previousPlayerDataList = new NetworkList<PlayerData>();
     public static SessionManager Instance { get; private set; }
 
     public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
@@ -42,7 +43,7 @@ public class SessionManager : NetworkBehaviour
         }
     }
 
-        public virtual void Start()
+    public virtual void Start()
     {
         DontDestroyOnLoad(this);
         // New client connected, need to assign them a unique GUID
@@ -57,7 +58,23 @@ public class SessionManager : NetworkBehaviour
         Instance = this;
         FixedString64Bytes guid = new FixedString64Bytes(PlayerPrefs.GetString("Guid"));
         PlayerData playerData = new PlayerData(guid);
-        if (IsOwner) SaveDataServerRpc(playerData);
+        if (IsOwner)
+        {
+            PlayerDataList.Add(playerData);
+            previousPlayerDataList.Add(playerData);
+        }
+    }
+
+    public PlayerData? GetDataByGuid(FixedString64Bytes guid)
+    {
+        for (int i = 0; i < PlayerDataList.Count; i++)
+        {
+            if (PlayerDataList[i].Guid.Equals(guid))
+            {
+                return PlayerDataList[i];
+            }
+        }
+        return null;
     }
 
     [ServerRpc]
@@ -67,6 +84,7 @@ public class SessionManager : NetworkBehaviour
         {
             if (PlayerDataList[i].Guid.Equals(newPlayerData.Guid))
             {
+                previousPlayerDataList[i] = PlayerDataList[i];
                 PlayerDataList[i] = newPlayerData;
                 return;
             }

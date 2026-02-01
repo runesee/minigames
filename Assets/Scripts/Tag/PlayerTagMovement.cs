@@ -181,7 +181,16 @@ public class PlayerTagMovement : NetworkBehaviour
             // Attempt to store per-player session data on disconnect
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnect;
+            TagGameState.Instance.gameState.OnValueChanged += OnTagGameStateChanged;
         } 
+    }
+
+    private void OnTagGameStateChanged(TagGameState.GameState previousValue, TagGameState.GameState newValue)
+    {
+        if (newValue == TagGameState.GameState.Stopped)
+        {
+            SaveTagData(); // If the game has ended, all player data should be saved and stored appropriately.
+        }
     }
 
     public override void OnNetworkDespawn()
@@ -242,17 +251,28 @@ public class PlayerTagMovement : NetworkBehaviour
     private void OnClientDisconnect(ulong clientId)
     {
         if (!IsServer) return;
+        SaveTagData();
+    }
+
+    private void SaveTagData()
+    {
         var position = transform.position;
+        double totalTime = timeSpentTaggedNet.Value;
+        if (NetworkObjectId == TagGameState.Instance.taggedPlayerIdNet.Value)
+        {
+            double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
+            totalTime += serverTime - lastTagTimeNet.Value;
+        }
 
         PlayerData playerData = new PlayerData(
             PlayerPrefs.GetString("Guid"),
             position.x,
             position.z,
-            timeSpentTaggedNet.Value,
+            totalTime,
             lastTagTimeNet.Value,
             isTaggedNet.Value
         );
-        SaveDataServerRpc(playerData);
+        SaveTagDataServerRpc(playerData);
     }
 
     // There is arguably a lot of logic in onGUI, which runs often.
@@ -293,8 +313,10 @@ public class PlayerTagMovement : NetworkBehaviour
         GUILayout.BeginArea(new Rect(10, 10, 200, 200));
         if (GUILayout.Button("Shutdown"))
         {
-            if (NetworkManager.Singleton.IsHost) TagGameState.Instance.SetGameStateServerRpc(TagGameState.GameState.Stopped);
-            NetworkManager.Singleton.Shutdown();
+            if (NetworkManager.Singleton.IsHost)
+            {
+                MinigameManager.Instance.TerminateConnection();
+            }
         }
 
         if (NetworkManager.Singleton.ConnectedClientsList.Count >= 2 && TagGameState.Instance.gameState.Value == TagGameState.GameState.Idling && NetworkManager.Singleton.IsHost)
@@ -492,7 +514,7 @@ public class PlayerTagMovement : NetworkBehaviour
     /// </summary>
     /// <param name="playerData">Tag-specific data to save on disconnect.</param>
     [ServerRpc]
-    private void SaveDataServerRpc(PlayerData playerData)
+    private void SaveTagDataServerRpc(TagSessionManager.PlayerData playerData)
     {
         TagSessionManager.Instance.SaveDataServerRpc(playerData);
     }

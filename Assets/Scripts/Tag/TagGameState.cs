@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Unity.Collections;
 using Unity.Netcode;
 
 public class TagGameState : NetworkBehaviour
@@ -15,6 +19,7 @@ public class TagGameState : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
+    private readonly float[] scores = { 12f, 10f, 6f, 3f };
 
     public enum GameState
     {
@@ -29,8 +34,33 @@ public class TagGameState : NetworkBehaviour
         Instance = this;
         if (!IsOwner) return;
         SetGameStateServerRpc(GameState.Idling);
+        TagSessionManager.Instance.PlayerDataList.OnListChanged += OnPlayerDataListChanged;
     }
-    
+
+    private void OnPlayerDataListChanged(NetworkListEvent<TagSessionManager.PlayerData> changeEvent)
+    {
+        if ((TagSessionManager.Instance.PlayerDataList.Count >= NetworkManager.ConnectedClients.Count) && gameState.Value == GameState.Stopped)
+        {
+            // All clients should have written their data now.
+            // Compute the winner based on the data.
+            var playerList = new List<TagSessionManager.PlayerData>();
+            for (int i = 0; i < TagSessionManager.Instance.PlayerDataList.Count; i++)
+            {
+                playerList.Add(TagSessionManager.Instance.PlayerDataList[i]);
+            }
+            var rankedPlayers = playerList.OrderBy(p => p.TimeSpentTagged).ToList();
+            for (int i = 0; i < rankedPlayers.Count; i++)
+            {
+                float score = i < scores.Length ? scores[i] : 0f;
+                FixedString64Bytes guid = rankedPlayers[i].Guid;
+                SessionManager.PlayerData globalSessionData = (SessionManager.PlayerData) SessionManager.Instance.GetDataByGuid(guid);
+                SessionManager.PlayerData scoredPlayerData = new SessionManager.PlayerData(guid, score + globalSessionData.Score);
+                SessionManager.Instance.SaveDataServerRpc(scoredPlayerData);
+            }
+            MinigameManager.Instance.GameFinished();
+        }
+    }
+
     /// <summary>
     /// Update the current GameState (Initializing, Idling, Running or Stopped).
     /// </summary>
@@ -39,5 +69,15 @@ public class TagGameState : NetworkBehaviour
     public void SetGameStateServerRpc(GameState state)
     {
         gameState.Value = state;
+    }
+
+    /// <summary>
+    /// TODO
+    /// </summary>
+    /// <param name="playerData">Tag-specific data to save on disconnect.</param>
+    [ServerRpc]
+    private void SaveSessionDataServerRpc(SessionManager.PlayerData playerData)
+    {
+        SessionManager.Instance.SaveDataServerRpc(playerData);
     }
 }
