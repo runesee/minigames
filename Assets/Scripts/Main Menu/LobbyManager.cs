@@ -91,8 +91,6 @@ public class LobbyManager : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        base.OnNetworkSpawn();
-
         if (IsClient)
         {
             string nickname = PlayerPrefs.GetString("Username", "Player");
@@ -116,7 +114,6 @@ public class LobbyManager : NetworkBehaviour
         {
             startGameButton.onClick.RemoveListener(OnStartGameClicked);
         }
-        base.OnDestroy();
     }
 
     private void OnClientConnected(ulong clientId)
