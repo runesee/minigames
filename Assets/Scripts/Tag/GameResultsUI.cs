@@ -137,8 +137,6 @@ public class GameResultsUI : MonoBehaviour
     {
         if (resultsText == null) yield break;
 
-        Color originalColor = resultsText.color;
-
         while (true)
         {
             float pulse = (Mathf.Sin(Time.time * 2f) + 1f) / 2f;
@@ -209,17 +207,6 @@ public class GameResultsUI : MonoBehaviour
         resultText += "\n<size=24><i>Press Shutdown to return to menu</i></size>";
 
         resultsText.text = resultText;
-    }
-
-    private void ShowResults()
-    {
-        if (resultsPanel == null || resultsText == null || NetworkManager.Singleton == null)
-        {
-            return;
-        }
-
-        BuildResultsText();
-        resultsPanel.SetActive(true);
     }
 
     private struct PlayerResult

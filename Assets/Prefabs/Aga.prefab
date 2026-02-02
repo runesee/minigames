@@ -4847,7 +4847,6 @@ GameObject:
   - component: {fileID: 7857187294340293347}
   - component: {fileID: 9001810932865639559}
   - component: {fileID: 7048628099198034754}
-  - component: {fileID: 3180949645314196166}
   - component: {fileID: 2317850879932105327}
   - component: {fileID: -2895062057458085473}
   - component: {fileID: 3680293497773164783}
@@ -4926,26 +4925,6 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
---- !u!114 &3180949645314196166
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8587370964938106638}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 29da793242d74b343901e42baf12472f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: '::'
-  ShowTopMostFoldoutHeaderGroup: 1
-  walkSpeed: 3
-  sprintSpeed: 8
-  minX: -17
-  maxX: 17
-  minZ: -13
-  maxZ: 12
-  RotateSpeed: 30
 --- !u!54 &2317850879932105327
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -5073,27 +5052,22 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   playerSkinRenderer: {fileID: 8576045237320093323}
   walkSpeed: 3
-  sprintSpeed: 8
+  boostSpeed: 8
   RotateSpeed: 30
   maxStamina: 100
   staminaDrainRate: 20
   staminaRegenRateSlow: 5
   staminaRegenRateFast: 15
-  sprintSpeedThreshold: 0.5
+  sprintSpeedThreshold: 1.5
   walkSpeedThreshold: 0.2
   exhaustedSpeedMultiplier: 0.3
-  minStaminaToSprint: 5
+  minStaminaToBoost: 5
   taggedStaminaBoostMultiplier: 1.5
   sprintParticleEffect: {fileID: 6789903846567414674}
   minX: -17
   maxX: 17
   minZ: -13
   maxZ: 12
-  playerColors:
-  - '#D6877F'
-  - '#7fb3d6'
-  - '#92d67f'
-  - '#d6d37f'
   isTaggedNet:
     m_InternalValue: 0
   timeSpentTaggedNet:

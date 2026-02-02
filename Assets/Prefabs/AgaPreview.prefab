@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7857187294340293347}
   - component: {fileID: 9001810932865639559}
   - component: {fileID: 2317850879932105327}
-  - component: {fileID: 2603736280499581288}
+  - component: {fileID: 1599127975115911076}
   m_Layer: 0
   m_Name: AgaPreview
   m_TagString: Untagged
@@ -85,7 +85,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 1
---- !u!114 &2603736280499581288
+--- !u!114 &1599127975115911076
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -97,7 +97,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 246e570a68f35440189a922cb75b0fef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CharacterPreview
-  playerSkinRenderer: {fileID: 0}
+  playerSkinRenderer: {fileID: 8576045237320093323}
 --- !u!1001 &2472634209218968432
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -228,3 +228,8 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!137 &8576045237320093323 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 6148737315974723067, guid: c979ec2f309c19f4eacc9c4b346a9663, type: 3}
+  m_PrefabInstance: {fileID: 2472634209218968432}
+  m_PrefabAsset: {fileID: 0}
