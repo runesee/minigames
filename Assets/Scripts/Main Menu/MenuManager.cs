@@ -84,6 +84,19 @@ public class MenuManager : MonoBehaviour
         if (!dropdownOpen)
         {
             HandleJoystickNavigation();
+            if (PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A)) {
+                SubmitSelection();
+            }
+        }
+        else {
+            if (PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A)) {
+                GameObject currentItem = EventSystem.current.currentSelectedGameObject;
+                if (currentItem != null) {
+                    if (currentItem.TryGetComponent<Toggle>(out var toggle)) {
+                        toggle.isOn = true;
+                    }
+                }
+            }
         }
     }
 
