@@ -1,8 +1,4 @@
 using Unity.Netcode;
-using UnityEngine;
-using System.Linq;
-using System.Collections.Generic;
-using System;
 
 public class TagGameState : NetworkBehaviour
 {

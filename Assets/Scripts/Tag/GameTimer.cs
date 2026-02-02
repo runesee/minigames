@@ -26,26 +26,8 @@ public class GameTimer : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
-    private void Start()
-    {
-        if (timerText == null)
-        {
-            GameObject timerTextObj = GameObject.Find("TimerText");
-            if (timerTextObj != null)
-            {
-                timerText = timerTextObj.GetComponent<TextMeshProUGUI>();
-            }
-            else
-            {
-                Debug.LogWarning("GameTimer: TimerText GameObject not found!");
-            }
-        }
-    }
-
     public override void OnNetworkSpawn()
     {
-        base.OnNetworkSpawn();
-
         if (IsServer)
         {
             remainingTime.Value = gameDurationInSeconds;
@@ -53,7 +35,6 @@ public class GameTimer : NetworkBehaviour
 
         remainingTime.OnValueChanged += OnRemainingTimeChanged;
         OnRemainingTimeChanged(0f, remainingTime.Value);
-
         StartCoroutine(WaitForTagGameState());
     }
 
@@ -74,7 +55,6 @@ public class GameTimer : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
-        base.OnNetworkDespawn();
         remainingTime.OnValueChanged -= OnRemainingTimeChanged;
 
         if (TagGameState.Instance != null)
@@ -111,10 +91,7 @@ public class GameTimer : NetworkBehaviour
 
     private void OnGameStateChanged(TagGameState.GameState previousState, TagGameState.GameState newState)
     {
-        if (!IsServer)
-        {
-            return;
-        }
+        if (!IsServer) return;
 
         if (newState == TagGameState.GameState.Running)
         {
