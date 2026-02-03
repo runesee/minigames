@@ -470,6 +470,7 @@ GameObject:
   - component: {fileID: 277944483}
   - component: {fileID: 277944482}
   - component: {fileID: 277944481}
+  - component: {fileID: 277944484}
   m_Layer: 0
   m_Name: TopCircle
   m_TagString: Untagged
@@ -570,6 +571,22 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 277944479}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &277944484
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 277944479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5d77bc48bd3347e799d0a477238a4ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonCircle
+  buttonType: 3
+  meshRenderer: {fileID: 277944481}
+  defaultMaterial: {fileID: 2100000, guid: d2d3b1db5b82144d5aaab11b40549cbf, type: 2}
+  litMaterial: {fileID: 2100000, guid: 3176e70f67dec47688e5ccd103299f01, type: 2}
 --- !u!1 &292643301
 GameObject:
   m_ObjectHideFlags: 0
@@ -909,6 +926,7 @@ GameObject:
   - component: {fileID: 1001543330}
   - component: {fileID: 1001543329}
   - component: {fileID: 1001543328}
+  - component: {fileID: 1001543331}
   m_Layer: 0
   m_Name: LeftCircle
   m_TagString: Untagged
@@ -1009,6 +1027,22 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1001543326}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1001543331
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1001543326}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5d77bc48bd3347e799d0a477238a4ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonCircle
+  buttonType: 2
+  meshRenderer: {fileID: 1001543328}
+  defaultMaterial: {fileID: 2100000, guid: d2d3b1db5b82144d5aaab11b40549cbf, type: 2}
+  litMaterial: {fileID: 2100000, guid: 040024300c36c4e57974a9cdd73eea60, type: 2}
 --- !u!1 &1004569810
 GameObject:
   m_ObjectHideFlags: 0
@@ -1533,6 +1567,8 @@ GameObject:
   - component: {fileID: 1427610379}
   - component: {fileID: 1427610378}
   - component: {fileID: 1427610377}
+  - component: {fileID: 1427610381}
+  - component: {fileID: 1427610382}
   m_Layer: 0
   m_Name: ButtonInputArea
   m_TagString: Untagged
@@ -1638,6 +1674,36 @@ Transform:
   - {fileID: 631070614}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1427610381
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1427610376}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5e3d7d7d60aa49998d09a4bc7e59a03, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FocusFlowGame
+  buttonA: {fileID: 1690573578}
+  buttonB: {fileID: 1458282863}
+  buttonX: {fileID: 1001543331}
+  buttonY: {fileID: 277944484}
+  delayBetweenButtons: 0.5
+  delayAfterSequence: 0.5
+--- !u!114 &1427610382
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1427610376}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ed8f2a44675842d38c495aca27ba668, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KeyboardInputAdapter
 --- !u!1 &1458282858
 GameObject:
   m_ObjectHideFlags: 0
@@ -1650,6 +1716,7 @@ GameObject:
   - component: {fileID: 1458282862}
   - component: {fileID: 1458282861}
   - component: {fileID: 1458282860}
+  - component: {fileID: 1458282863}
   m_Layer: 0
   m_Name: RightCircle
   m_TagString: Untagged
@@ -1750,6 +1817,22 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1458282858}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1458282863
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1458282858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5d77bc48bd3347e799d0a477238a4ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonCircle
+  buttonType: 1
+  meshRenderer: {fileID: 1458282860}
+  defaultMaterial: {fileID: 2100000, guid: d2d3b1db5b82144d5aaab11b40549cbf, type: 2}
+  litMaterial: {fileID: 2100000, guid: 6b0f2306b4a17440780a09ca80326448, type: 2}
 --- !u!1 &1682935761
 GameObject:
   m_ObjectHideFlags: 0
@@ -1873,6 +1956,7 @@ GameObject:
   - component: {fileID: 1690573577}
   - component: {fileID: 1690573576}
   - component: {fileID: 1690573575}
+  - component: {fileID: 1690573578}
   m_Layer: 0
   m_Name: BottomCircle
   m_TagString: Untagged
@@ -1973,6 +2057,22 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1690573573}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1690573578
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1690573573}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5d77bc48bd3347e799d0a477238a4ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonCircle
+  buttonType: 0
+  meshRenderer: {fileID: 1690573575}
+  defaultMaterial: {fileID: 2100000, guid: d2d3b1db5b82144d5aaab11b40549cbf, type: 2}
+  litMaterial: {fileID: 2100000, guid: e1e620b594a874184809a58d4bc1b28e, type: 2}
 --- !u!1 &1796902601
 GameObject:
   m_ObjectHideFlags: 0
