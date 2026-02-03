@@ -20,17 +20,11 @@ public class MinigameManager : NetworkBehaviour
 
     private MinigameScene currentGameState = MinigameScene.MainMenu;
 
-    public virtual void Start()
-    {
-        DontDestroyOnLoad(this);
-    }
-
-    public override void OnNetworkSpawn()
+    private void Awake()
     {
         Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
-
-
 
     // Boilerplate function that will be called by the Lobby once the host presses start (after enough players have connected.)
     // Should select the first game to play, load the scene, and save player data in sessionmanager.
@@ -80,13 +74,15 @@ public class MinigameManager : NetworkBehaviour
     {
         var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
         if (transport == null) return;
+        transport.SetConnectionData(ipAddress, portNumber);
+
         if (isUserHost) {
+
             NetworkManager.Singleton.StartHost();
-            NetworkManager.Singleton.SceneManager.LoadScene("TagScene", LoadSceneMode.Single);
+            NetworkManager.Singleton.SceneManager.LoadScene("Lobby", LoadSceneMode.Single);
         }
         else
         {
-            transport.SetConnectionData(ipAddress, portNumber);
             NetworkManager.Singleton.StartClient();
         }
     }
