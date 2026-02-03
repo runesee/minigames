@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using Unity.Netcode;
+using UnityEngine;
 
 public class TagGameState : NetworkBehaviour
 {
@@ -29,9 +30,13 @@ public class TagGameState : NetworkBehaviour
         Stopped,
     }
 
-    public override void OnNetworkSpawn()
+    private void Awake()
     {
         Instance = this;
+    }
+
+    public override void OnNetworkSpawn()
+    {
         if (!IsOwner) return;
         SetGameStateServerRpc(GameState.Idling);
         TagSessionManager.Instance.PlayerDataList.OnListChanged += OnPlayerDataListChanged;
@@ -39,8 +44,10 @@ public class TagGameState : NetworkBehaviour
 
     private void OnPlayerDataListChanged(NetworkListEvent<TagSessionManager.PlayerData> changeEvent)
     {
+        Debug.Log("TGS playerlistchanged");
         if ((TagSessionManager.Instance.PlayerDataList.Count >= NetworkManager.ConnectedClients.Count) && gameState.Value == GameState.Stopped)
         {
+            Debug.Log("TGS playerlistchanged within");
             // All clients should have written their data now.
             // Compute the winner based on the data.
             var playerList = new List<TagSessionManager.PlayerData>();
@@ -53,8 +60,10 @@ public class TagGameState : NetworkBehaviour
             {
                 float score = i < scores.Length ? scores[i] : 0f;
                 FixedString64Bytes guid = rankedPlayers[i].Guid;
-                SessionManager.PlayerData globalSessionData = (SessionManager.PlayerData) SessionManager.Instance.GetDataByGuid(guid);
-                SessionManager.PlayerData scoredPlayerData = new SessionManager.PlayerData(guid, score + globalSessionData.Score);
+                SessionManager.PlayerData globalSessionData = SessionManager.Instance.GetDataByGuid(guid);
+                float totalScore = score + globalSessionData.Score;
+                SessionManager.PlayerData scoredPlayerData = new SessionManager.PlayerData(guid, totalScore);
+                Debug.Log(scoredPlayerData);
                 SessionManager.Instance.SaveDataServerRpc(scoredPlayerData);
             }
             MinigameManager.Instance.GameFinished();
@@ -76,8 +85,9 @@ public class TagGameState : NetworkBehaviour
     /// </summary>
     /// <param name="playerData">Tag-specific data to save on disconnect.</param>
     [ServerRpc]
-    private void SaveSessionDataServerRpc(SessionManager.PlayerData playerData)
+    public void SaveSessionDataServerRpc(TagSessionManager.PlayerData playerData)
     {
-        SessionManager.Instance.SaveDataServerRpc(playerData);
+        Debug.Log("Saving data TGS ServerRPC");
+        TagSessionManager.Instance.SaveDataServerRpc(playerData);
     }
 }

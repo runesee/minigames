@@ -16,9 +16,11 @@ public class MinigameManager : NetworkBehaviour
         Lobby,
         Scoreboard,
         Tag,
+        PlaceholderGame,
     }
 
     private MinigameScene currentGameState = MinigameScene.MainMenu;
+    private MinigameScene previousGameState = MinigameScene.MainMenu;
 
     private void Awake()
     {
@@ -33,7 +35,6 @@ public class MinigameManager : NetworkBehaviour
     public void StartGameSession()
     {
         if (!IsHost) return;
-        // TODO : implement game selection once more games are in place.
         NetworkManager.Singleton.SceneManager.LoadScene("TagScene", LoadSceneMode.Single);
         currentGameState = MinigameScene.Tag;
     }
@@ -42,9 +43,24 @@ public class MinigameManager : NetworkBehaviour
     // Loads a Scoreboard scene, which will rely on the updated SessionManager scores.
     public void GameFinished()
     {
-        // Based on the current scene, we already know which GameState called this function.
-        NetworkManager.Singleton.SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
-        currentGameState = MinigameScene.Scoreboard;
+        if (!IsHost) return;
+        switch (currentGameState)
+        {
+            case MinigameScene.Tag:
+                NetworkManager.Singleton.SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
+                currentGameState = MinigameScene.Scoreboard;
+                break;
+            case MinigameScene.Scoreboard:
+                if (previousGameState == MinigameScene.Tag) {
+                    NetworkManager.Singleton.SceneManager.LoadScene("PlaceholderGame", LoadSceneMode.Single);
+                    currentGameState = MinigameScene.PlaceholderGame;
+                }
+                break;
+            default:
+                NetworkManager.Singleton.SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
+                break;
+        }
+        previousGameState = currentGameState;
     }
 
 

@@ -45,7 +45,6 @@ public class SessionManager : NetworkBehaviour
 
     public virtual void Start()
     {
-        DontDestroyOnLoad(this);
         // New client connected, need to assign them a unique GUID
         if (PlayerPrefs.GetString("Guid") == "")
         {
@@ -53,9 +52,14 @@ public class SessionManager : NetworkBehaviour
         }
     }
 
-    public override void OnNetworkSpawn()
+    public void Awake()
     {
         Instance = this;
+        DontDestroyOnLoad(gameObject);
+    }
+
+    public override void OnNetworkSpawn()
+    {
         FixedString64Bytes guid = new FixedString64Bytes(PlayerPrefs.GetString("Guid"));
         PlayerData playerData = new PlayerData(guid);
         if (IsOwner)
@@ -65,7 +69,7 @@ public class SessionManager : NetworkBehaviour
         }
     }
 
-    public PlayerData? GetDataByGuid(FixedString64Bytes guid)
+    public PlayerData GetDataByGuid(FixedString64Bytes guid)
     {
         for (int i = 0; i < PlayerDataList.Count; i++)
         {
@@ -74,16 +78,18 @@ public class SessionManager : NetworkBehaviour
                 return PlayerDataList[i];
             }
         }
-        return null;
+        return new PlayerData(guid);
     }
 
     [ServerRpc]
     public void SaveDataServerRpc(PlayerData newPlayerData)
     {
+        Debug.Log(PlayerDataList.Count);
         for (int i = 0; i < PlayerDataList.Count; i++)
         {
             if (PlayerDataList[i].Guid.Equals(newPlayerData.Guid))
             {
+                Debug.Log("withihn if");
                 previousPlayerDataList[i] = PlayerDataList[i];
                 PlayerDataList[i] = newPlayerData;
                 return;

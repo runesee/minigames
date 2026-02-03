@@ -256,6 +256,7 @@ public class PlayerTagMovement : NetworkBehaviour
 
     private void SaveTagData()
     {
+        Debug.Log("Saving data maybe");
         var position = transform.position;
         double totalTime = timeSpentTaggedNet.Value;
         if (NetworkObjectId == TagGameState.Instance.taggedPlayerIdNet.Value)
@@ -516,7 +517,8 @@ public class PlayerTagMovement : NetworkBehaviour
     [ServerRpc]
     private void SaveTagDataServerRpc(TagSessionManager.PlayerData playerData)
     {
-        TagSessionManager.Instance.SaveDataServerRpc(playerData);
+        Debug.Log("Saving data PTM ServerRPC");
+        TagGameState.Instance.SaveSessionDataServerRpc(playerData);
     }
 
     /// <summary>

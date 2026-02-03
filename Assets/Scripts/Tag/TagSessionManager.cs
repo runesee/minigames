@@ -61,14 +61,13 @@ public class TagSessionManager : NetworkBehaviour
         }
     }
 
-    public void Start()
+    private void Awake()
     {
-        DontDestroyOnLoad(this);
+        Instance = this;
     }
 
     public override void OnNetworkSpawn()
     {
-        Instance = this;
         FixedString64Bytes guid = new FixedString64Bytes(PlayerPrefs.GetString("Guid"));
         PlayerData playerData = new PlayerData(guid);
         if (IsOwner) SaveDataServerRpc(playerData);
@@ -101,6 +100,7 @@ public class TagSessionManager : NetworkBehaviour
     [ServerRpc]
     public void SaveDataServerRpc(PlayerData newPlayerData)
     {
+        Debug.Log("Saving data TSM ServerRPC");
         for (int i = 0; i < PlayerDataList.Count; i++)
         {
             if (PlayerDataList[i].Guid.Equals(newPlayerData.Guid))
