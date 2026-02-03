@@ -6,6 +6,7 @@ using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using System.Net;
 using System.Net.Sockets;
+using static MinigameManager;
 
 public class MenuManager : MonoBehaviour
 {
@@ -207,8 +208,8 @@ public class MenuManager : MonoBehaviour
 
         if (ipInputField != null && string.IsNullOrWhiteSpace(ipInputField.text)) return;
 
-        if (isHostMode) StartHost();
-        else StartClient();
+        string ipAddress = isHostMode ? GetLocalIPAddress() : ipInputField != null ? ipInputField.text : "127.0.0.1";
+        MinigameManager.Instance.StartConnection(ipAddress, PORT, isHostMode);
     }
 
     public void OnBackButtonClicked()
@@ -250,7 +251,6 @@ public class MenuManager : MonoBehaviour
         bool started = NetworkManager.Singleton.StartHost();
         if (started)
         {
-            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnSceneLoadCompleted;
             NetworkManager.Singleton.SceneManager.LoadScene("Lobby", UnityEngine.SceneManagement.LoadSceneMode.Single);
         }
         else
@@ -270,34 +270,10 @@ public class MenuManager : MonoBehaviour
             transport.SetConnectionData(ipAddress, PORT);
         }
 
-        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
-        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
-
         bool started = NetworkManager.Singleton.StartClient();
         if (!started)
         {
             Debug.LogError("[Client] Failed to start connection!");
-        }
-    }
-
-    private void OnClientConnected(ulong clientId)
-    {
-    }
-
-    private void OnClientDisconnected(ulong clientId)
-    {
-        if (NetworkManager.Singleton != null)
-        {
-            NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
-            NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
-        }
-    }
-
-    private void OnSceneLoadCompleted(string sceneName, UnityEngine.SceneManagement.LoadSceneMode loadSceneMode, System.Collections.Generic.List<ulong> clientsCompleted, System.Collections.Generic.List<ulong> clientsTimedOut)
-    {
-        if (NetworkManager.Singleton != null)
-        {
-            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnSceneLoadCompleted;
         }
     }
 
