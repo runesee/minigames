@@ -10,9 +10,12 @@ public class FocusFlowGame : MonoBehaviour
     [SerializeField] private ButtonCircle buttonX;
     [SerializeField] private ButtonCircle buttonY;
 
+    [Header("Feedback Settings")]
+    [SerializeField] private Transform mainCircle;
+
     [Header("Game Settings")]
     [SerializeField] private float delayBetweenButtons = 0.5f;
-    [SerializeField] private float delayAfterSequence = 0.5f;
+    [SerializeField] private float delayAfterSequence = 2.0f;
 
     private List<ButtonCircle.ButtonType> currentSequence = new List<ButtonCircle.ButtonType>();
     private int playerInputIndex = 0;
@@ -142,12 +145,32 @@ public class FocusFlowGame : MonoBehaviour
     private void OnSequenceComplete()
     {
         waitingForInput = false;
+        ShowFeedback("Great!", Color.green);
         StartCoroutine(StartNextRound());
     }
 
     private void OnPlayerFailed()
     {
         waitingForInput = false;
+        ShowFeedback("Failed", Color.red);
+        StartCoroutine(RestartAfterDelay());
+    }
+
+    private IEnumerator RestartAfterDelay()
+    {
+        yield return new WaitForSeconds(2.0f);
         StartNewGame();
+    }
+
+    private void ShowFeedback(string message, Color color)
+    {
+        if (mainCircle == null)
+        {
+            return;
+        }
+
+        GameObject feedbackObject = new GameObject("Feedback");
+        FeedbackText feedback = feedbackObject.AddComponent<FeedbackText>();
+        feedback.Initialize(message, color, mainCircle.position);
     }
 }
