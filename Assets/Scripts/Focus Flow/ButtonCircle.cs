@@ -28,8 +28,6 @@ public class ButtonCircle : MonoBehaviour
     private GameObject ringObject;
     private Vector3 originalScale;
 
-    public ButtonType Type => buttonType;
-    public bool IsLit => isLit;
     public bool IsShowingRing => isShowingRing;
 
     private void Awake()

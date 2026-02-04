@@ -34,12 +34,9 @@ public class FeedbackText : MonoBehaviour
 
         transform.position = startPosition + Vector3.up * (moveDistance * progress);
 
-        if (textMesh != null)
-        {
-            Color currentColor = textMesh.color;
-            currentColor.a = 1f - progress;
-            textMesh.color = currentColor;
-        }
+        Color currentColor = textMesh.color;
+        currentColor.a = 1f - progress;
+        textMesh.color = currentColor;
 
         if (elapsedTime >= animationDuration)
         {

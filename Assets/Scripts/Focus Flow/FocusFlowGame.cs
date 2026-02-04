@@ -225,9 +225,6 @@ public class FocusFlowGame : MonoBehaviour
 
     private void UpdateScoreDisplay()
     {
-        if (scoreTextMesh != null)
-        {
-            scoreTextMesh.text = $"Score: {totalScore}";
-        }
+        scoreTextMesh.text = $"Score: {totalScore}";
     }
 }
