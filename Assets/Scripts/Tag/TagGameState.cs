@@ -44,10 +44,8 @@ public class TagGameState : NetworkBehaviour
 
     private void OnPlayerDataListChanged(NetworkListEvent<TagSessionManager.PlayerData> changeEvent)
     {
-        Debug.Log("TGS playerlistchanged");
         if ((TagSessionManager.Instance.PlayerDataList.Count >= NetworkManager.ConnectedClients.Count) && gameState.Value == GameState.Stopped)
         {
-            Debug.Log("TGS playerlistchanged within");
             // All clients should have written their data now.
             // Compute the winner based on the data.
             var playerList = new List<TagSessionManager.PlayerData>();
@@ -63,8 +61,7 @@ public class TagGameState : NetworkBehaviour
                 SessionManager.PlayerData globalSessionData = SessionManager.Instance.GetDataByGuid(guid);
                 float totalScore = score + globalSessionData.Score;
                 SessionManager.PlayerData scoredPlayerData = new SessionManager.PlayerData(guid, totalScore);
-                Debug.Log(scoredPlayerData);
-                SessionManager.Instance.SaveDataServerRpc(scoredPlayerData);
+                SaveDataServerRpc(scoredPlayerData);
             }
             MinigameManager.Instance.GameFinished();
         }
@@ -80,6 +77,12 @@ public class TagGameState : NetworkBehaviour
         gameState.Value = state;
     }
 
+    [ServerRpc]
+    public void SaveDataServerRpc(SessionManager.PlayerData playerData)
+    {
+        SessionManager.Instance.SaveDataServerRpc(playerData);
+    }
+
     /// <summary>
     /// TODO
     /// </summary>
@@ -87,7 +90,6 @@ public class TagGameState : NetworkBehaviour
     [ServerRpc]
     public void SaveSessionDataServerRpc(TagSessionManager.PlayerData playerData)
     {
-        Debug.Log("Saving data TGS ServerRPC");
         TagSessionManager.Instance.SaveDataServerRpc(playerData);
     }
 }

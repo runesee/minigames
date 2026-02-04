@@ -60,6 +60,10 @@ public class SessionManager : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
         FixedString64Bytes guid = new FixedString64Bytes(PlayerPrefs.GetString("Guid"));
         PlayerData playerData = new PlayerData(guid);
         if (IsOwner)
@@ -84,12 +88,10 @@ public class SessionManager : NetworkBehaviour
     [ServerRpc]
     public void SaveDataServerRpc(PlayerData newPlayerData)
     {
-        Debug.Log(PlayerDataList.Count);
         for (int i = 0; i < PlayerDataList.Count; i++)
         {
             if (PlayerDataList[i].Guid.Equals(newPlayerData.Guid))
             {
-                Debug.Log("withihn if");
                 previousPlayerDataList[i] = PlayerDataList[i];
                 PlayerDataList[i] = newPlayerData;
                 return;
