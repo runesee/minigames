@@ -13,6 +13,9 @@ public class FocusFlowGame : MonoBehaviour
     [Header("Feedback Settings")]
     [SerializeField] private Transform mainCircle;
 
+    [Header("Score Settings")]
+    [SerializeField] private Transform scoreTextPosition;
+
     [Header("Game Settings")]
     [SerializeField] private float delayBetweenButtons = 0.5f;
     [SerializeField] private float delayAfterSequence = 2.0f;
@@ -21,6 +24,10 @@ public class FocusFlowGame : MonoBehaviour
     private int playerInputIndex = 0;
     private bool waitingForInput = false;
     private bool isShowingSequence = false;
+
+    private int totalScore = 0;
+    private float currentSequencePoints = 100f;
+    private TextMesh scoreTextMesh;
 
     private Dictionary<ButtonCircle.ButtonType, ButtonCircle> buttonMap;
 
@@ -33,6 +40,8 @@ public class FocusFlowGame : MonoBehaviour
             { ButtonCircle.ButtonType.X, buttonX },
             { ButtonCircle.ButtonType.Y, buttonY }
         };
+
+        CreateScoreDisplay();
     }
 
     private void Start()
@@ -53,6 +62,9 @@ public class FocusFlowGame : MonoBehaviour
         currentSequence.Clear();
         playerInputIndex = 0;
         waitingForInput = false;
+        totalScore = 0;
+        currentSequencePoints = 100f;
+        UpdateScoreDisplay();
         StartCoroutine(StartNextRound());
     }
 
@@ -148,6 +160,11 @@ public class FocusFlowGame : MonoBehaviour
     private void OnSequenceComplete()
     {
         waitingForInput = false;
+
+        totalScore += Mathf.RoundToInt(currentSequencePoints);
+        currentSequencePoints *= 2f;
+        UpdateScoreDisplay();
+
         ShowFeedback("Great!", Color.green);
         StartCoroutine(StartNextRound());
     }
@@ -155,6 +172,7 @@ public class FocusFlowGame : MonoBehaviour
     private void OnPlayerFailed()
     {
         waitingForInput = false;
+        currentSequencePoints = 100f;
         ShowFeedback("Failed", Color.red);
         StartCoroutine(RestartAfterDelay());
     }
@@ -175,5 +193,37 @@ public class FocusFlowGame : MonoBehaviour
         GameObject feedbackObject = new GameObject("Feedback");
         FeedbackText feedback = feedbackObject.AddComponent<FeedbackText>();
         feedback.Initialize(message, color, mainCircle.position);
+    }
+
+    private void CreateScoreDisplay()
+    {
+        GameObject scoreObject = new GameObject("ScoreDisplay");
+
+        if (scoreTextPosition != null)
+        {
+            scoreObject.transform.SetParent(scoreTextPosition);
+            scoreObject.transform.localPosition = Vector3.zero;
+            scoreObject.transform.localRotation = Quaternion.identity;
+        }
+        else
+        {
+            scoreObject.transform.position = new Vector3(3f, 2f, 0f);
+        }
+
+        scoreTextMesh = scoreObject.AddComponent<TextMesh>();
+        scoreTextMesh.fontSize = 80;
+        scoreTextMesh.characterSize = 0.15f;
+        scoreTextMesh.anchor = TextAnchor.UpperRight;
+        scoreTextMesh.alignment = TextAlignment.Right;
+        scoreTextMesh.color = Color.white;
+        scoreTextMesh.text = "Score: 0";
+    }
+
+    private void UpdateScoreDisplay()
+    {
+        if (scoreTextMesh != null)
+        {
+            scoreTextMesh.text = $"Score: {totalScore}";
+        }
     }
 }

@@ -458,6 +458,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 179662709}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &181547535
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 181547536}
+  m_Layer: 0
+  m_Name: ScoreTextPosition
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &181547536
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 181547535}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 3, y: 2, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &277944479
 GameObject:
   m_ObjectHideFlags: 0
@@ -1693,6 +1724,7 @@ MonoBehaviour:
   buttonX: {fileID: 1001543331}
   buttonY: {fileID: 277944484}
   mainCircle: {fileID: 631070614}
+  scoreTextPosition: {fileID: 181547536}
   delayBetweenButtons: 0.5
   delayAfterSequence: 2
 --- !u!114 &1427610382
@@ -2183,3 +2215,4 @@ SceneRoots:
   - {fileID: 1796902603}
   - {fileID: 23730331}
   - {fileID: 1427610380}
+  - {fileID: 181547536}
