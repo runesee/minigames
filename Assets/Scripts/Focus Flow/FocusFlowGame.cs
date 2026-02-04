@@ -178,13 +178,21 @@ public class FocusFlowGame : MonoBehaviour
         waitingForInput = false;
         currentSequencePoints = 100f;
         ShowFeedback("Failed", Color.red);
-        StartCoroutine(RestartAfterDelay());
+        StartCoroutine(RestartSequenceAfterDelay());
     }
 
-    private IEnumerator RestartAfterDelay()
+    private IEnumerator RestartSequenceAfterDelay()
     {
         yield return new WaitForSeconds(2.0f);
-        StartNewGame();
+        RestartSequence();
+    }
+
+    private void RestartSequence()
+    {
+        currentSequence.Clear();
+        playerInputIndex = 0;
+        waitingForInput = false;
+        StartCoroutine(StartNextRound());
     }
 
     private void ShowFeedback(string message, Color color)
