@@ -587,6 +587,7 @@ MonoBehaviour:
   meshRenderer: {fileID: 277944481}
   defaultMaterial: {fileID: 2100000, guid: d2d3b1db5b82144d5aaab11b40549cbf, type: 2}
   litMaterial: {fileID: 2100000, guid: 6b0f2306b4a17440780a09ca80326448, type: 2}
+  redRingMaterial: {fileID: 2100000, guid: d125d6cb0a31c4441a40c446e7016d6d, type: 2}
 --- !u!1 &292643301
 GameObject:
   m_ObjectHideFlags: 0
@@ -1043,6 +1044,7 @@ MonoBehaviour:
   meshRenderer: {fileID: 1001543328}
   defaultMaterial: {fileID: 2100000, guid: d2d3b1db5b82144d5aaab11b40549cbf, type: 2}
   litMaterial: {fileID: 2100000, guid: 3176e70f67dec47688e5ccd103299f01, type: 2}
+  redRingMaterial: {fileID: 2100000, guid: d125d6cb0a31c4441a40c446e7016d6d, type: 2}
 --- !u!1 &1004569810
 GameObject:
   m_ObjectHideFlags: 0
@@ -1834,6 +1836,7 @@ MonoBehaviour:
   meshRenderer: {fileID: 1458282860}
   defaultMaterial: {fileID: 2100000, guid: d2d3b1db5b82144d5aaab11b40549cbf, type: 2}
   litMaterial: {fileID: 2100000, guid: e1e620b594a874184809a58d4bc1b28e, type: 2}
+  redRingMaterial: {fileID: 2100000, guid: d125d6cb0a31c4441a40c446e7016d6d, type: 2}
 --- !u!1 &1682935761
 GameObject:
   m_ObjectHideFlags: 0
@@ -2074,6 +2077,7 @@ MonoBehaviour:
   meshRenderer: {fileID: 1690573575}
   defaultMaterial: {fileID: 2100000, guid: d2d3b1db5b82144d5aaab11b40549cbf, type: 2}
   litMaterial: {fileID: 2100000, guid: 040024300c36c4e57974a9cdd73eea60, type: 2}
+  redRingMaterial: {fileID: 2100000, guid: d125d6cb0a31c4441a40c446e7016d6d, type: 2}
 --- !u!1 &1796902601
 GameObject:
   m_ObjectHideFlags: 0

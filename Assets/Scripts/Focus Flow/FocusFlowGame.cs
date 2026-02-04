@@ -78,11 +78,11 @@ public class FocusFlowGame : MonoBehaviour
         foreach (ButtonCircle.ButtonType buttonType in currentSequence)
         {
             ButtonCircle button = buttonMap[buttonType];
-            button.LightUp();
+            button.ShowRing();
 
             yield return new WaitForSeconds(1.0f);
 
-            while (button.IsLit)
+            while (button.IsShowingRing)
             {
                 yield return null;
             }
@@ -126,6 +126,9 @@ public class FocusFlowGame : MonoBehaviour
         {
             return;
         }
+
+        ButtonCircle button = buttonMap[inputButton];
+        button.LightUp();
 
         if (inputButton == currentSequence[playerInputIndex])
         {
