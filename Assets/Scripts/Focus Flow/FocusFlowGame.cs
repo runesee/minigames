@@ -87,8 +87,9 @@ public class FocusFlowGame : MonoBehaviour
     {
         isShowingSequence = true;
 
-        foreach (ButtonCircle.ButtonType buttonType in currentSequence)
+        for (int i = 0; i < currentSequence.Count; i++)
         {
+            ButtonCircle.ButtonType buttonType = currentSequence[i];
             ButtonCircle button = buttonMap[buttonType];
             button.ShowRing();
 
@@ -99,7 +100,10 @@ public class FocusFlowGame : MonoBehaviour
                 yield return null;
             }
 
-            yield return new WaitForSeconds(delayBetweenButtons);
+            if (i < currentSequence.Count - 1)
+            {
+                yield return new WaitForSeconds(delayBetweenButtons);
+            }
         }
 
         isShowingSequence = false;
