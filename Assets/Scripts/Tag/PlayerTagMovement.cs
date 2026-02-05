@@ -113,10 +113,6 @@ public class PlayerTagMovement : NetworkBehaviour
         rb = GetComponent<Rigidbody>();
     }
 
-    /* TODO :
-    Currently, this file feels bloated and hard to follow.
-    Drawing scoreboard etc. should not reside here, but in separate files.
-    */ 
     void Start()
     {
         if (!USING_PLAYPULSE) return;
@@ -290,14 +286,6 @@ public class PlayerTagMovement : NetworkBehaviour
     private void Update()
     {
         if (TagGameState.Instance != null && TagGameState.Instance.gameState.Value != TagGameState.GameState.Running) return;
-
-        // TODO : add flag instead of constant checks
-        /*if (savedPosition.magnitude != 0f)
-        {
-            rb.MovePosition(savedPosition);
-            savedPosition = default;
-            return;
-        }*/
 
         // Attempt to change gears if user presses right or left trigger
         if (USING_PLAYPULSE)

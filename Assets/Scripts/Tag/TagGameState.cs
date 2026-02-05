@@ -131,7 +131,7 @@ public class TagGameState : NetworkBehaviour
                 SessionManager.PlayerData scoredPlayerData = new SessionManager.PlayerData(guid, totalScore);
                 scoredPlayers.Add(scoredPlayerData);
                 SessionManager.Instance.SaveData(scoredPlayerData);
-                shouldFinalize = true;
+                shouldFinalize = true; // Changes scene on next update order
             }
         }
     }
