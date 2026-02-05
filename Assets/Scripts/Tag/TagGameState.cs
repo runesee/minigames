@@ -21,8 +21,7 @@ public class TagGameState : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
     private readonly float[] scores = { 12f, 10f, 6f, 3f };
-    private bool shouldFinalize = false;
-    private List<SessionManager.PlayerData> scoredPlayers = new List<SessionManager.PlayerData>();
+    private bool shouldChangeScene = false;
     public List<PlayerData> PlayerDataList = new List<PlayerData>();
 
     public enum GameState
@@ -93,8 +92,8 @@ public class TagGameState : NetworkBehaviour
 
     private void Update()
     {
-        if (!IsHost || !shouldFinalize) return;
-        shouldFinalize = false;
+        if (!IsHost || !shouldChangeScene) return;
+        shouldChangeScene = false;
         MinigameManager.Instance.GameFinished();
     }
 
@@ -106,6 +105,7 @@ public class TagGameState : NetworkBehaviour
 
     /// <summary>
     /// Update the current GameState (Initializing, Idling, Running or Stopped).
+    /// Updates SessionManager scores based on each player's timeSpentTagged.
     /// </summary>
     /// <param name="state">New GameState.</param>
     [ServerRpc]
@@ -127,11 +127,9 @@ public class TagGameState : NetworkBehaviour
                 float score = i < scores.Length ? scores[i] : 0f;
                 FixedString64Bytes guid = rankedPlayers[i].Guid;
                 SessionManager.PlayerData globalSessionData = SessionManager.Instance.GetDataByGuid(guid);
-                float totalScore = score + globalSessionData.Score;
-                SessionManager.PlayerData scoredPlayerData = new SessionManager.PlayerData(guid, totalScore);
-                scoredPlayers.Add(scoredPlayerData);
+                SessionManager.PlayerData scoredPlayerData = new SessionManager.PlayerData(guid, score + globalSessionData.Score);
                 SessionManager.Instance.SaveData(scoredPlayerData);
-                shouldFinalize = true; // Changes scene on next update order
+                shouldChangeScene = true; // Changes scene on next update order
             }
         }
     }

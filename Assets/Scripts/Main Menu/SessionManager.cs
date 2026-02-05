@@ -72,10 +72,8 @@ public class SessionManager : NetworkBehaviour
 
     public PlayerData GetDataByGuid(FixedString64Bytes guid)
     {
-        foreach (var p in PlayerDataList)
-            if (p.Guid.Equals(guid))
-                return p;
-
+        foreach (var playerData in PlayerDataList)
+            if (playerData.Guid.Equals(guid)) return playerData;
         return new PlayerData(guid, 0f);
     }
 
