@@ -16,6 +16,8 @@ public class IntervalTimer : MonoBehaviour
     private bool isIntervalPhase = true;
     private bool isRunning = true;
 
+    public bool IsIntervalPhase => isIntervalPhase;
+
     private void Start()
     {
         currentTime = intervalDuration;
