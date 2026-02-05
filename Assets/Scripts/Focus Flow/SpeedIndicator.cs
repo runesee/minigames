@@ -34,7 +34,7 @@ public class SpeedIndicator : MonoBehaviour
 
     private void Update()
     {
-        float normalizedSpeed = Mathf.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f) + 0.2f;
+        float normalizedSpeed = Mathf.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f);
         float yPosition = Mathf.Lerp(MinYPosition, MaxYPosition, normalizedSpeed);
 
         transform.localPosition = new Vector3(
