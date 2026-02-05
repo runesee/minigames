@@ -135,14 +135,4 @@ public class TagGameState : NetworkBehaviour
             }
         }
     }
-
-    /// <summary>
-    /// TODO
-    /// </summary>
-    /// <param name="playerData">Tag-specific data to save on disconnect.</param>
-    [ServerRpc]
-    public void SaveSessionDataServerRpc(TagSessionManager.PlayerData playerData)
-    {
-        TagSessionManager.Instance.SaveDataServerRpc(playerData);
-    }
 }

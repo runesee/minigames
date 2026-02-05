@@ -5,7 +5,6 @@ using UnityEngine.InputSystem;
 using System.Linq;
 using System.Collections.Generic;
 using System;
-using static TagSessionManager;
 using PlayPulse.Api.Utils;
 using Unity.VisualScripting;
 
@@ -97,7 +96,6 @@ public class PlayerTagMovement : NetworkBehaviour
     private bool isTaunting;
     private bool canTaunt;
     private bool isBoosting;
-    private Vector3 savedPosition = default;
     private float pedalResistance;
     private bool USING_PLAYPULSE = true; // Flag for dev/bike movement toggling.
     private readonly float walkSpeed = 5f;
@@ -206,26 +204,6 @@ public class PlayerTagMovement : NetworkBehaviour
     {
         UnityEngine.ColorUtility.TryParseHtmlString(color, out var skinColor);
         playerSkinRenderer.material.color = skinColor;
-    }
-
-    /// <summary>
-    /// Reconstructs a disconnected player's data, if saved on host.
-    /// </summary>
-    /// <param name="clientId">Required, not used.</param>
-    private void OnClientConnect(ulong clientId)
-    {
-        if (!TagSessionManager.Instance) return;
-        try
-        {
-            FixedString64Bytes guid = new FixedString64Bytes(PlayerPrefs.GetString("Guid"));
-            if (TagSessionManager.Instance.ContainsGuid(guid))
-            {
-                PlayerData playerData = (PlayerData)TagSessionManager.Instance.GetDataByGuid(guid); // Already know Guid exists, ignore null case
-                savedPosition = new Vector3(playerData.XPos, 1f, playerData.ZPos);
-                ResyncPlayerDataServerRpc(playerData);
-            }
-        }
-        catch (KeyNotFoundException) {}
     }
 
     public TagGameState.PlayerData GetTagData()
@@ -481,18 +459,6 @@ public class PlayerTagMovement : NetworkBehaviour
     public void UpdateNicknameServerRpc(string nickname)
     {
         nicknameNet.Value = new FixedString64Bytes(nickname);
-    }
-
-    /// <summary>
-    /// Reads saved Tag game data tied to a GUID, and reconstructs that player's netvars.
-    /// </summary>
-    /// <param name="playerData">Tag-specific data read on reconnect.</param>
-    [ServerRpc]
-    public void ResyncPlayerDataServerRpc(PlayerData playerData)
-    {
-        timeSpentTaggedNet.Value = playerData.TimeSpentTagged;
-        lastTagTimeNet.Value = playerData.LastTagTime;
-        isTaggedNet.Value = playerData.IsTagged;
     }
 
     /// <summary>
