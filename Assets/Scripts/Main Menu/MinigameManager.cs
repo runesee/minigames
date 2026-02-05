@@ -48,7 +48,7 @@ public class MinigameManager : NetworkBehaviour
         {
             case MinigameScene.Tag:
                 NetworkManager.Singleton.SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
-                currentGameState = MinigameScene.Scoreboard;
+                currentGameState = MinigameScene.MainMenu;
                 break;
             case MinigameScene.Scoreboard:
                 if (previousGameState == MinigameScene.Tag) {

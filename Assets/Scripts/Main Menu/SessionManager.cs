@@ -2,6 +2,7 @@ using UnityEngine;
 using Unity.Netcode;
 using Unity.Collections;
 using System;
+using System.Collections.Generic;
 
 /// <summary>
 /// This Class should reside on an in-scene SessionManager Prefab/Game Object.
@@ -10,8 +11,8 @@ using System;
 /// </summary>
 public class SessionManager : NetworkBehaviour
 {
-    public NetworkList<PlayerData> PlayerDataList = new NetworkList<PlayerData>();
-    public NetworkList<PlayerData> previousPlayerDataList = new NetworkList<PlayerData>();
+    public List<PlayerData> PlayerDataList = new List<PlayerData>();
+    public List<PlayerData> previousPlayerDataList = new List<PlayerData>();
     public static SessionManager Instance { get; private set; }
 
     public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
@@ -60,10 +61,6 @@ public class SessionManager : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
         FixedString64Bytes guid = new FixedString64Bytes(PlayerPrefs.GetString("Guid"));
         PlayerData playerData = new PlayerData(guid);
         if (IsOwner)
@@ -75,18 +72,14 @@ public class SessionManager : NetworkBehaviour
 
     public PlayerData GetDataByGuid(FixedString64Bytes guid)
     {
-        for (int i = 0; i < PlayerDataList.Count; i++)
-        {
-            if (PlayerDataList[i].Guid.Equals(guid))
-            {
-                return PlayerDataList[i];
-            }
-        }
-        return new PlayerData(guid);
+        foreach (var p in PlayerDataList)
+            if (p.Guid.Equals(guid))
+                return p;
+
+        return new PlayerData(guid, 0f);
     }
 
-    [ServerRpc]
-    public void SaveDataServerRpc(PlayerData newPlayerData)
+    public void SaveData(PlayerData newPlayerData)
     {
         for (int i = 0; i < PlayerDataList.Count; i++)
         {
@@ -98,5 +91,6 @@ public class SessionManager : NetworkBehaviour
             }
         }
         PlayerDataList.Add(newPlayerData);
+        previousPlayerDataList.Add(newPlayerData);
     }
 }

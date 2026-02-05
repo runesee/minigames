@@ -177,26 +177,11 @@ public class PlayerTagMovement : NetworkBehaviour
             string nickname = PlayerPrefs.GetString("Username", "Player");
             UpdateColorServerRpc(color);
             UpdateNicknameServerRpc(nickname);
-
-            // Attempt to store per-player session data on disconnect
-            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
-            NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnect;
-            TagGameState.Instance.gameState.OnValueChanged += OnTagGameStateChanged;
         } 
-    }
-
-    private void OnTagGameStateChanged(TagGameState.GameState previousValue, TagGameState.GameState newValue)
-    {
-        if (newValue == TagGameState.GameState.Stopped)
-        {
-            SaveTagData(); // If the game has ended, all player data should be saved and stored appropriately.
-        }
     }
 
     public override void OnNetworkDespawn()
     {
-        NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
-        NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnect;
         colorNet.OnValueChanged -= OnSkinColorChanged;
         isShowingBoostParticlesNet.OnValueChanged -= OnSprintParticlesChanged;
     }
@@ -243,18 +228,7 @@ public class PlayerTagMovement : NetworkBehaviour
         catch (KeyNotFoundException) {}
     }
 
-    /// <summary>
-    /// Saves a disconnecting player's data as long as the host keeps running.
-    /// Used to resync player data on reconnect.
-    /// </summary>
-    /// <param name="clientId">Required, not used.</param>
-    private void OnClientDisconnect(ulong clientId)
-    {
-        if (!IsServer) return;
-        SaveTagData();
-    }
-
-    private void SaveTagData()
+    public TagGameState.PlayerData GetTagData()
     {
         Debug.Log("Saving data maybe");
         var position = transform.position;
@@ -265,15 +239,15 @@ public class PlayerTagMovement : NetworkBehaviour
             totalTime += serverTime - lastTagTimeNet.Value;
         }
 
-        PlayerData playerData = new PlayerData(
-            PlayerPrefs.GetString("Guid"),
+        TagGameState.PlayerData playerData = new TagGameState.PlayerData(
+            nicknameNet.Value,
             position.x,
             position.z,
             totalTime,
             lastTagTimeNet.Value,
             isTaggedNet.Value
         );
-        SaveTagDataServerRpc(playerData);
+        return playerData;
     }
 
     // There is arguably a lot of logic in onGUI, which runs often.
@@ -507,18 +481,6 @@ public class PlayerTagMovement : NetworkBehaviour
     public void UpdateNicknameServerRpc(string nickname)
     {
         nicknameNet.Value = new FixedString64Bytes(nickname);
-    }
-
-    /// <summary>
-    /// Saves Tag game data tied to a GUID on the host.
-    /// Used to re-construct game state upon reconnect.
-    /// </summary>
-    /// <param name="playerData">Tag-specific data to save on disconnect.</param>
-    [ServerRpc]
-    private void SaveTagDataServerRpc(TagSessionManager.PlayerData playerData)
-    {
-        Debug.Log("Saving data PTM ServerRPC");
-        TagGameState.Instance.SaveSessionDataServerRpc(playerData);
     }
 
     /// <summary>

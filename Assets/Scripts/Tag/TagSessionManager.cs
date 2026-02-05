@@ -106,6 +106,8 @@ public class TagSessionManager : NetworkBehaviour
             if (PlayerDataList[i].Guid.Equals(newPlayerData.Guid))
             {
                 PlayerDataList[i] = newPlayerData;
+                print(newPlayerData.Guid);
+                print(newPlayerData.TimeSpentTagged);
                 return;
             }
         }
