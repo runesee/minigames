@@ -352,13 +352,14 @@ public class PlayerTagMovement : NetworkBehaviour
             // TODO : use a range instead of ONE value to prevent jitter!
             isSprintingNet.Value = moveSpeed > sprintSpeedThreshold;
             isWalkingNet.Value = !isSprintingNet.Value;
-            isShowingBoostParticlesNet.Value = isBoosting;
+            isShowingBoostParticlesNet.Value = isBoosting && (USING_PLAYPULSE ? pedalSpeed > 0f : input.sqrMagnitude > 0.1f);
         }
         else
         {
             isWalkingNet.Value = false;
             isSprintingNet.Value = false;
             animator.speed = 1.0f;
+            isShowingBoostParticlesNet.Value = false;
         }
 
         // Lastly, if neither moving or tagging, check if taunting.
