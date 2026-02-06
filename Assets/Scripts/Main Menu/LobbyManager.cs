@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Unity.Netcode;
 using System.Collections;
+using static MinigameManager;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine.InputSystem;
@@ -355,7 +356,6 @@ public class LobbyManager : NetworkBehaviour
             Debug.LogWarning($"[Lobby] Cannot start game - need at least {MIN_PLAYERS_TO_START} players");
             return;
         }
-
-        NetworkManager.Singleton.SceneManager.LoadScene("TagScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
+        MinigameManager.Instance.StartGameSession();
     }
 }

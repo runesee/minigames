@@ -2,6 +2,7 @@ using UnityEngine;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine.SceneManagement;
+using static MinigameManager;
 using System.Net;
 using System.Net.Sockets;
 
@@ -26,17 +27,17 @@ public class MainMenuController : MonoBehaviour
 
             if (GUILayout.Button("Host", GUILayout.Height(40)))
             {
-                StartHost();
+                MinigameManager.Instance.StartConnection(ipAddress, PORT, true);
             }
 
             GUILayout.Space(10);
             GUILayout.Label("Join Game:");
-            GUILayout.Label("Enter Host IP Address:");
+            GUILayout.Label("Enter Host IP Address:");  // TODO : Store previous host IP in playerprefs to make it faster to connect when testing/playing
             ipAddress = GUILayout.TextField(ipAddress, GUILayout.Width(200));
 
             if (GUILayout.Button("Join as Client", GUILayout.Height(40)))
             {
-                StartClient();
+                MinigameManager.Instance.StartConnection(ipAddress, PORT, false);
             }
         }
         else
@@ -55,29 +56,6 @@ public class MainMenuController : MonoBehaviour
             }
         }
         GUILayout.EndArea();
-    }
-
-    private void StartHost()
-    {
-        var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-        if (transport != null)
-        {
-            transport.SetConnectionData(GetLocalIPAddress(), PORT);
-        }
-
-        NetworkManager.Singleton.StartHost();
-        NetworkManager.Singleton.SceneManager.LoadScene("TagScene", LoadSceneMode.Single);
-    }
-
-    private void StartClient()
-    {
-        var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-        if (transport != null)
-        {
-            transport.SetConnectionData(ipAddress, PORT);
-        }
-
-        NetworkManager.Singleton.StartClient();
     }
 
     private string GetLocalIPAddress()

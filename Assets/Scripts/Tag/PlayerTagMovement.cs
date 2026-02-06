@@ -5,7 +5,6 @@ using UnityEngine.InputSystem;
 using System.Linq;
 using System.Collections.Generic;
 using System;
-using static TagSessionManager;
 using PlayPulse.Api.Utils;
 using Unity.VisualScripting;
 
@@ -97,7 +96,6 @@ public class PlayerTagMovement : NetworkBehaviour
     private bool isTaunting;
     private bool canTaunt;
     private bool isBoosting;
-    private Vector3 savedPosition = default;
     private float pedalResistance;
     private bool USING_PLAYPULSE = true; // Flag for dev/bike movement toggling.
     private readonly float walkSpeed = 5f;
@@ -115,10 +113,6 @@ public class PlayerTagMovement : NetworkBehaviour
         rb = GetComponent<Rigidbody>();
     }
 
-    /* TODO :
-    Currently, this file feels bloated and hard to follow.
-    Drawing scoreboard etc. should not reside here, but in separate files.
-    */ 
     void Start()
     {
         if (!USING_PLAYPULSE) return;
@@ -177,17 +171,11 @@ public class PlayerTagMovement : NetworkBehaviour
             string nickname = PlayerPrefs.GetString("Username", "Player");
             UpdateColorServerRpc(color);
             UpdateNicknameServerRpc(nickname);
-
-            // Attempt to store per-player session data on disconnect
-            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
-            NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnect;
         } 
     }
 
     public override void OnNetworkDespawn()
     {
-        NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
-        NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnect;
         colorNet.OnValueChanged -= OnSkinColorChanged;
         isShowingBoostParticlesNet.OnValueChanged -= OnSprintParticlesChanged;
     }
@@ -214,45 +202,26 @@ public class PlayerTagMovement : NetworkBehaviour
         playerSkinRenderer.material.color = skinColor;
     }
 
-    /// <summary>
-    /// Reconstructs a disconnected player's data, if saved on host.
-    /// </summary>
-    /// <param name="clientId">Required, not used.</param>
-    private void OnClientConnect(ulong clientId)
+    public TagGameState.PlayerData GetTagData()
     {
-        if (!TagSessionManager.Instance) return;
-        try
-        {
-            FixedString64Bytes guid = new FixedString64Bytes(PlayerPrefs.GetString("Guid"));
-            if (TagSessionManager.Instance.ContainsGuid(guid))
-            {
-                PlayerData playerData = (PlayerData)TagSessionManager.Instance.GetDataByGuid(guid); // Already know Guid exists, ignore null case
-                savedPosition = new Vector3(playerData.XPos, 1f, playerData.ZPos);
-                ResyncPlayerDataServerRpc(playerData);
-            }
-        }
-        catch (KeyNotFoundException) {}
-    }
-
-    /// <summary>
-    /// Saves a disconnecting player's data as long as the host keeps running.
-    /// Used to resync player data on reconnect.
-    /// </summary>
-    /// <param name="clientId">Required, not used.</param>
-    private void OnClientDisconnect(ulong clientId)
-    {
-        if (!IsServer) return;
+        Debug.Log("Saving data maybe");
         var position = transform.position;
+        double totalTime = timeSpentTaggedNet.Value;
+        if (NetworkObjectId == TagGameState.Instance.taggedPlayerIdNet.Value)
+        {
+            double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
+            totalTime += serverTime - lastTagTimeNet.Value;
+        }
 
-        PlayerData playerData = new PlayerData(
-            PlayerPrefs.GetString("Guid"),
+        TagGameState.PlayerData playerData = new TagGameState.PlayerData(
+            nicknameNet.Value,
             position.x,
             position.z,
-            timeSpentTaggedNet.Value,
+            totalTime,
             lastTagTimeNet.Value,
             isTaggedNet.Value
         );
-        SaveDataServerRpc(playerData);
+        return playerData;
     }
 
     // There is arguably a lot of logic in onGUI, which runs often.
@@ -293,8 +262,10 @@ public class PlayerTagMovement : NetworkBehaviour
         GUILayout.BeginArea(new Rect(10, 10, 200, 200));
         if (GUILayout.Button("Shutdown"))
         {
-            if (NetworkManager.Singleton.IsHost) TagGameState.Instance.SetGameStateServerRpc(TagGameState.GameState.Stopped);
-            NetworkManager.Singleton.Shutdown();
+            if (NetworkManager.Singleton.IsHost)
+            {
+                MinigameManager.Instance.TerminateConnection();
+            }
         }
 
         if (NetworkManager.Singleton.ConnectedClientsList.Count >= 2 && TagGameState.Instance.gameState.Value == TagGameState.GameState.Idling && NetworkManager.Singleton.IsHost)
@@ -315,14 +286,6 @@ public class PlayerTagMovement : NetworkBehaviour
     private void Update()
     {
         if (TagGameState.Instance != null && TagGameState.Instance.gameState.Value != TagGameState.GameState.Running) return;
-
-        // TODO : add flag instead of constant checks
-        /*if (savedPosition.magnitude != 0f)
-        {
-            rb.MovePosition(savedPosition);
-            savedPosition = default;
-            return;
-        }*/
 
         // Attempt to change gears if user presses right or left trigger
         if (USING_PLAYPULSE)
@@ -389,13 +352,14 @@ public class PlayerTagMovement : NetworkBehaviour
             // TODO : use a range instead of ONE value to prevent jitter!
             isSprintingNet.Value = moveSpeed > sprintSpeedThreshold;
             isWalkingNet.Value = !isSprintingNet.Value;
-            isShowingBoostParticlesNet.Value = isBoosting;
+            isShowingBoostParticlesNet.Value = isBoosting && (USING_PLAYPULSE ? pedalSpeed > 0f : input.sqrMagnitude > 0.1f);
         }
         else
         {
             isWalkingNet.Value = false;
             isSprintingNet.Value = false;
             animator.speed = 1.0f;
+            isShowingBoostParticlesNet.Value = false;
         }
 
         // Lastly, if neither moving or tagging, check if taunting.
@@ -484,29 +448,6 @@ public class PlayerTagMovement : NetworkBehaviour
     public void UpdateNicknameServerRpc(string nickname)
     {
         nicknameNet.Value = new FixedString64Bytes(nickname);
-    }
-
-    /// <summary>
-    /// Saves Tag game data tied to a GUID on the host.
-    /// Used to re-construct game state upon reconnect.
-    /// </summary>
-    /// <param name="playerData">Tag-specific data to save on disconnect.</param>
-    [ServerRpc]
-    private void SaveDataServerRpc(PlayerData playerData)
-    {
-        TagSessionManager.Instance.SaveDataServerRpc(playerData);
-    }
-
-    /// <summary>
-    /// Reads saved Tag game data tied to a GUID, and reconstructs that player's netvars.
-    /// </summary>
-    /// <param name="playerData">Tag-specific data read on reconnect.</param>
-    [ServerRpc]
-    public void ResyncPlayerDataServerRpc(PlayerData playerData)
-    {
-        timeSpentTaggedNet.Value = playerData.TimeSpentTagged;
-        lastTagTimeNet.Value = playerData.LastTagTime;
-        isTaggedNet.Value = playerData.IsTagged;
     }
 
     /// <summary>
