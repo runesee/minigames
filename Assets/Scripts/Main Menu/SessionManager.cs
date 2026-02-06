@@ -2,6 +2,7 @@ using UnityEngine;
 using Unity.Netcode;
 using Unity.Collections;
 using System;
+using System.Collections.Generic;
 
 /// <summary>
 /// This Class should reside on an in-scene SessionManager Prefab/Game Object.
@@ -10,7 +11,8 @@ using System;
 /// </summary>
 public class SessionManager : NetworkBehaviour
 {
-    public NetworkList<PlayerData> PlayerDataList = new NetworkList<PlayerData>();
+    public List<PlayerData> PlayerDataList = new List<PlayerData>();
+    public List<PlayerData> previousPlayerDataList = new List<PlayerData>();
     public static SessionManager Instance { get; private set; }
 
     public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
@@ -42,9 +44,8 @@ public class SessionManager : NetworkBehaviour
         }
     }
 
-        public virtual void Start()
+    public virtual void Start()
     {
-        DontDestroyOnLoad(this);
         // New client connected, need to assign them a unique GUID
         if (PlayerPrefs.GetString("Guid") == "")
         {
@@ -52,25 +53,42 @@ public class SessionManager : NetworkBehaviour
         }
     }
 
-    public override void OnNetworkSpawn()
+    public void Awake()
     {
         Instance = this;
-        FixedString64Bytes guid = new FixedString64Bytes(PlayerPrefs.GetString("Guid"));
-        PlayerData playerData = new PlayerData(guid);
-        if (IsOwner) SaveDataServerRpc(playerData);
+        DontDestroyOnLoad(gameObject);
     }
 
-    [ServerRpc]
-    public void SaveDataServerRpc(PlayerData newPlayerData)
+    public override void OnNetworkSpawn()
+    {
+        FixedString64Bytes guid = new FixedString64Bytes(PlayerPrefs.GetString("Guid"));
+        PlayerData playerData = new PlayerData(guid);
+        if (IsOwner)
+        {
+            PlayerDataList.Add(playerData);
+            previousPlayerDataList.Add(playerData);
+        }
+    }
+
+    public PlayerData GetDataByGuid(FixedString64Bytes guid)
+    {
+        foreach (var playerData in PlayerDataList)
+            if (playerData.Guid.Equals(guid)) return playerData;
+        return new PlayerData(guid, 0f);
+    }
+
+    public void SaveData(PlayerData newPlayerData)
     {
         for (int i = 0; i < PlayerDataList.Count; i++)
         {
             if (PlayerDataList[i].Guid.Equals(newPlayerData.Guid))
             {
+                previousPlayerDataList[i] = PlayerDataList[i];
                 PlayerDataList[i] = newPlayerData;
                 return;
             }
         }
         PlayerDataList.Add(newPlayerData);
+        previousPlayerDataList.Add(newPlayerData);
     }
 }
