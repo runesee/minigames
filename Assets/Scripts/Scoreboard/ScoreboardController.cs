@@ -7,12 +7,22 @@ using UnityEngine.UI;
 
 public class ScoreboardController : NetworkBehaviour
 {
-    private static float ANIMATION_SPEED = 0.25f;
+    private static float ANIMATION_SPEED = 3.25f;
     public override void OnNetworkSpawn()
     {
         if (!IsHost) return;
         UpdateScoreboard(SessionManager.Instance.PlayerDataList);
         UpdateScoreboardClientRpc(SessionManager.Instance.PlayerDataList.ToArray());
+        StartCoroutine(CallGameFinishedAfterDelay(20f));
+    }
+    
+    private IEnumerator CallGameFinishedAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (IsHost)
+        {
+            MinigameManager.Instance.GameFinished();
+        }
     }
 
     public void UpdateScoreboard(List<SessionManager.PlayerData> scores)
@@ -20,8 +30,10 @@ public class ScoreboardController : NetworkBehaviour
         var playerCards = Object.FindObjectsByType<PlayerCard>(FindObjectsSortMode.None);
         for (int i = 0; i < scores.Count; i++)
         {
-            playerCards[i].nicknameText.text = scores[i].Guid.ToSafeString(); // TODO : use name, not guid
+            playerCards[i].nicknameText.text = scores[i].nickname.ToSafeString();
             playerCards[i].scoreText.text = scores[i].Score.ToSafeString();
+            UnityEngine.ColorUtility.TryParseHtmlString(scores[i].color.ToSafeString(), out var skinColor);
+            playerCards[i].nicknameText.color = skinColor;
 
             RectTransform rectTransform = playerCards[i].transform as RectTransform;
             LayoutElement layoutElement = playerCards[i].GetComponent<LayoutElement>();
