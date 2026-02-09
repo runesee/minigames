@@ -15,6 +15,7 @@ public class FocusFlowGame : MonoBehaviour
 
     [Header("Score Settings")]
     [SerializeField] private Transform scoreTextPosition;
+    [SerializeField] private ScoreMultiplierManager multiplierManager;
 
     [Header("Game Settings")]
     [SerializeField] private float delayBetweenButtons = 0.5f;
@@ -165,7 +166,9 @@ public class FocusFlowGame : MonoBehaviour
     {
         waitingForInput = false;
 
-        totalScore += Mathf.RoundToInt(currentSequencePoints);
+        int finalPoints = multiplierManager.ApplyMultiplier(currentSequencePoints);
+
+        totalScore += finalPoints;
         currentSequencePoints *= 2f;
         UpdateScoreDisplay();
 
@@ -197,11 +200,6 @@ public class FocusFlowGame : MonoBehaviour
 
     private void ShowFeedback(string message, Color color)
     {
-        if (mainCircle == null)
-        {
-            return;
-        }
-
         GameObject feedbackObject = new GameObject("Feedback");
         FeedbackText feedback = feedbackObject.AddComponent<FeedbackText>();
         feedback.Initialize(message, color, mainCircle.position);
@@ -210,17 +208,9 @@ public class FocusFlowGame : MonoBehaviour
     private void CreateScoreDisplay()
     {
         GameObject scoreObject = new GameObject("ScoreDisplay");
-
-        if (scoreTextPosition != null)
-        {
-            scoreObject.transform.SetParent(scoreTextPosition);
-            scoreObject.transform.localPosition = Vector3.zero;
-            scoreObject.transform.localRotation = Quaternion.identity;
-        }
-        else
-        {
-            scoreObject.transform.position = new Vector3(3f, 2f, 0f);
-        }
+        scoreObject.transform.SetParent(scoreTextPosition);
+        scoreObject.transform.localPosition = Vector3.zero;
+        scoreObject.transform.localRotation = Quaternion.identity;
 
         scoreTextMesh = scoreObject.AddComponent<TextMesh>();
         scoreTextMesh.fontSize = 80;

@@ -11,6 +11,11 @@ public class SpeedIndicator : MonoBehaviour
     private Color[] baseColors;
     private int currentActiveZone = -1;
 
+    public int GetCurrentZoneIndex()
+    {
+        return ZoneCount - 1 - currentActiveZone;
+    }
+
     private void Start()
     {
         zoneRenderers = new MeshRenderer[ZoneCount];
@@ -21,14 +26,8 @@ public class SpeedIndicator : MonoBehaviour
         for (int i = 0; i < ZoneCount; i++)
         {
             Transform zoneTransform = transform.parent.Find(zoneNames[i]);
-            if (zoneTransform != null)
-            {
-                zoneRenderers[i] = zoneTransform.GetComponent<MeshRenderer>();
-                if (zoneRenderers[i] != null)
-                {
-                    baseColors[i] = zoneRenderers[i].material.color;
-                }
-            }
+            zoneRenderers[i] = zoneTransform.GetComponent<MeshRenderer>();
+            baseColors[i] = zoneRenderers[i].material.color;
         }
     }
 
@@ -52,17 +51,13 @@ public class SpeedIndicator : MonoBehaviour
 
         if (activeZone != currentActiveZone)
         {
-            if (currentActiveZone >= 0 && zoneRenderers[currentActiveZone] != null)
+            if (currentActiveZone >= 0)
             {
                 zoneRenderers[currentActiveZone].material.color = baseColors[currentActiveZone];
             }
 
             currentActiveZone = activeZone;
-
-            if (zoneRenderers[currentActiveZone] != null)
-            {
-                zoneRenderers[currentActiveZone].material.color = baseColors[currentActiveZone] * BrightnessMultiplier;
-            }
+            zoneRenderers[currentActiveZone].material.color = baseColors[currentActiveZone] * BrightnessMultiplier;
         }
     }
 
@@ -70,10 +65,7 @@ public class SpeedIndicator : MonoBehaviour
     {
         for (int i = 0; i < ZoneCount; i++)
         {
-            if (zoneRenderers[i] != null)
-            {
-                zoneRenderers[i].material.color = baseColors[i];
-            }
+            zoneRenderers[i].material.color = baseColors[i];
         }
     }
 }
