@@ -219,7 +219,7 @@ public class FocusFlowGame : MonoBehaviour
         }
         else
         {
-            scoreObject.transform.position = new Vector3(3f, 2f, 0f);
+            scoreObject.transform.position = new Vector3(0f, -2f, -1f);
         }
 
         scoreTextMesh = scoreObject.AddComponent<TextMesh>();
