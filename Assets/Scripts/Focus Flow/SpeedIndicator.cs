@@ -6,10 +6,13 @@ public class SpeedIndicator : MonoBehaviour
     private const float MaxYPosition = 0.5f;
     private const int ZoneCount = 5;
     private const float BrightnessMultiplier = 1.8f;
+    private const float WalkThreshold = 0.1f;
+    private const float SprintThreshold = 0.6f;
 
     private MeshRenderer[] zoneRenderers;
     private Color[] baseColors;
     private int currentActiveZone = -1;
+    private Animator characterAnimator;
 
     private void Start()
     {
@@ -30,11 +33,13 @@ public class SpeedIndicator : MonoBehaviour
                 }
             }
         }
+
+        characterAnimator = GetComponentInChildren<Animator>();
     }
 
     private void Update()
     {
-        float normalizedSpeed = Mathf.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f);
+        float normalizedSpeed = Mathf.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f) + 0.8f;
         float yPosition = Mathf.Lerp(MinYPosition, MaxYPosition, normalizedSpeed);
 
         transform.localPosition = new Vector3(
@@ -42,6 +47,15 @@ public class SpeedIndicator : MonoBehaviour
             yPosition,
             transform.localPosition.z
         );
+
+        if (characterAnimator != null)
+        {
+            bool isSprinting = normalizedSpeed > SprintThreshold;
+            bool isWalking = !isSprinting && normalizedSpeed > WalkThreshold;
+
+            characterAnimator.SetBool("isWalking", isWalking);
+            characterAnimator.SetBool("isSprinting", isSprinting);
+        }
 
         UpdateZoneHighlight(normalizedSpeed);
     }
