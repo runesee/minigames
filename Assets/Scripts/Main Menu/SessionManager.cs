@@ -3,6 +3,7 @@ using Unity.Netcode;
 using Unity.Collections;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 /// <summary>
 /// This Class should reside on an in-scene SessionManager Prefab/Game Object.
@@ -73,9 +74,13 @@ public class SessionManager : NetworkBehaviour
         PlayerData playerData = new PlayerData(guid);
         if (IsOwner)
         {
-            PlayerDataList.Add(playerData);
-            previousPlayerDataList.Add(playerData);
+            if (!PlayerDataList.Any(p => p.Guid.Equals(guid)))
+            {
+                PlayerDataList.Add(playerData);
+                previousPlayerDataList.Add(playerData);
+            }
         }
+
     }
 
     public PlayerData GetDataByGuid(FixedString64Bytes guid)
