@@ -142,8 +142,22 @@ public class TagGameState : NetworkBehaviour
                 SessionManager.PlayerData globalSessionData = SessionManager.Instance.GetDataByGuid(guid);
                 SessionManager.PlayerData scoredPlayerData = new SessionManager.PlayerData(guid, nickname, color, score + globalSessionData.Score);
                 SessionManager.Instance.SaveData(scoredPlayerData);
-                shouldChangeScene = true; // Changes scene on next update order
             }
+            if (rankedPlayers.Count < 4)
+            {
+                for (int i = rankedPlayers.Count; i < 4; i++)
+                {
+                    SessionManager.Instance.SaveData(
+                        new SessionManager.PlayerData(
+                            new FixedString64Bytes(Guid.NewGuid().ToString()),
+                            $"Player {i+1}",
+                            new FixedString64Bytes("#" + PlayerColorManager.AvailableColors[i].ToHexString()),
+                            0f
+                        )
+                    );
+                }
+            }
+            shouldChangeScene = true;
         }
     }
 }

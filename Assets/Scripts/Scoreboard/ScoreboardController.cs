@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using Unity.Netcode;
 using System.Collections;
-using UnityEngine.UI;
 using DG.Tweening;
+using System.Linq;
 
 public class ScoreboardController : NetworkBehaviour
 {
@@ -16,42 +16,49 @@ public class ScoreboardController : NetworkBehaviour
         -93.1f,
         -199.7f
     };
+    private Dictionary<string, PlayerCard> cardByGuid = new();
     private List<PlayerCard> playerCards;
 
     private void Awake()
     {
-        playerCards = new List<PlayerCard>(
-            panel.GetComponentsInChildren<PlayerCard>(false)
-        );
+        playerCards = panel.GetComponentsInChildren<PlayerCard>(true).ToList();
     }
-
 
     public override void OnNetworkSpawn()
     {
         if (!IsHost) return;
         InitializeScoreboard(SessionManager.Instance.previousPlayerDataList);
         InitializeScoreboardClientRpc(SessionManager.Instance.previousPlayerDataList.ToArray());
-
-        UpdateScoreboard(SessionManager.Instance.PlayerDataList);
-        UpdateScoreboardClientRpc(SessionManager.Instance.PlayerDataList.ToArray());
+        StartCoroutine(DelayedInit());
         StartCoroutine(CallGameFinishedAfterDelay(10f));
+    }
+
+    private IEnumerator DelayedInit()
+    {
+        yield return new WaitForSeconds(2f);
+
+        if (IsHost)
+        {
+            UpdateScoreboard(SessionManager.Instance.PlayerDataList);
+            UpdateScoreboardClientRpc(SessionManager.Instance.PlayerDataList.ToArray());
+        }
     }
 
     public void InitializeScoreboard(List<SessionManager.PlayerData> scores)
     {
-        scores.Reverse();
-        var playerCards = Object.FindObjectsByType<PlayerCard>(FindObjectsSortMode.None);
-        for (int i = 0; i < scores.Count; i++)
+        for (int i = 0; i < 4; i++)
         {
-            playerCards[i].nicknameText.text = scores[i].nickname.ToSafeString();
-            playerCards[i].scoreText.text = scores[i].Score.ToSafeString();
-            UnityEngine.ColorUtility.TryParseHtmlString(scores[i].color.ToSafeString(), out var skinColor);
-            playerCards[i].nicknameText.color = skinColor;
-
             var card = playerCards[i];
-            RectTransform rt = card.transform as RectTransform;
-            Vector2 targetPos = rt.anchoredPosition;
-            rt.anchoredPosition = new Vector2(-24.5f, slotY[i]);
+            card.guid = scores[i].Guid.ToSafeString();
+            cardByGuid[card.guid] = card;
+
+            card.nicknameText.text = scores[i].nickname.ToSafeString();
+            card.scoreText.text = scores[i].Score.ToSafeString();
+            UnityEngine.ColorUtility.TryParseHtmlString(scores[i].color.ToSafeString(), out var skinColor);
+            card.nicknameText.color = skinColor;
+
+            RectTransform rectTransform = (RectTransform)card.transform;
+            rectTransform.anchoredPosition = new Vector2(-24.5f, slotY[i]);
         }
     }
     
@@ -66,25 +73,16 @@ public class ScoreboardController : NetworkBehaviour
 
     public void UpdateScoreboard(List<SessionManager.PlayerData> scores)
     {
-        for (int i = 0; i < scores.Count; i++)
+        scores = scores.OrderByDescending(s => s.Score).ToList();
+        for (int i = 0; i < 4; i++)
         {
-            var card = playerCards[i];
-            var data = scores[i];
-            RectTransform rt = card.transform as RectTransform;
-            card.nicknameText.text = data.nickname.ToSafeString();
-            card.scoreText.text = data.Score.ToSafeString();
+            var card = cardByGuid[scores[i].Guid.ToString()];
+            card.scoreText.text = scores[i].Score.ToSafeString();
 
-            UnityEngine.ColorUtility.TryParseHtmlString(
-                data.color.ToSafeString(),
-                out var skinColor
-            );
-            card.nicknameText.color = skinColor;
-
-            rt.DOKill();
-            Vector2 targetPos = rt.anchoredPosition;
-            targetPos.y = slotY[i];
-            rt.DOAnchorPos(targetPos, 8f)
-            .SetEase(Ease.OutCubic);
+            RectTransform rectTransform = (RectTransform)card.transform;
+            Vector2 target = new Vector2(-24.5f, slotY[i]);
+            rectTransform.DOKill();
+            rectTransform.DOAnchorPos(target, 2.8f).SetEase(Ease.OutCubic);
         }
     }
 
