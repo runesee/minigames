@@ -87,6 +87,7 @@ public class FocusFlowGame : MonoBehaviour
     private IEnumerator ShowSequence()
     {
         isShowingSequence = true;
+        multiplierManager.StartTracking();
 
         for (int i = 0; i < currentSequence.Count; i++)
         {
@@ -165,8 +166,9 @@ public class FocusFlowGame : MonoBehaviour
     private void OnSequenceComplete()
     {
         waitingForInput = false;
+        multiplierManager.StopTracking();
 
-        int finalPoints = multiplierManager.ApplyMultiplier(currentSequencePoints);
+        int finalPoints = multiplierManager.ApplyAverageMultiplier(currentSequencePoints);
 
         totalScore += finalPoints;
         currentSequencePoints *= 2f;
@@ -179,6 +181,7 @@ public class FocusFlowGame : MonoBehaviour
     private void OnPlayerFailed()
     {
         waitingForInput = false;
+        multiplierManager.StopTracking();
         currentSequencePoints = 100f;
         ShowFeedback("Failed", Color.red);
         StartCoroutine(RestartSequenceAfterDelay());

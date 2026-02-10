@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class ScoreMultiplierManager : MonoBehaviour
 {
@@ -7,6 +8,62 @@ public class ScoreMultiplierManager : MonoBehaviour
 
     private readonly float[] intervalMultipliers = { 2.5f, 2.0f, 1.5f, 1.0f, 0.5f };
     private readonly float[] restMultipliers = { 0.5f, 1.0f, 1.5f, 2.0f, 0.5f };
+
+    private List<int> zoneIndexSamples = new List<int>();
+    private bool isTracking = false;
+
+    private void Update()
+    {
+        if (isTracking)
+        {
+            int currentZone = speedIndicator.GetCurrentZoneIndex();
+            zoneIndexSamples.Add(currentZone);
+        }
+    }
+
+    public void StartTracking()
+    {
+        zoneIndexSamples.Clear();
+        isTracking = true;
+    }
+
+    public void StopTracking()
+    {
+        isTracking = false;
+    }
+
+    public float GetAverageMultiplier()
+    {
+        if (zoneIndexSamples.Count == 0)
+        {
+            return 1.0f;
+        }
+
+        bool isInterval = intervalTimer.IsIntervalPhase;
+        float[] currentMultipliers = isInterval ? intervalMultipliers : restMultipliers;
+
+        float totalMultiplier = 0f;
+
+        foreach (int zoneIndex in zoneIndexSamples)
+        {
+            if (zoneIndex >= 0 && zoneIndex < currentMultipliers.Length)
+            {
+                totalMultiplier += currentMultipliers[zoneIndex];
+            }
+            else
+            {
+                totalMultiplier += 1.0f;
+            }
+        }
+
+        return totalMultiplier / zoneIndexSamples.Count;
+    }
+
+    public int ApplyAverageMultiplier(float baseScore)
+    {
+        float multiplier = GetAverageMultiplier();
+        return Mathf.RoundToInt(baseScore * multiplier);
+    }
 
     public float GetCurrentMultiplier()
     {
