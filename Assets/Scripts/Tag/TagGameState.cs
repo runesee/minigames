@@ -21,7 +21,7 @@ public class TagGameState : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
-    private readonly float[] scores = { 12f, 10f, 6f, 3f };
+    private readonly float[] scores = { 10f, 6f, 3f, 1f };
     private bool shouldChangeScene = false;
     public List<PlayerData> PlayerDataList = new List<PlayerData>();
 

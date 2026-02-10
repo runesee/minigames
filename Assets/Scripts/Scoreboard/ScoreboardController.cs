@@ -30,7 +30,7 @@ public class ScoreboardController : NetworkBehaviour
         InitializeScoreboard(SessionManager.Instance.previousPlayerDataList);
         InitializeScoreboardClientRpc(SessionManager.Instance.previousPlayerDataList.ToArray());
         StartCoroutine(DelayedInit());
-        StartCoroutine(CallGameFinishedAfterDelay(10f));
+        StartCoroutine(CallGameFinishedAfterDelay(8f));
     }
 
     private IEnumerator DelayedInit()
@@ -39,8 +39,8 @@ public class ScoreboardController : NetworkBehaviour
 
         if (IsHost)
         {
-            UpdateScoreboard(SessionManager.Instance.PlayerDataList);
-            UpdateScoreboardClientRpc(SessionManager.Instance.PlayerDataList.ToArray());
+            UpdateScoreboard(SessionManager.Instance.PlayerDataList, SessionManager.Instance.previousPlayerDataList);
+            UpdateScoreboardClientRpc(SessionManager.Instance.PlayerDataList.ToArray(), SessionManager.Instance.previousPlayerDataList.ToArray());
         }
     }
 
@@ -65,31 +65,41 @@ public class ScoreboardController : NetworkBehaviour
     private IEnumerator CallGameFinishedAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
-        if (IsHost)
+        if (IsHost) MinigameManager.Instance.GameFinished();
+    }
+
+    public void UpdateScoreboard(List<SessionManager.PlayerData> scores, List<SessionManager.PlayerData> previousScores)
+    {
+        scores = scores.OrderByDescending(s => s.Score).ToList();
+        previousScores = previousScores.OrderByDescending(s => s.Score).ToList();
+        for (int i = 0; i < 4; i++)
         {
-            MinigameManager.Instance.GameFinished();
+            var guid = scores[i].Guid.ToSafeString();
+            var card = cardByGuid[guid];
+
+            float.TryParse(card.scoreText.text, out float result);
+            card.bonusText.text = "+ " + (scores[i].Score - result).ToSafeString();
+            StartCoroutine(UpdatePosition(card, i, scores));
         }
     }
 
-    public void UpdateScoreboard(List<SessionManager.PlayerData> scores)
+    private IEnumerator UpdatePosition(PlayerCard card, int i, List<SessionManager.PlayerData> scores)
     {
-        scores = scores.OrderByDescending(s => s.Score).ToList();
-        for (int i = 0; i < 4; i++)
-        {
-            var card = cardByGuid[scores[i].Guid.ToString()];
-            card.scoreText.text = scores[i].Score.ToSafeString();
+        yield return new WaitForSeconds(2f);
 
-            RectTransform rectTransform = (RectTransform)card.transform;
-            Vector2 target = new Vector2(-24.5f, slotY[i]);
-            rectTransform.DOKill();
-            rectTransform.DOAnchorPos(target, 2.8f).SetEase(Ease.OutCubic);
-        }
+        card.bonusText.text = "";
+        card.scoreText.text = scores[i].Score.ToSafeString();
+
+        RectTransform rectTransform = (RectTransform)card.transform;
+        Vector2 target = new Vector2(-24.5f, slotY[i]);
+        rectTransform.DOKill();
+        rectTransform.DOAnchorPos(target, 2.8f).SetEase(Ease.OutCubic);
     }
 
     [ClientRpc]
-    private void UpdateScoreboardClientRpc(SessionManager.PlayerData[] scores)
+    private void UpdateScoreboardClientRpc(SessionManager.PlayerData[] scores, SessionManager.PlayerData[] previousScores)
     {
-        UpdateScoreboard(new List<SessionManager.PlayerData>(scores));
+        UpdateScoreboard(new List<SessionManager.PlayerData>(scores), new List<SessionManager.PlayerData>(previousScores));
     }
 
     [ClientRpc]
