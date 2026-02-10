@@ -94,7 +94,7 @@ public class TagGameState : NetworkBehaviour
     {
         if (!IsHost || !shouldChangeScene) return;
         shouldChangeScene = false;
-        MinigameManager.Instance.GameFinished();
+        MinigameManager.Instance.SceneFinished();
     }
 
     public override void OnNetworkSpawn()
