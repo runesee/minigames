@@ -28,6 +28,7 @@ public class FocusFlowGame : MonoBehaviour
     private int totalScore = 0;
     private float currentSequencePoints = 100f;
     private TextMesh scoreTextMesh;
+    private BonusScoreDisplay bonusScoreDisplay;
 
     private Dictionary<ButtonCircle.ButtonType, ButtonCircle> buttonMap;
 
@@ -165,7 +166,14 @@ public class FocusFlowGame : MonoBehaviour
     {
         waitingForInput = false;
 
-        totalScore += Mathf.RoundToInt(currentSequencePoints);
+        int pointsEarned = Mathf.RoundToInt(currentSequencePoints);
+        totalScore += pointsEarned;
+        
+        if (bonusScoreDisplay != null)
+        {
+            bonusScoreDisplay.ShowBonus(pointsEarned);
+        }
+        
         currentSequencePoints *= 2f;
         UpdateScoreDisplay();
 
@@ -229,6 +237,21 @@ public class FocusFlowGame : MonoBehaviour
         scoreTextMesh.alignment = TextAlignment.Right;
         scoreTextMesh.color = Color.white;
         scoreTextMesh.text = "Score: 0";
+
+        GameObject bonusObject = new GameObject("BonusScoreDisplay");
+        bonusObject.transform.SetParent(scoreObject.transform);
+        bonusObject.transform.localPosition = new Vector3(0.5f, 0f, 0f);
+        bonusObject.transform.localRotation = Quaternion.identity;
+
+        TextMesh bonusTextMesh = bonusObject.AddComponent<TextMesh>();
+        bonusTextMesh.fontSize = 80;
+        bonusTextMesh.characterSize = 0.15f;
+        bonusTextMesh.anchor = TextAnchor.UpperLeft;
+        bonusTextMesh.alignment = TextAlignment.Left;
+        bonusTextMesh.color = new Color(0.3f, 1f, 0.3f, 1f);
+        bonusTextMesh.text = "";
+
+        bonusScoreDisplay = bonusObject.AddComponent<BonusScoreDisplay>();
     }
 
     private void UpdateScoreDisplay()
