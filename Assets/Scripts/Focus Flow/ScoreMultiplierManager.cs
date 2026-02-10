@@ -10,7 +10,10 @@ public class ScoreMultiplierManager : MonoBehaviour
     private readonly float[] restMultipliers = { 0.5f, 1.0f, 1.5f, 2.0f, 0.5f };
 
     private List<int> zoneIndexSamples = new List<int>();
+    private List<float> normalizedSpeedSamples = new List<float>();
     private bool isTracking = false;
+
+    public bool IsTracking => isTracking;
 
     private void Update()
     {
@@ -18,18 +21,38 @@ public class ScoreMultiplierManager : MonoBehaviour
         {
             int currentZone = speedIndicator.GetCurrentZoneIndex();
             zoneIndexSamples.Add(currentZone);
+            
+            float normalizedSpeed = Mathf.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f);
+            normalizedSpeedSamples.Add(normalizedSpeed);
         }
     }
 
     public void StartTracking()
     {
         zoneIndexSamples.Clear();
+        normalizedSpeedSamples.Clear();
         isTracking = true;
     }
 
     public void StopTracking()
     {
         isTracking = false;
+    }
+
+    public float GetAverageNormalizedSpeed()
+    {
+        if (normalizedSpeedSamples.Count == 0)
+        {
+            return 0f;
+        }
+
+        float total = 0f;
+        foreach (float speed in normalizedSpeedSamples)
+        {
+            total += speed;
+        }
+
+        return total / normalizedSpeedSamples.Count;
     }
 
     public float GetAverageMultiplier()

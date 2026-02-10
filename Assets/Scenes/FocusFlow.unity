@@ -2539,6 +2539,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a88828b2c10fa4d15bea42288e3b6bc7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpeedIndicator
+  multiplierManager: {fileID: 1070814576}
 --- !u!1 &1682935761
 GameObject:
   m_ObjectHideFlags: 0
