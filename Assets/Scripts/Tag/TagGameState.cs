@@ -31,6 +31,7 @@ public class TagGameState : NetworkBehaviour
         Idling,
         Running,
         Stopped,
+        Handover,
     }
 
     public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
@@ -123,7 +124,7 @@ public class TagGameState : NetworkBehaviour
     public void SetGameStateServerRpc(GameState state)
     {
         gameState.Value = state;
-        if (state == GameState.Stopped)
+        if (state == GameState.Handover)
         {
             foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
             {
