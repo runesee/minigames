@@ -212,7 +212,6 @@ public class PlayerTagMovement : NetworkBehaviour
 
     public TagGameState.PlayerData GetTagData()
     {
-        Debug.Log("Saving data maybe");
         var position = transform.position;
         double totalTime = timeSpentTaggedNet.Value;
         if (NetworkObjectId == TagGameState.Instance.taggedPlayerIdNet.Value)

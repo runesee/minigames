@@ -4,16 +4,55 @@ using Unity.VisualScripting;
 using Unity.Netcode;
 using System.Collections;
 using UnityEngine.UI;
+using DG.Tweening;
 
 public class ScoreboardController : NetworkBehaviour
 {
-    private static float ANIMATION_SPEED = 3.25f;
+    public GameObject panel;
+    private readonly float[] slotY =
+    {
+        120.1f,
+        13.5f,
+        -93.1f,
+        -199.7f
+    };
+    private List<PlayerCard> playerCards;
+
+    private void Awake()
+    {
+        playerCards = new List<PlayerCard>(
+            panel.GetComponentsInChildren<PlayerCard>(false)
+        );
+    }
+
+
     public override void OnNetworkSpawn()
     {
         if (!IsHost) return;
+        InitializeScoreboard(SessionManager.Instance.previousPlayerDataList);
+        InitializeScoreboardClientRpc(SessionManager.Instance.previousPlayerDataList.ToArray());
+
         UpdateScoreboard(SessionManager.Instance.PlayerDataList);
         UpdateScoreboardClientRpc(SessionManager.Instance.PlayerDataList.ToArray());
-        StartCoroutine(CallGameFinishedAfterDelay(20f));
+        StartCoroutine(CallGameFinishedAfterDelay(10f));
+    }
+
+    public void InitializeScoreboard(List<SessionManager.PlayerData> scores)
+    {
+        scores.Reverse();
+        var playerCards = Object.FindObjectsByType<PlayerCard>(FindObjectsSortMode.None);
+        for (int i = 0; i < scores.Count; i++)
+        {
+            playerCards[i].nicknameText.text = scores[i].nickname.ToSafeString();
+            playerCards[i].scoreText.text = scores[i].Score.ToSafeString();
+            UnityEngine.ColorUtility.TryParseHtmlString(scores[i].color.ToSafeString(), out var skinColor);
+            playerCards[i].nicknameText.color = skinColor;
+
+            var card = playerCards[i];
+            RectTransform rt = card.transform as RectTransform;
+            Vector2 targetPos = rt.anchoredPosition;
+            rt.anchoredPosition = new Vector2(-24.5f, slotY[i]);
+        }
     }
     
     private IEnumerator CallGameFinishedAfterDelay(float delay)
@@ -27,47 +66,38 @@ public class ScoreboardController : NetworkBehaviour
 
     public void UpdateScoreboard(List<SessionManager.PlayerData> scores)
     {
-        var playerCards = Object.FindObjectsByType<PlayerCard>(FindObjectsSortMode.None);
         for (int i = 0; i < scores.Count; i++)
         {
-            playerCards[i].nicknameText.text = scores[i].nickname.ToSafeString();
-            playerCards[i].scoreText.text = scores[i].Score.ToSafeString();
-            UnityEngine.ColorUtility.TryParseHtmlString(scores[i].color.ToSafeString(), out var skinColor);
-            playerCards[i].nicknameText.color = skinColor;
+            var card = playerCards[i];
+            var data = scores[i];
+            RectTransform rt = card.transform as RectTransform;
+            card.nicknameText.text = data.nickname.ToSafeString();
+            card.scoreText.text = data.Score.ToSafeString();
 
-            RectTransform rectTransform = playerCards[i].transform as RectTransform;
-            LayoutElement layoutElement = playerCards[i].GetComponent<LayoutElement>();
-            Vector2 oldPos = rectTransform.anchoredPosition;
-            rectTransform.SetSiblingIndex(1+i);
-
-            LayoutRebuilder.ForceRebuildLayoutImmediate(
-                rectTransform.parent as RectTransform
+            UnityEngine.ColorUtility.TryParseHtmlString(
+                data.color.ToSafeString(),
+                out var skinColor
             );
-            Vector2 newPos = rectTransform.anchoredPosition;
-            layoutElement.ignoreLayout = true;  // Have to toggle this, otherwise it literally just breaks any animation
-            rectTransform.anchoredPosition = oldPos;
-            StartCoroutine(MoveTo(rectTransform, newPos, layoutElement));
-        }
-    }
+            card.nicknameText.color = skinColor;
 
-    IEnumerator MoveTo(RectTransform rectTransform, Vector2 target, LayoutElement layoutElement)
-    {
-        Vector2 start = rectTransform.anchoredPosition;
-        float time = 0f;
-        while (time < 1f)
-        {
-            time += Time.deltaTime / ANIMATION_SPEED;
-            rectTransform.anchoredPosition = Vector2.Lerp(start, target, time);
-            yield return null;
+            rt.DOKill();
+            Vector2 targetPos = rt.anchoredPosition;
+            targetPos.y = slotY[i];
+            rt.DOAnchorPos(targetPos, 8f)
+            .SetEase(Ease.OutCubic);
         }
-        rectTransform.anchoredPosition = target;
-        layoutElement.ignoreLayout = false;
     }
 
     [ClientRpc]
     private void UpdateScoreboardClientRpc(SessionManager.PlayerData[] scores)
     {
         UpdateScoreboard(new List<SessionManager.PlayerData>(scores));
+    }
+
+    [ClientRpc]
+    private void InitializeScoreboardClientRpc(SessionManager.PlayerData[] scores)
+    {
+        InitializeScoreboard(new List<SessionManager.PlayerData>(scores));
     }
 }
 

@@ -97,6 +97,6 @@ public class SessionManager : NetworkBehaviour
             }
         }
         PlayerDataList.Add(newPlayerData);
-        previousPlayerDataList.Add(newPlayerData);
+        previousPlayerDataList.Add(new PlayerData(newPlayerData.Guid, newPlayerData.nickname, newPlayerData.color, 0f));
     }
 }
