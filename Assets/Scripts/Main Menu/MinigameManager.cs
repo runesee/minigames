@@ -15,7 +15,7 @@ public class MinigameManager : NetworkBehaviour
         MainMenu,
         Lobby,
         Scoreboard,
-        Tutorial,
+        TagTutorial,
         Tag,
     }
 
@@ -33,8 +33,8 @@ public class MinigameManager : NetworkBehaviour
     public void StartGameSession()
     {
         if (!IsHost) return;
-        NetworkManager.Singleton.SceneManager.LoadScene("Tutorial", LoadSceneMode.Single);
-        currentGameState = MinigameScene.Tutorial;
+        NetworkManager.Singleton.SceneManager.LoadScene("TagTutorial", LoadSceneMode.Single);
+        currentGameState = MinigameScene.TagTutorial;
     }
 
     // General method called by each scene's GameState class once finished.
@@ -44,7 +44,7 @@ public class MinigameManager : NetworkBehaviour
         if (!IsHost) return;
         switch (currentGameState)
         {
-            case MinigameScene.Tutorial:
+            case MinigameScene.TagTutorial:
                 NetworkManager.Singleton.SceneManager.LoadScene("TagScene", LoadSceneMode.Single);
                 currentGameState = MinigameScene.Tag;
                 break;
