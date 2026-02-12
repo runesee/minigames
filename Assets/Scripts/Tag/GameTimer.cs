@@ -1,6 +1,7 @@
 using Unity.Netcode;
 using UnityEngine;
 using TMPro;
+using System.Collections;
 
 public class GameTimer : NetworkBehaviour
 {
@@ -128,5 +129,12 @@ public class GameTimer : NetworkBehaviour
         {
             TagGameState.Instance.SetGameStateServerRpc(TagGameState.GameState.Stopped);
         }
+        StartCoroutine(Handover());
+    }
+
+    private IEnumerator Handover()
+    {
+        yield return new WaitForSeconds(6f);
+        if(IsHost) TagGameState.Instance.SetGameStateServerRpc(TagGameState.GameState.Handover);
     }
 }

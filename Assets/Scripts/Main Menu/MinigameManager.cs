@@ -15,8 +15,8 @@ public class MinigameManager : NetworkBehaviour
         MainMenu,
         Lobby,
         Scoreboard,
+        TagTutorial,
         Tag,
-        PlaceholderGame,
     }
 
     private MinigameScene currentGameState = MinigameScene.MainMenu;
@@ -33,29 +33,35 @@ public class MinigameManager : NetworkBehaviour
     public void StartGameSession()
     {
         if (!IsHost) return;
-        NetworkManager.Singleton.SceneManager.LoadScene("TagScene", LoadSceneMode.Single);
-        currentGameState = MinigameScene.Tag;
+        NetworkManager.Singleton.SceneManager.LoadScene("TagTutorial", LoadSceneMode.Single);
+        currentGameState = MinigameScene.TagTutorial;
     }
 
     // General method called by each scene's GameState class once finished.
     // Loads a Scoreboard scene, which will rely on the updated SessionManager scores.
-    public void GameFinished()
+    public void SceneFinished()
     {
         if (!IsHost) return;
         switch (currentGameState)
         {
+            case MinigameScene.TagTutorial:
+                NetworkManager.Singleton.SceneManager.LoadScene("TagScene", LoadSceneMode.Single);
+                currentGameState = MinigameScene.Tag;
+                break;
             case MinigameScene.Tag:
-                NetworkManager.Singleton.SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
-                currentGameState = MinigameScene.MainMenu;
+                NetworkManager.Singleton.SceneManager.LoadScene("Scoreboard", LoadSceneMode.Single);
+                currentGameState = MinigameScene.Scoreboard;
                 break;
             case MinigameScene.Scoreboard:
-                if (previousGameState == MinigameScene.Tag) {
-                    NetworkManager.Singleton.SceneManager.LoadScene("PlaceholderGame", LoadSceneMode.Single);
-                    currentGameState = MinigameScene.PlaceholderGame;
+                if (previousGameState == MinigameScene.Tag)
+                {
+                    NetworkManager.Singleton.SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
+                    currentGameState = MinigameScene.MainMenu;
                 }
                 break;
             default:
                 NetworkManager.Singleton.SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
+                currentGameState = MinigameScene.MainMenu;
                 break;
         }
         previousGameState = currentGameState;
@@ -67,7 +73,8 @@ public class MinigameManager : NetworkBehaviour
         if (transport == null) return;
         transport.SetConnectionData(ipAddress, portNumber);
 
-        if (isUserHost) {
+        if (isUserHost)
+        {
 
             NetworkManager.Singleton.StartHost();
             NetworkManager.Singleton.SceneManager.LoadScene("Lobby", LoadSceneMode.Single);
