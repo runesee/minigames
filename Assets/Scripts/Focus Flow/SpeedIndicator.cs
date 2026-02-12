@@ -8,10 +8,14 @@ public class SpeedIndicator : MonoBehaviour
     private const float MaxYPosition = 0.5f;
     private const int ZoneCount = 5;
     private const float BrightnessMultiplier = 1.8f;
+    private const float WalkThreshold = 0.1f;
+    private const float SprintThreshold = 0.6f;
 
     private MeshRenderer[] zoneRenderers;
     private Color[] baseColors;
     private int currentActiveZone = -1;
+    private Animator characterAnimator;
+    private GameObject speedArrow;
 
     public int GetCurrentZoneIndex()
     {
@@ -31,6 +35,42 @@ public class SpeedIndicator : MonoBehaviour
             zoneRenderers[i] = zoneTransform.GetComponent<MeshRenderer>();
             baseColors[i] = zoneRenderers[i].material.color;
         }
+
+        characterAnimator = GetComponentInChildren<Animator>();
+        CreateSpeedArrow();
+    }
+
+    private void CreateSpeedArrow()
+    {
+        speedArrow = new GameObject("SpeedArrow");
+        speedArrow.transform.SetParent(transform);
+        speedArrow.transform.localPosition = new Vector3(0f, 0f, 0.2f);
+        speedArrow.transform.localRotation = Quaternion.Euler(0f, 50f, 180f);
+        speedArrow.transform.localScale = new Vector3(3f, 3f, 3f);
+
+        MeshFilter meshFilter = speedArrow.AddComponent<MeshFilter>();
+        MeshRenderer meshRenderer = speedArrow.AddComponent<MeshRenderer>();
+
+        Mesh arrowMesh = new Mesh();
+        Vector3[] vertices = new Vector3[]
+        {
+            new Vector3(0f, 0.15f, 0f),
+            new Vector3(0f, -0.15f, 0f),
+            new Vector3(0.2f, 0f, 0f)
+        };
+        int[] triangles = new int[] { 0, 1, 2 };
+
+        arrowMesh.vertices = vertices;
+        arrowMesh.triangles = triangles;
+        arrowMesh.RecalculateNormals();
+
+        meshFilter.mesh = arrowMesh;
+
+        Material arrowMaterial = new Material(Shader.Find("Standard"));
+        arrowMaterial.color = Color.white;
+        arrowMaterial.SetFloat("_Metallic", 0f);
+        arrowMaterial.SetFloat("_Glossiness", 0.3f);
+        meshRenderer.material = arrowMaterial;
     }
 
     private void Update()
@@ -53,6 +93,15 @@ public class SpeedIndicator : MonoBehaviour
             yPosition,
             transform.localPosition.z
         );
+
+        if (characterAnimator != null)
+        {
+            bool isSprinting = normalizedSpeed > SprintThreshold;
+            bool isWalking = !isSprinting && normalizedSpeed > WalkThreshold;
+
+            characterAnimator.SetBool("isWalking", isWalking);
+            characterAnimator.SetBool("isSprinting", isSprinting);
+        }
 
         UpdateZoneHighlight(normalizedSpeed);
     }
@@ -78,6 +127,11 @@ public class SpeedIndicator : MonoBehaviour
         for (int i = 0; i < ZoneCount; i++)
         {
             zoneRenderers[i].material.color = baseColors[i];
+        }
+
+        if (speedArrow != null)
+        {
+            Destroy(speedArrow);
         }
     }
 }
