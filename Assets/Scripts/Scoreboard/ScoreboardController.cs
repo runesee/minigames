@@ -61,11 +61,11 @@ public class ScoreboardController : NetworkBehaviour
             rectTransform.anchoredPosition = new Vector2(-24.5f, slotY[i]);
         }
     }
-    
+
     private IEnumerator CallGameFinishedAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
-        if (IsHost) MinigameManager.Instance.GameFinished();
+        if (IsHost) MinigameManager.Instance.SceneFinished();
     }
 
     public void UpdateScoreboard(List<SessionManager.PlayerData> scores, List<SessionManager.PlayerData> previousScores)
