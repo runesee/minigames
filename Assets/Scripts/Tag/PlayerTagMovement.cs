@@ -488,14 +488,21 @@ public class PlayerTagMovement : NetworkBehaviour
         var victim = NetworkManager.Singleton.SpawnManager.SpawnedObjects[victimId].GetComponent<PlayerTagMovement>();
         victim.isHitNet.Value = true;
         victim.isTaggedNet.Value = true;
-        victim.isWalkingNet.Value = false;
-        victim.isSprintingNet.Value = false;
-        victim.isTauntingNet.Value = false;
+        if (IsOwner) StopAnimationsClientRpc();
 
         // Add timediff to current player
         timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
         victim.lastTagTimeNet.Value = serverTime;
         TagGameState.Instance.taggedPlayerIdNet.Value = victimId;
+    }
+
+    [ClientRpc]
+    void StopAnimationsClientRpc()
+    {
+        if (!IsOwner) return;
+        isWalkingNet.Value = false;
+        isSprintingNet.Value = false;
+        isTauntingNet.Value = false;
     }
 
     /// <summary>
