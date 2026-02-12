@@ -32,16 +32,6 @@ public class ButtonCircle : MonoBehaviour
 
     private void Awake()
     {
-        if (meshRenderer == null)
-        {
-            meshRenderer = GetComponent<MeshRenderer>();
-        }
-
-        if (defaultMaterial == null && meshRenderer != null)
-        {
-            defaultMaterial = meshRenderer.sharedMaterial;
-        }
-
         originalScale = transform.localScale;
     }
 
@@ -70,22 +60,14 @@ public class ButtonCircle : MonoBehaviour
     {
         isLit = true;
         litTimer = 0f;
-
-        if (meshRenderer != null && litMaterial != null)
-        {
-            meshRenderer.material = litMaterial;
-        }
+        meshRenderer.material = litMaterial;
     }
 
     public void TurnOff()
     {
         isLit = false;
         litTimer = 0f;
-
-        if (meshRenderer != null && defaultMaterial != null)
-        {
-            meshRenderer.material = defaultMaterial;
-        }
+        meshRenderer.material = defaultMaterial;
     }
 
     public void ShowRing()
@@ -165,11 +147,8 @@ public class ButtonCircle : MonoBehaviour
         mesh.RecalculateNormals();
         meshFilter.mesh = mesh;
 
-        if (redRingMaterial != null)
-        {
-            meshRenderer.material = redRingMaterial;
-            meshRenderer.material.renderQueue = 3000;
-        }
+        meshRenderer.material = redRingMaterial;
+        meshRenderer.material.renderQueue = 3000;
     }
 
     public void HideRing()

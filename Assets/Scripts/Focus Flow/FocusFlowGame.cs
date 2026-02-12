@@ -15,6 +15,7 @@ public class FocusFlowGame : MonoBehaviour
 
     [Header("Score Settings")]
     [SerializeField] private Transform scoreTextPosition;
+    [SerializeField] private ScoreMultiplierManager multiplierManager;
 
     [Header("Game Settings")]
     [SerializeField] private float delayBetweenButtons = 0.5f;
@@ -88,6 +89,7 @@ public class FocusFlowGame : MonoBehaviour
     private IEnumerator ShowSequence()
     {
         isShowingSequence = true;
+        multiplierManager.StartTracking();
 
         for (int i = 0; i < currentSequence.Count; i++)
         {
@@ -166,6 +168,9 @@ public class FocusFlowGame : MonoBehaviour
     private void OnSequenceComplete()
     {
         waitingForInput = false;
+        multiplierManager.StopTracking();
+
+        int finalPoints = multiplierManager.ApplyAverageMultiplier(currentSequencePoints);
 
         int pointsEarned = Mathf.RoundToInt(currentSequencePoints);
         totalScore += pointsEarned;
@@ -185,6 +190,7 @@ public class FocusFlowGame : MonoBehaviour
     private void OnPlayerFailed()
     {
         waitingForInput = false;
+        multiplierManager.StopTracking();
         currentSequencePoints = 100f;
         ShowFeedback("Failed", Color.red);
         StartCoroutine(RestartSequenceAfterDelay());
@@ -206,11 +212,6 @@ public class FocusFlowGame : MonoBehaviour
 
     private void ShowFeedback(string message, Color color)
     {
-        if (mainCircle == null)
-        {
-            return;
-        }
-
         GameObject feedbackObject = new GameObject("Feedback");
         FeedbackText feedback = feedbackObject.AddComponent<FeedbackText>();
         feedback.Initialize(message, color, mainCircle.position);

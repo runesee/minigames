@@ -65,8 +65,6 @@ public class IntervalTimer : MonoBehaviour
 
     private void UpdateTimerDisplay()
     {
-        if (timerText == null) return;
-
         int minutes = Mathf.FloorToInt(currentTime / 60f);
         int seconds = Mathf.FloorToInt(currentTime % 60f);
 

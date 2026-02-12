@@ -40,6 +40,7 @@ public class TaggedPlayerVisualizer : NetworkBehaviour
         originalMaterial = playerSkinRenderer.material;
         glowMaterial = new Material(originalMaterial);
         glowMaterial.EnableKeyword("_EMISSION");
+        glowMaterial.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
 
         if (glowMaterial.HasProperty("_EmissionColor"))
         {
