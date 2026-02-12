@@ -103,6 +103,7 @@ public class PlayerTagMovement : NetworkBehaviour
     private bool canTaunt;
     private bool isBoosting;
     private float pedalResistance;
+    private float smoothedPedalSpeed = 0f;
     private bool USING_PLAYPULSE = true; // Flag for dev/bike movement toggling.
     private readonly float walkSpeed = 5f;
     private readonly float boostSpeed = 8f;
@@ -339,7 +340,9 @@ public class PlayerTagMovement : NetworkBehaviour
         }
 
         // Handle animations and update position based on input actions
-        float pedalSpeed = USING_PLAYPULSE ? Math.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f) : 0.4f;
+        float smoothing = 1f - Mathf.Exp(-10f * Time.deltaTime);
+        smoothedPedalSpeed = Mathf.Lerp(smoothedPedalSpeed, PlayPulse.Input.Input.Speed, smoothing);
+        float pedalSpeed = USING_PLAYPULSE ? smoothedPedalSpeed : 0.4f;
         float pedalAnimationSpeed = USING_PLAYPULSE ? 1.6f * pedalSpeed : 1f;
         joystickOffset = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ?
         new Vector3((-1) * PlayPulse.Input.Input.JoystickX, 0, (-1) * PlayPulse.Input.Input.JoystickY) : joystickOffset;
