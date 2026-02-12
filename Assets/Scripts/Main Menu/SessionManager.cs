@@ -3,6 +3,7 @@ using Unity.Netcode;
 using Unity.Collections;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 /// <summary>
 /// This Class should reside on an in-scene SessionManager Prefab/Game Object.
@@ -18,28 +19,36 @@ public class SessionManager : NetworkBehaviour
     public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
     {
         public FixedString64Bytes Guid;
+        public FixedString64Bytes nickname;
+        public FixedString64Bytes color;
         public float Score;
 
-        public PlayerData(FixedString64Bytes Guid, float Score)
+        public PlayerData(FixedString64Bytes Guid, FixedString64Bytes nickname, FixedString64Bytes color, float Score)
         {
             this.Guid = Guid;
+            this.nickname = nickname;
+            this.color = color;
             this.Score = Score;
         }
 
         public PlayerData(FixedString64Bytes Guid)
         {
             this.Guid = Guid;
+            this.nickname = "";
+            this.color = "";
             this.Score = 0f;
         }
 
         public bool Equals(PlayerData other)
         {
-            return Guid.Equals(other.Guid) && Score.Equals(other.Score);
+            return Guid.Equals(other.Guid) && nickname.Equals(other.nickname) && color.Equals(other.color) && Score.Equals(other.Score);
         }
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
             serializer.SerializeValue(ref Guid);
+            serializer.SerializeValue(ref nickname);
+            serializer.SerializeValue(ref color);
             serializer.SerializeValue(ref Score);
         }
     }
@@ -65,16 +74,20 @@ public class SessionManager : NetworkBehaviour
         PlayerData playerData = new PlayerData(guid);
         if (IsOwner)
         {
-            PlayerDataList.Add(playerData);
-            previousPlayerDataList.Add(playerData);
+            if (!PlayerDataList.Any(p => p.Guid.Equals(guid)))
+            {
+                PlayerDataList.Add(playerData);
+                previousPlayerDataList.Add(playerData);
+            }
         }
+
     }
 
     public PlayerData GetDataByGuid(FixedString64Bytes guid)
     {
         foreach (var playerData in PlayerDataList)
             if (playerData.Guid.Equals(guid)) return playerData;
-        return new PlayerData(guid, 0f);
+        return new PlayerData(guid, "player", "", 0f);
     }
 
     public void SaveData(PlayerData newPlayerData)
@@ -89,6 +102,6 @@ public class SessionManager : NetworkBehaviour
             }
         }
         PlayerDataList.Add(newPlayerData);
-        previousPlayerDataList.Add(newPlayerData);
+        previousPlayerDataList.Add(new PlayerData(newPlayerData.Guid, newPlayerData.nickname, newPlayerData.color, 0f));
     }
 }
