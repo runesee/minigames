@@ -77,6 +77,12 @@ public class PlayerTagMovement : NetworkBehaviour
     NetworkVariableWritePermission.Server
     );
 
+    public NetworkVariable<FixedString64Bytes> guidNet = new NetworkVariable<FixedString64Bytes>(
+    "",
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server
+    );
+
     private NetworkVariable<float> staminaNet = new NetworkVariable<float>(
         100f,
         NetworkVariableReadPermission.Everyone,
@@ -169,8 +175,10 @@ public class PlayerTagMovement : NetworkBehaviour
         {
             // Apply player-selected nickname
             string nickname = PlayerPrefs.GetString("Username", "Player");
+            string guid = PlayerPrefs.GetString("Guid");
             UpdateColorServerRpc(color);
             UpdateNicknameServerRpc(nickname);
+            UpdateGuidServerRpc(guid);
         } 
     }
 
@@ -204,7 +212,6 @@ public class PlayerTagMovement : NetworkBehaviour
 
     public TagGameState.PlayerData GetTagData()
     {
-        Debug.Log("Saving data maybe");
         var position = transform.position;
         double totalTime = timeSpentTaggedNet.Value;
         if (NetworkObjectId == TagGameState.Instance.taggedPlayerIdNet.Value)
@@ -214,7 +221,9 @@ public class PlayerTagMovement : NetworkBehaviour
         }
 
         TagGameState.PlayerData playerData = new TagGameState.PlayerData(
+            guidNet.Value,
             nicknameNet.Value,
+            colorNet.Value,
             position.x,
             position.z,
             totalTime,
@@ -447,7 +456,13 @@ public class PlayerTagMovement : NetworkBehaviour
     [ServerRpc]
     public void UpdateNicknameServerRpc(string nickname)
     {
-        nicknameNet.Value = new FixedString64Bytes(nickname);
+        nicknameNet.Value = nickname;
+    }
+
+    [ServerRpc]
+    public void UpdateGuidServerRpc(string guid)
+    {
+        guidNet.Value = guid;
     }
 
     /// <summary>

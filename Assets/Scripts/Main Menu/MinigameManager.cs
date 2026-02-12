@@ -51,11 +51,14 @@ public class MinigameManager : NetworkBehaviour
             case MinigameScene.Tag:
                 NetworkManager.Singleton.SceneManager.LoadScene("Scoreboard", LoadSceneMode.Single);
                 currentGameState = MinigameScene.Scoreboard;
+                NetworkManager.Singleton.SceneManager.LoadScene("Scoreboard", LoadSceneMode.Single);
+                currentGameState = MinigameScene.Scoreboard;
                 break;
             case MinigameScene.Scoreboard:
-                if (previousGameState == MinigameScene.Tag) {
-                    NetworkManager.Singleton.SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
-                    currentGameState = MinigameScene.MainMenu;
+                if (previousGameState == MinigameScene.Tag)
+                {
+                    NetworkManager.Singleton.SceneManager.LoadScene("PlaceholderGame", LoadSceneMode.Single);
+                    currentGameState = MinigameScene.PlaceholderGame;
                 }
                 break;
             default:
@@ -72,7 +75,8 @@ public class MinigameManager : NetworkBehaviour
         if (transport == null) return;
         transport.SetConnectionData(ipAddress, portNumber);
 
-        if (isUserHost) {
+        if (isUserHost)
+        {
 
             NetworkManager.Singleton.StartHost();
             NetworkManager.Singleton.SceneManager.LoadScene("Lobby", LoadSceneMode.Single);
