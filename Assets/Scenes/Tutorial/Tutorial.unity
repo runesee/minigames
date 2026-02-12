@@ -987,6 +987,8 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   slider: {fileID: 827905795}
   sliderText: {fileID: 1794516782}
+  videoPath: 
+  videoPlayer: {fileID: 1549113482}
 --- !u!114 &1053332722
 MonoBehaviour:
   m_ObjectHideFlags: 0

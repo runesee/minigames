@@ -990,6 +990,8 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   slider: {fileID: 827905795}
   sliderText: {fileID: 1794516782}
+  relativeVideoPath: minigames_tag.webm
+  videoPlayer: {fileID: 1549113482}
 --- !u!114 &1053332722
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1096,7 +1098,7 @@ VideoPlayer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1549113478}
   m_Enabled: 1
-  m_VideoClip: {fileID: 32900000, guid: 412984a3e09bbfc4fb17494df7959f9f, type: 3}
+  m_VideoClip: {fileID: 0}
   m_TargetCameraAlpha: 1
   m_TargetCamera3DLayout: 0
   m_TargetCamera: {fileID: 0}
@@ -1109,7 +1111,7 @@ VideoPlayer:
   m_DataSource: 0
   m_TimeUpdateMode: 2
   m_PlaybackSpeed: 1
-  m_AudioOutputMode: 2
+  m_AudioOutputMode: 0
   m_TargetAudioSources:
   - {fileID: 0}
   m_DirectAudioVolumes:
