@@ -240,6 +240,8 @@ public class FocusFlowGame : MonoBehaviour
         scoreTextMesh.color = Color.white;
         scoreTextMesh.text = "Score: 0";
 
+        AddTextOutline(scoreObject, scoreTextMesh, Color.white);
+
         GameObject bonusObject = new GameObject("BonusScoreDisplay");
         bonusObject.transform.SetParent(scoreObject.transform);
         bonusObject.transform.localPosition = new Vector3(2.5f, 0f, 0f);
@@ -255,7 +257,45 @@ public class FocusFlowGame : MonoBehaviour
         bonusTextMesh.color = new Color(0.3f, 1f, 0.3f, 1f);
         bonusTextMesh.text = "";
 
+        AddTextOutline(bonusObject, bonusTextMesh, new Color(0.3f, 1f, 0.3f, 1f));
+
         bonusScoreDisplay = bonusObject.AddComponent<BonusScoreDisplay>();
+    }
+
+    private void AddTextOutline(GameObject parentObject, TextMesh mainTextMesh, Color textColor)
+    {
+        Vector2[] outlineOffsets = new Vector2[]
+        {
+            new Vector2(-1, 1), new Vector2(0, 1), new Vector2(1, 1),
+            new Vector2(-1, 0),                     new Vector2(1, 0),
+            new Vector2(-1, -1), new Vector2(0, -1), new Vector2(1, -1)
+        };
+
+        float outlineDistance = 0.01f;
+
+        for (int i = 0; i < outlineOffsets.Length; i++)
+        {
+            GameObject outlineObject = new GameObject($"Outline{i}");
+            outlineObject.transform.SetParent(parentObject.transform);
+            outlineObject.transform.localPosition = new Vector3(
+                outlineOffsets[i].x * outlineDistance,
+                outlineOffsets[i].y * outlineDistance,
+                0.01f
+            );
+            outlineObject.transform.localRotation = Quaternion.identity;
+            outlineObject.transform.localScale = Vector3.one;
+
+            TextMesh outlineTextMesh = outlineObject.AddComponent<TextMesh>();
+            outlineTextMesh.fontSize = mainTextMesh.fontSize;
+            outlineTextMesh.characterSize = mainTextMesh.characterSize;
+            outlineTextMesh.anchor = mainTextMesh.anchor;
+            outlineTextMesh.alignment = mainTextMesh.alignment;
+            outlineTextMesh.color = Color.black;
+            outlineTextMesh.text = mainTextMesh.text;
+
+            TextMeshOutlineSyncer syncer = outlineObject.AddComponent<TextMeshOutlineSyncer>();
+            syncer.Initialize(mainTextMesh, outlineTextMesh);
+        }
     }
 
     private void UpdateScoreDisplay()
