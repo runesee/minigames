@@ -18,8 +18,9 @@ public class FocusFlowGame : MonoBehaviour
     [SerializeField] private ScoreMultiplierManager multiplierManager;
 
     [Header("Game Settings")]
-    [SerializeField] private float delayBetweenButtons = 0.5f;
-    [SerializeField] private float delayAfterSequence = 2.0f;
+    [SerializeField] private float buttonDisplayDuration = 0.1f;
+    [SerializeField] private float delayBetweenButtons = 0.1f;
+    [SerializeField] private float delayAfterSequence = 1.0f;
 
     private List<ButtonCircle.ButtonType> currentSequence = new List<ButtonCircle.ButtonType>();
     private int playerInputIndex = 0;
@@ -97,7 +98,7 @@ public class FocusFlowGame : MonoBehaviour
             ButtonCircle button = buttonMap[buttonType];
             button.ShowRing();
 
-            yield return new WaitForSeconds(1.0f);
+            yield return new WaitForSeconds(buttonDisplayDuration);
 
             while (button.IsShowingRing)
             {
@@ -246,7 +247,7 @@ public class FocusFlowGame : MonoBehaviour
         bonusObject.transform.SetParent(scoreObject.transform);
         bonusObject.transform.localPosition = new Vector3(2.5f, 0f, 0f);
         bonusObject.transform.localRotation = Quaternion.identity;
-        
+
         bonusScoreTransform = bonusObject.transform;
 
         TextMesh bonusTextMesh = bonusObject.AddComponent<TextMesh>();
