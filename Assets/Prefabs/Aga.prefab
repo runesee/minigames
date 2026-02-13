@@ -4912,7 +4912,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3051191352
+  GlobalObjectIdHash: 3990490726
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -5051,19 +5051,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerTagMovement
   ShowTopMostFoldoutHeaderGroup: 1
   playerSkinRenderer: {fileID: 8576045237320093323}
-  walkSpeed: 3
-  boostSpeed: 8
-  RotateSpeed: 30
-  maxStamina: 100
-  staminaDrainRate: 20
-  staminaRegenRateSlow: 5
-  staminaRegenRateFast: 15
-  sprintSpeedThreshold: 1.5
-  walkSpeedThreshold: 0.2
-  exhaustedSpeedMultiplier: 0.3
-  minStaminaToBoost: 5
-  taggedStaminaBoostMultiplier: 1.5
-  sprintParticleEffect: {fileID: 6789903846567414674}
   minX: -17
   maxX: 17
   minZ: -13
@@ -5212,6 +5199,76 @@ MonoBehaviour:
         byte0059: 0
         byte0060: 0
         byte0061: 0
+  guidNet:
+    m_InternalValue:
+      utf8LengthInBytes: 0
+      bytes:
+        offset0000:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        offset0016:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        offset0032:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        byte0048: 0
+        byte0049: 0
+        byte0050: 0
+        byte0051: 0
+        byte0052: 0
+        byte0053: 0
+        byte0054: 0
+        byte0055: 0
+        byte0056: 0
+        byte0057: 0
+        byte0058: 0
+        byte0059: 0
+        byte0060: 0
+        byte0061: 0
+  sprintParticleEffect: {fileID: 6789903846567414674}
 --- !u!114 &5568033458682530780
 MonoBehaviour:
   m_ObjectHideFlags: 0

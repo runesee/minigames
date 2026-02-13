@@ -3,14 +3,29 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Video;
 
 public class TutorialController : NetworkBehaviour
 {
     public Slider slider;
     public TMP_Text sliderText;
+    public string relativeVideoPath;
+    public VideoPlayer videoPlayer;
     private float sliderTime = 30f;
 
-    void Start()
+    private void Awake()
+    {
+        if (videoPlayer && relativeVideoPath != "")
+        {
+            try
+            {
+                videoPlayer.url = Application.streamingAssetsPath + "/" + relativeVideoPath;
+            }
+            catch { Debug.Log("Error parsing tutorial video file path."); }
+        }
+    }
+
+    private void Start()
     {
         slider.value = 0f;
         StartCoroutine(UpdateWaitingSlider());

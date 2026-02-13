@@ -20,14 +20,8 @@ public class ZoneMultiplierDisplay : MonoBehaviour
         for (int i = 0; i < 5; i++)
         {
             Transform zoneTransform = parent.Find(zoneNames[i]);
-            if (zoneTransform != null)
-            {
-                Transform textTransform = zoneTransform.Find("MultiplierText");
-                if (textTransform != null)
-                {
-                    zoneTexts[i] = textTransform.GetComponent<TextMesh>();
-                }
-            }
+            Transform textTransform = zoneTransform.Find("MultiplierText");
+            zoneTexts[i] = textTransform.GetComponent<TextMesh>();
         }
 
         previousIntervalPhase = intervalTimer.IsIntervalPhase;
@@ -49,10 +43,7 @@ public class ZoneMultiplierDisplay : MonoBehaviour
 
         for (int i = 0; i < 5; i++)
         {
-            if (zoneTexts[i] != null)
-            {
-                zoneTexts[i].text = currentMultipliers[i];
-            }
+            zoneTexts[i].text = currentMultipliers[i];
         }
     }
 }

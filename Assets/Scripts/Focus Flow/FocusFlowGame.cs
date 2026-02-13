@@ -15,6 +15,7 @@ public class FocusFlowGame : MonoBehaviour
 
     [Header("Score Settings")]
     [SerializeField] private Transform scoreTextPosition;
+    [SerializeField] private ScoreMultiplierManager multiplierManager;
 
     [Header("Game Settings")]
     [SerializeField] private float delayBetweenButtons = 0.5f;
@@ -28,6 +29,8 @@ public class FocusFlowGame : MonoBehaviour
     private int totalScore = 0;
     private float currentSequencePoints = 100f;
     private TextMesh scoreTextMesh;
+    private BonusScoreDisplay bonusScoreDisplay;
+    private Transform bonusScoreTransform;
 
     private Dictionary<ButtonCircle.ButtonType, ButtonCircle> buttonMap;
 
@@ -86,6 +89,7 @@ public class FocusFlowGame : MonoBehaviour
     private IEnumerator ShowSequence()
     {
         isShowingSequence = true;
+        multiplierManager.StartTracking();
 
         for (int i = 0; i < currentSequence.Count; i++)
         {
@@ -164,8 +168,18 @@ public class FocusFlowGame : MonoBehaviour
     private void OnSequenceComplete()
     {
         waitingForInput = false;
+        multiplierManager.StopTracking();
 
-        totalScore += Mathf.RoundToInt(currentSequencePoints);
+        int finalPoints = multiplierManager.ApplyAverageMultiplier(currentSequencePoints);
+
+        int pointsEarned = Mathf.RoundToInt(currentSequencePoints);
+        totalScore += pointsEarned;
+
+        if (bonusScoreDisplay != null)
+        {
+            bonusScoreDisplay.ShowBonus(pointsEarned);
+        }
+
         currentSequencePoints *= 2f;
         UpdateScoreDisplay();
 
@@ -176,6 +190,7 @@ public class FocusFlowGame : MonoBehaviour
     private void OnPlayerFailed()
     {
         waitingForInput = false;
+        multiplierManager.StopTracking();
         currentSequencePoints = 100f;
         ShowFeedback("Failed", Color.red);
         StartCoroutine(RestartSequenceAfterDelay());
@@ -197,11 +212,6 @@ public class FocusFlowGame : MonoBehaviour
 
     private void ShowFeedback(string message, Color color)
     {
-        if (mainCircle == null)
-        {
-            return;
-        }
-
         GameObject feedbackObject = new GameObject("Feedback");
         FeedbackText feedback = feedbackObject.AddComponent<FeedbackText>();
         feedback.Initialize(message, color, mainCircle.position);
@@ -219,20 +229,51 @@ public class FocusFlowGame : MonoBehaviour
         }
         else
         {
-            scoreObject.transform.position = new Vector3(3f, 2f, 0f);
+            scoreObject.transform.position = new Vector3(-5f, -2f, -1f);
         }
 
         scoreTextMesh = scoreObject.AddComponent<TextMesh>();
         scoreTextMesh.fontSize = 80;
         scoreTextMesh.characterSize = 0.15f;
-        scoreTextMesh.anchor = TextAnchor.UpperRight;
-        scoreTextMesh.alignment = TextAlignment.Right;
+        scoreTextMesh.anchor = TextAnchor.UpperLeft;
+        scoreTextMesh.alignment = TextAlignment.Left;
         scoreTextMesh.color = Color.white;
         scoreTextMesh.text = "Score: 0";
+
+        GameObject bonusObject = new GameObject("BonusScoreDisplay");
+        bonusObject.transform.SetParent(scoreObject.transform);
+        bonusObject.transform.localPosition = new Vector3(2.5f, 0f, 0f);
+        bonusObject.transform.localRotation = Quaternion.identity;
+        
+        bonusScoreTransform = bonusObject.transform;
+
+        TextMesh bonusTextMesh = bonusObject.AddComponent<TextMesh>();
+        bonusTextMesh.fontSize = 80;
+        bonusTextMesh.characterSize = 0.15f;
+        bonusTextMesh.anchor = TextAnchor.UpperLeft;
+        bonusTextMesh.alignment = TextAlignment.Left;
+        bonusTextMesh.color = new Color(0.3f, 1f, 0.3f, 1f);
+        bonusTextMesh.text = "";
+
+        bonusScoreDisplay = bonusObject.AddComponent<BonusScoreDisplay>();
     }
 
     private void UpdateScoreDisplay()
     {
         scoreTextMesh.text = $"Score: {totalScore}";
+        UpdateBonusPosition();
+    }
+
+    private void UpdateBonusPosition()
+    {
+        if (bonusScoreTransform != null && scoreTextMesh != null)
+        {
+            MeshRenderer renderer = scoreTextMesh.GetComponent<MeshRenderer>();
+            if (renderer != null)
+            {
+                float textWidth = renderer.bounds.size.x;
+                bonusScoreTransform.localPosition = new Vector3(textWidth + 0.3f, 0f, 0f);
+            }
+        }
     }
 }

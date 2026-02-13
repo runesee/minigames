@@ -77,6 +77,12 @@ public class PlayerTagMovement : NetworkBehaviour
     NetworkVariableWritePermission.Server
     );
 
+    public NetworkVariable<FixedString64Bytes> guidNet = new NetworkVariable<FixedString64Bytes>(
+    "",
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server
+    );
+
     private NetworkVariable<float> staminaNet = new NetworkVariable<float>(
         100f,
         NetworkVariableReadPermission.Everyone,
@@ -97,6 +103,7 @@ public class PlayerTagMovement : NetworkBehaviour
     private bool canTaunt;
     private bool isBoosting;
     private float pedalResistance;
+    private float smoothedPedalSpeed = 0f;
     private bool USING_PLAYPULSE = true; // Flag for dev/bike movement toggling.
     private readonly float walkSpeed = 5f;
     private readonly float boostSpeed = 8f;
@@ -169,8 +176,10 @@ public class PlayerTagMovement : NetworkBehaviour
         {
             // Apply player-selected nickname
             string nickname = PlayerPrefs.GetString("Username", "Player");
+            string guid = PlayerPrefs.GetString("Guid");
             UpdateColorServerRpc(color);
             UpdateNicknameServerRpc(nickname);
+            UpdateGuidServerRpc(guid);
         } 
     }
 
@@ -204,7 +213,6 @@ public class PlayerTagMovement : NetworkBehaviour
 
     public TagGameState.PlayerData GetTagData()
     {
-        Debug.Log("Saving data maybe");
         var position = transform.position;
         double totalTime = timeSpentTaggedNet.Value;
         if (NetworkObjectId == TagGameState.Instance.taggedPlayerIdNet.Value)
@@ -214,7 +222,9 @@ public class PlayerTagMovement : NetworkBehaviour
         }
 
         TagGameState.PlayerData playerData = new TagGameState.PlayerData(
+            guidNet.Value,
             nicknameNet.Value,
+            colorNet.Value,
             position.x,
             position.z,
             totalTime,
@@ -330,7 +340,9 @@ public class PlayerTagMovement : NetworkBehaviour
         }
 
         // Handle animations and update position based on input actions
-        float pedalSpeed = USING_PLAYPULSE ? Math.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f) : 0.4f;
+        float smoothing = 1f - Mathf.Exp(-10f * Time.deltaTime);
+        smoothedPedalSpeed = Mathf.Lerp(smoothedPedalSpeed, PlayPulse.Input.Input.Speed, smoothing);
+        float pedalSpeed = USING_PLAYPULSE ? smoothedPedalSpeed : 0.4f;
         float pedalAnimationSpeed = USING_PLAYPULSE ? 1.6f * pedalSpeed : 1f;
         joystickOffset = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ?
         new Vector3((-1) * PlayPulse.Input.Input.JoystickX, 0, (-1) * PlayPulse.Input.Input.JoystickY) : joystickOffset;
@@ -447,7 +459,13 @@ public class PlayerTagMovement : NetworkBehaviour
     [ServerRpc]
     public void UpdateNicknameServerRpc(string nickname)
     {
-        nicknameNet.Value = new FixedString64Bytes(nickname);
+        nicknameNet.Value = nickname;
+    }
+
+    [ServerRpc]
+    public void UpdateGuidServerRpc(string guid)
+    {
+        guidNet.Value = guid;
     }
 
     /// <summary>
@@ -473,14 +491,21 @@ public class PlayerTagMovement : NetworkBehaviour
         var victim = NetworkManager.Singleton.SpawnManager.SpawnedObjects[victimId].GetComponent<PlayerTagMovement>();
         victim.isHitNet.Value = true;
         victim.isTaggedNet.Value = true;
-        victim.isWalkingNet.Value = false;
-        victim.isSprintingNet.Value = false;
-        victim.isTauntingNet.Value = false;
+        if (IsOwner) StopAnimationsClientRpc();
 
         // Add timediff to current player
         timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
         victim.lastTagTimeNet.Value = serverTime;
         TagGameState.Instance.taggedPlayerIdNet.Value = victimId;
+    }
+
+    [ClientRpc]
+    void StopAnimationsClientRpc()
+    {
+        if (!IsOwner) return;
+        isWalkingNet.Value = false;
+        isSprintingNet.Value = false;
+        isTauntingNet.Value = false;
     }
 
     /// <summary>
