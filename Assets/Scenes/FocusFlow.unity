@@ -235,6 +235,7 @@ Transform:
   - {fileID: 179662710}
   - {fileID: 166387781}
   - {fileID: 523095376}
+  - {fileID: 1630351735}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &43408049
@@ -1015,6 +1016,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a88828b2c10fa4d15bea42288e3b6bc7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpeedIndicator
+  multiplierManager: {fileID: 1070814576}
 --- !u!1 &631070613
 GameObject:
   m_ObjectHideFlags: 0
