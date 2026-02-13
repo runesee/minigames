@@ -15,7 +15,7 @@ public class TutorialController : NetworkBehaviour
 
     private void Awake()
     {
-        if (videoPlayer)
+        if (videoPlayer && relativeVideoPath != "")
         {
             try
             {
