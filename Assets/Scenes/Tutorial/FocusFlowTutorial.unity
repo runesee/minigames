@@ -1537,11 +1537,12 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: Focus Flow features a Simon Says button matching minigame, and interval
-    pedaling. Match the displayed sequence using the X, Y, A and B buttons to gain
-    points. Multiply your points by pedaling at speeds matching the current interval
-    intensity. Pedal fast during high-intensity intervals, and slow during low intensity
-    intervals. The longer button sequences you can chain, the more points you gain.
-    Win by having the most points in the end!
+    pedaling. Red rings indicate which buttons you need to press after each other.
+    Match the displayed sequence using the X, Y, A and B buttons to gain points.
+    Multiply your points by pedaling at speeds matching the current interval intensity.
+    Pedal fast during HIGH INTENSITY intervals, and slow during REST. The longer
+    button sequences you can chain, the more points you gain. Win by having the most
+    points in the end!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
