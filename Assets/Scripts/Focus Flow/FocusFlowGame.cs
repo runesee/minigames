@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class FocusFlowGame : MonoBehaviour
+public class FocusFlowGame : NetworkBehaviour
 {
     [Header("Button References")]
     [SerializeField] private ButtonCircle buttonA;
@@ -43,7 +44,6 @@ public class FocusFlowGame : MonoBehaviour
             { ButtonCircle.ButtonType.X, buttonX },
             { ButtonCircle.ButtonType.Y, buttonY }
         };
-
         CreateScoreDisplay();
     }
 
@@ -174,6 +174,7 @@ public class FocusFlowGame : MonoBehaviour
 
         int pointsEarned = Mathf.RoundToInt(currentSequencePoints);
         totalScore += pointsEarned;
+        FocusFlowData.LocalInstance.UpdateScoreServerRpc(totalScore);
 
         if (bonusScoreDisplay != null)
         {

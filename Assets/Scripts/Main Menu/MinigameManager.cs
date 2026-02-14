@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using PlayPulse.Core.Api.Dtos;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine.SceneManagement;
@@ -17,6 +18,8 @@ public class MinigameManager : NetworkBehaviour
         Scoreboard,
         TagTutorial,
         Tag,
+        FocusFlow,
+        FocusFlowTutorial,
     }
 
     private MinigameScene currentGameState = MinigameScene.MainMenu;
@@ -42,6 +45,7 @@ public class MinigameManager : NetworkBehaviour
     public void SceneFinished()
     {
         if (!IsHost) return;
+        if (!(currentGameState == MinigameScene.Scoreboard)) previousGameState = currentGameState;
         switch (currentGameState)
         {
             case MinigameScene.TagTutorial:
@@ -52,19 +56,32 @@ public class MinigameManager : NetworkBehaviour
                 NetworkManager.Singleton.SceneManager.LoadScene("Scoreboard", LoadSceneMode.Single);
                 currentGameState = MinigameScene.Scoreboard;
                 break;
+            case MinigameScene.FocusFlow:
+                NetworkManager.Singleton.SceneManager.LoadScene("Scoreboard", LoadSceneMode.Single);
+                currentGameState = MinigameScene.Scoreboard;
+                break;
+            case MinigameScene.FocusFlowTutorial:
+                NetworkManager.Singleton.SceneManager.LoadScene("FocusFlow", LoadSceneMode.Single);
+                currentGameState = MinigameScene.FocusFlow;
+                break;
             case MinigameScene.Scoreboard:
                 if (previousGameState == MinigameScene.Tag)
+                {
+                    NetworkManager.Singleton.SceneManager.LoadScene("FocusFlowTutorial", LoadSceneMode.Single);
+                    currentGameState = MinigameScene.FocusFlowTutorial;
+                }
+                else if (previousGameState == MinigameScene.FocusFlow)
                 {
                     NetworkManager.Singleton.SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
                     currentGameState = MinigameScene.MainMenu;
                 }
+                previousGameState = MinigameScene.Scoreboard;
                 break;
             default:
                 NetworkManager.Singleton.SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
                 currentGameState = MinigameScene.MainMenu;
                 break;
         }
-        previousGameState = currentGameState;
     }
 
     public void StartConnection(string ipAddress, ushort portNumber, bool isUserHost)

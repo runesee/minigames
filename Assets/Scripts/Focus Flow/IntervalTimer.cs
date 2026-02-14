@@ -1,7 +1,8 @@
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class IntervalTimer : MonoBehaviour
+public class IntervalTimer : NetworkBehaviour
 {
     [Header("Timer Settings")]
     [SerializeField] private float intervalDuration = 45f;
@@ -54,6 +55,7 @@ public class IntervalTimer : MonoBehaviour
             {
                 isRunning = false;
                 currentTime = 0f;
+                if (IsHost) FocusFlowGameState.Instance.SetGameStateServerRpc(FocusFlowGameState.GameState.Handover);
             }
             else
             {

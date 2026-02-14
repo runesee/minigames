@@ -235,6 +235,7 @@ Transform:
   - {fileID: 179662710}
   - {fileID: 166387781}
   - {fileID: 523095376}
+  - {fileID: 1630351735}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &43408049
@@ -1015,6 +1016,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a88828b2c10fa4d15bea42288e3b6bc7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpeedIndicator
+  multiplierManager: {fileID: 0}
 --- !u!1 &631070613
 GameObject:
   m_ObjectHideFlags: 0
@@ -1682,6 +1684,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1070814574}
+  - component: {fileID: 1070814577}
   - component: {fileID: 1070814573}
   - component: {fileID: 1070814575}
   - component: {fileID: 1070814576}
@@ -1704,6 +1707,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0ce44a5efa3b4066b0f4992dc9850bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::IntervalTimer
+  ShowTopMostFoldoutHeaderGroup: 1
   intervalDuration: 45
   restDuration: 15
   totalCycles: 3
@@ -1750,6 +1754,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ScoreMultiplierManager
   intervalTimer: {fileID: 1070814573}
   speedIndicator: {fileID: 1630351739}
+--- !u!114 &1070814577
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1070814572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 1169037658
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!1 &1094848096
 GameObject:
   m_ObjectHideFlags: 0
@@ -2384,6 +2413,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5e3d7d7d60aa49998d09a4bc7e59a03, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FocusFlowGame
+  ShowTopMostFoldoutHeaderGroup: 1
   buttonA: {fileID: 1690573578}
   buttonB: {fileID: 1458282863}
   buttonX: {fileID: 1001543331}
@@ -2535,6 +2565,78 @@ MonoBehaviour:
   defaultMaterial: {fileID: 2100000, guid: d2d3b1db5b82144d5aaab11b40549cbf, type: 2}
   litMaterial: {fileID: 2100000, guid: e1e620b594a874184809a58d4bc1b28e, type: 2}
   redRingMaterial: {fileID: 2100000, guid: d125d6cb0a31c4441a40c446e7016d6d, type: 2}
+--- !u!1 &1496170145
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1496170147}
+  - component: {fileID: 1496170146}
+  - component: {fileID: 1496170148}
+  m_Layer: 0
+  m_Name: FocusFlowDataSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1496170146
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1496170145}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 3690963881
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!4 &1496170147
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1496170145}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 184.14777, y: 527.50085, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1496170148
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1496170145}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8be8eaa53f0ea74689c851de55923f2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  ShowTopMostFoldoutHeaderGroup: 1
+  focusFlowDataPrefab: {fileID: 2630231931354846626, guid: 3e6a6c7f295dacc48808c664775fa43a, type: 3}
 --- !u!1 &1630351734
 GameObject:
   m_ObjectHideFlags: 0
@@ -2660,6 +2762,79 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpeedIndicator
   multiplierManager: {fileID: 1070814576}
+--- !u!1 &1633054072
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1633054074}
+  - component: {fileID: 1633054073}
+  - component: {fileID: 1633054075}
+  m_Layer: 0
+  m_Name: FocusFlowGameState
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1633054073
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1633054072}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 2050720254
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!4 &1633054074
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1633054072}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 184.14777, y: 527.50085, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1633054075
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1633054072}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94b02c6baf09cef44a370a31ade3b385, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FocusFlowGameState
+  ShowTopMostFoldoutHeaderGroup: 1
+  gameState:
+    m_InternalValue: 0
 --- !u!1 &1682935761
 GameObject:
   m_ObjectHideFlags: 0
@@ -3273,3 +3448,5 @@ SceneRoots:
   - {fileID: 1426620848}
   - {fileID: 1070814574}
   - {fileID: 2081761129}
+  - {fileID: 1496170147}
+  - {fileID: 1633054074}
