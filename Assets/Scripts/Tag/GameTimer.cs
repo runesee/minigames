@@ -50,7 +50,7 @@ public class GameTimer : NetworkBehaviour
 
         if (IsServer)
         {
-            OnGameStateChanged(TagGameState.GameState.Initializing, TagGameState.Instance.gameState.Value);
+            OnGameStateChanged(GameState.Initializing, TagGameState.Instance.gameState.Value);
         }
     }
 
@@ -90,17 +90,17 @@ public class GameTimer : NetworkBehaviour
         }
     }
 
-    private void OnGameStateChanged(TagGameState.GameState previousState, TagGameState.GameState newState)
+    private void OnGameStateChanged(GameState previousState, GameState newState)
     {
         if (!IsServer) return;
 
-        if (newState == TagGameState.GameState.Running)
+        if (newState == GameState.Running)
         {
             timerEndTime.Value = NetworkManager.ServerTime.Time + gameDurationInSeconds;
             remainingTime.Value = gameDurationInSeconds;
             timerRunning.Value = true;
         }
-        else if (newState == TagGameState.GameState.Stopped || newState == TagGameState.GameState.Idling)
+        else if (newState == GameState.Stopped || newState == GameState.Idling)
         {
             timerRunning.Value = false;
         }
@@ -127,7 +127,7 @@ public class GameTimer : NetworkBehaviour
     {
         if (TagGameState.Instance != null && IsServer)
         {
-            TagGameState.Instance.SetGameStateServerRpc(TagGameState.GameState.Stopped);
+            TagGameState.Instance.SetGameStateServerRpc(GameState.Stopped);
         }
         StartCoroutine(Handover());
     }
@@ -135,6 +135,6 @@ public class GameTimer : NetworkBehaviour
     private IEnumerator Handover()
     {
         yield return new WaitForSeconds(8f);
-        if(IsHost) TagGameState.Instance.SetGameStateServerRpc(TagGameState.GameState.Handover);
+        if(IsHost) TagGameState.Instance.SetGameStateServerRpc(GameState.Handover);
     }
 }

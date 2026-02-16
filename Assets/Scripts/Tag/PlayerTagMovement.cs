@@ -242,7 +242,7 @@ public class PlayerTagMovement : NetworkBehaviour
 
         // Draw scoreboard
         GUILayout.BeginArea(new Rect(Screen.width - 210, 10, 200, 300));
-        if (TagGameState.Instance.gameState.Value == TagGameState.GameState.Running)
+        if (TagGameState.Instance.gameState.Value == GameState.Running)
         {
             GUILayout.TextArea("Scoreboard");
             foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
@@ -278,11 +278,11 @@ public class PlayerTagMovement : NetworkBehaviour
             }
         }
 
-        if (NetworkManager.Singleton.ConnectedClientsList.Count >= 2 && TagGameState.Instance.gameState.Value == TagGameState.GameState.Idling && NetworkManager.Singleton.IsHost)
+        if (NetworkManager.Singleton.ConnectedClientsList.Count >= 2 && TagGameState.Instance.gameState.Value == GameState.Idling && NetworkManager.Singleton.IsHost)
         {
             if (GUILayout.Button("Start Game"))
             {
-                TagGameState.Instance.SetGameStateServerRpc(TagGameState.GameState.Running);
+                TagGameState.Instance.SetGameStateServerRpc(GameState.Running);
                 SetInitialTaggedPlayer();
             }
         }
@@ -295,7 +295,7 @@ public class PlayerTagMovement : NetworkBehaviour
 
     private void Update()
     {
-        if (TagGameState.Instance != null && TagGameState.Instance.gameState.Value != TagGameState.GameState.Running) return;
+        if (TagGameState.Instance != null && TagGameState.Instance.gameState.Value != GameState.Running) return;
 
         // Attempt to change gears if user presses right or left trigger
         if (USING_PLAYPULSE)

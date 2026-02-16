@@ -22,8 +22,8 @@ public class MinigameManager : NetworkBehaviour
         FocusFlowTutorial,
     }
 
-    private MinigameScene currentGameState = MinigameScene.MainMenu;
-    private MinigameScene previousGameState = MinigameScene.MainMenu;
+    public MinigameScene currentGameState = MinigameScene.MainMenu;
+    public MinigameScene previousGameState = MinigameScene.MainMenu;
 
     private void Awake()
     {

@@ -4,7 +4,6 @@ using System.Linq;
 using Unity.Collections;
 using Unity.Netcode;
 using Unity.VisualScripting;
-using UnityEngine;
 
 public class TagGameState : NetworkBehaviour
 {
@@ -24,15 +23,6 @@ public class TagGameState : NetworkBehaviour
     private readonly float[] scores = { 10f, 6f, 3f, 1f };
     private bool shouldChangeScene = false;
     public List<PlayerData> PlayerDataList = new List<PlayerData>();
-
-    public enum GameState
-    {
-        Initializing,
-        Idling,
-        Running,
-        Stopped,
-        Handover,
-    }
 
     public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
     {

@@ -18,15 +18,6 @@ public class FocusFlowGameState : NetworkBehaviour
     private bool shouldChangeScene = false;
     public List<PlayerData> PlayerDataList = new List<PlayerData>();
 
-    public enum GameState
-    {
-        Initializing,
-        Idling,
-        Running,
-        Stopped,
-        Handover,
-    }
-
     public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
     {
         public FixedString64Bytes Guid;
