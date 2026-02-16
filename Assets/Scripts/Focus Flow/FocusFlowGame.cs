@@ -171,9 +171,7 @@ public class FocusFlowGame : MonoBehaviour
         waitingForInput = false;
         multiplierManager.StopTracking();
 
-        int finalPoints = multiplierManager.ApplyAverageMultiplier(currentSequencePoints);
-
-        int pointsEarned = Mathf.RoundToInt(currentSequencePoints);
+        int pointsEarned = multiplierManager.ApplyAverageMultiplier(currentSequencePoints);
         totalScore += pointsEarned;
 
         if (bonusScoreDisplay != null)
