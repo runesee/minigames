@@ -35,7 +35,7 @@ public class ScoreboardController : NetworkBehaviour
 
     private IEnumerator DelayedInit()
     {
-        yield return new WaitForSeconds(3f);
+        while (SessionManager.Instance == null) yield return new WaitForSeconds(0.1f);
 
         if (IsHost)
         {
@@ -49,7 +49,9 @@ public class ScoreboardController : NetworkBehaviour
         for (int i = 0; i < 4; i++)
         {
             var card = playerCards[i];
-            card.guid = scores[i].Guid.ToSafeString();
+            Debug.Log(i);
+            Debug.Log(scores[i]);
+            card.guid = scores[i].Guid.ToString();
             cardByGuid[card.guid] = card;
 
             card.nicknameText.text = scores[i].nickname.ToSafeString();
