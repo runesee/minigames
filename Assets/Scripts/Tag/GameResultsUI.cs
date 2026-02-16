@@ -18,17 +18,19 @@ public class GameResultsUI : MonoBehaviour
     [SerializeField] private AnimationCurve scaleCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
     private CanvasGroup panelCanvasGroup;
+    private List<PlayerCard> playerCards;
+    private List<string> medalColors = new List<string>{"#FFD700", "#C0C0C0", "#CD7F32", "#7e7d74"};
+    private List<float> cardYPositions = new List<float>{100, 0, -100, -200};
+
+    private void Awake()
+    {
+        playerCards = resultsPanel.GetComponentsInChildren<PlayerCard>(true).ToList();
+    }
 
     private void Start()
     {
         if (resultsPanel != null)
         {
-            panelCanvasGroup = resultsPanel.GetComponent<CanvasGroup>();
-            if (panelCanvasGroup == null)
-            {
-                panelCanvasGroup = resultsPanel.AddComponent<CanvasGroup>();
-            }
-
             resultsPanel.SetActive(false);
         }
 
@@ -177,8 +179,10 @@ public class GameResultsUI : MonoBehaviour
         }
 
         results = results.OrderBy(r => r.timeTagged).ToList();
-
-        string resultText = "<size=48><b>*** GAME OVER ***</b></size>\n\n<size=36><b>Final Results:</b></size>\n\n";
+        foreach (var card in playerCards)
+        {
+            card.gameObject.SetActive(false);
+        }
 
         for (int i = 0; i < results.Count; i++)
         {
@@ -186,27 +190,18 @@ public class GameResultsUI : MonoBehaviour
             string playerName = results[i].nickname;
             string time = results[i].timeTagged.ToString("F2") + "s";
 
-            if (i == 0)
-            {
-                resultText += $"<color=yellow><size=32> {rank}. {playerName}: {time} - WINNER! </size></color>\n";
-            }
-            else if (i == 1)
-            {
-                resultText += $"<color=#C0C0C0><size=28> {rank}. {playerName}: {time} </size></color>\n";
-            }
-            else if (i == 2)
-            {
-                resultText += $"<color=#CD7F32><size=28> {rank}. {playerName}: {time} </size></color>\n";
-            }
-            else
-            {
-                resultText += $"<size=28>{rank}. {playerName}: {time}</size>\n";
-            }
+            var card = playerCards[i];
+            card.nicknameText.text = playerName;
+            card.scoreText.text = time;
+            RectTransform rectTransform = (RectTransform)card.transform;
+            card.gameObject.SetActive(true);
+
+            UnityEngine.ColorUtility.TryParseHtmlString(medalColors[i], out var medalColor);
+            card.bonusText.color = medalColor;
+            card.nicknameText.color = medalColor;
+            card.bonusText.text = "#" + (1+i).ToString();
+            rectTransform.anchoredPosition = new Vector2(0, cardYPositions[i]);
         }
-
-        resultText += "\n<size=24><i>Press Shutdown to return to menu</i></size>";
-
-        resultsText.text = resultText;
     }
 
     private struct PlayerResult

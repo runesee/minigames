@@ -134,7 +134,7 @@ public class GameTimer : NetworkBehaviour
 
     private IEnumerator Handover()
     {
-        yield return new WaitForSeconds(6f);
+        yield return new WaitForSeconds(8f);
         if(IsHost) TagGameState.Instance.SetGameStateServerRpc(TagGameState.GameState.Handover);
     }
 }
