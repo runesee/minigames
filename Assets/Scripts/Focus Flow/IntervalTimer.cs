@@ -1,7 +1,9 @@
+using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class IntervalTimer : MonoBehaviour
+public class IntervalTimer : NetworkBehaviour
 {
     [Header("Timer Settings")]
     [SerializeField] private float intervalDuration = 45f;
@@ -54,6 +56,10 @@ public class IntervalTimer : MonoBehaviour
             {
                 isRunning = false;
                 currentTime = 0f;
+                if (IsHost) FocusFlowGameState.Instance.SetGameStateServerRpc(GameState.Stopped);
+                timerText.gameObject.SetActive(false);
+                StartCoroutine(Handover());
+
             }
             else
             {
@@ -61,6 +67,12 @@ public class IntervalTimer : MonoBehaviour
                 currentTime = intervalDuration;
             }
         }
+    }
+
+    private IEnumerator Handover()
+    {
+        yield return new WaitForSeconds(8f);
+        if(IsHost) FocusFlowGameState.Instance.SetGameStateServerRpc(GameState.Handover);
     }
 
     private void UpdateTimerDisplay()
