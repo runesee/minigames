@@ -168,18 +168,17 @@ public class PlayerTagMovement : NetworkBehaviour
         colorNet.OnValueChanged += OnSkinColorChanged;
         isShowingBoostParticlesNet.OnValueChanged += OnSprintParticlesChanged;
 
-        // Apply initial player-selected color 
-        string color = IsOwner ? PlayerPrefs.GetString("Color") : colorNet.Value.ToString();
+        // Apply initial player-selected color
+        var data = LocalPlayerStorage.Load();
+        string color = IsOwner ? data.color : colorNet.Value.ToString();
         SetSkinColor(color);
 
         if (IsOwner)
         {
-            // Apply player-selected nickname
-            string nickname = PlayerPrefs.GetString("Username", "Player");
-            string guid = PlayerPrefs.GetString("Guid");
+            // Apply player-selected nickname and color
             UpdateColorServerRpc(color);
-            UpdateNicknameServerRpc(nickname);
-            UpdateGuidServerRpc(guid);
+            UpdateNicknameServerRpc(data.nickname);
+            UpdateGuidServerRpc(data.guid);
         } 
     }
 

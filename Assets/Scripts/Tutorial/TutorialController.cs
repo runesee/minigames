@@ -11,7 +11,7 @@ public class TutorialController : NetworkBehaviour
     public TMP_Text sliderText;
     public string relativeVideoPath;
     public VideoPlayer videoPlayer;
-    private float sliderTime = 3f;
+    private float sliderTime = 30f;
 
     private void Awake()
     {

@@ -49,8 +49,6 @@ public class ScoreboardController : NetworkBehaviour
         for (int i = 0; i < 4; i++)
         {
             var card = playerCards[i];
-            Debug.Log(i);
-            Debug.Log(scores[i]);
             card.guid = scores[i].Guid.ToString();
             cardByGuid[card.guid] = card;
 
