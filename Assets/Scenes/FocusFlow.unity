@@ -1029,6 +1029,7 @@ GameObject:
   - component: {fileID: 631070617}
   - component: {fileID: 631070616}
   - component: {fileID: 631070615}
+  - component: {fileID: 631070618}
   m_Layer: 0
   m_Name: MainCircle
   m_TagString: Untagged
@@ -1130,6 +1131,22 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 631070613}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &631070618
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 631070613}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef4d46ef9e9724a89ab1033592c95a6f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PhaseVisualFeedback
+  intervalTimer: {fileID: 1070814573}
+  mainCircleRenderer: {fileID: 631070615}
+  intervalColor: {r: 0.6, g: 0.2, b: 0.2, a: 1}
+  restColor: {r: 0.19999999, g: 0.5019608, b: 0.2, a: 1}
 --- !u!1 &774676185
 GameObject:
   m_ObjectHideFlags: 0
@@ -2409,6 +2426,7 @@ MonoBehaviour:
   mainCircle: {fileID: 631070614}
   scoreTextPosition: {fileID: 0}
   multiplierManager: {fileID: 1070814576}
+  buttonDisplayDuration: 0.1
   delayBetweenButtons: 0.5
   delayAfterSequence: 2
 --- !u!114 &1427610382
