@@ -2426,9 +2426,9 @@ MonoBehaviour:
   mainCircle: {fileID: 631070614}
   scoreTextPosition: {fileID: 0}
   multiplierManager: {fileID: 1070814576}
-  buttonDisplayDuration: 0.1
-  delayBetweenButtons: 0.5
-  delayAfterSequence: 2
+  buttonDisplayDuration: 0.05
+  delayBetweenButtons: 0.15
+  delayAfterSequence: 1
 --- !u!114 &1427610382
 MonoBehaviour:
   m_ObjectHideFlags: 0
