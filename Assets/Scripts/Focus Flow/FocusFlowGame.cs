@@ -19,8 +19,9 @@ public class FocusFlowGame : NetworkBehaviour
     [SerializeField] private ScoreMultiplierManager multiplierManager;
 
     [Header("Game Settings")]
-    [SerializeField] private float delayBetweenButtons = 0.5f;
-    [SerializeField] private float delayAfterSequence = 2.0f;
+    [SerializeField] private float buttonDisplayDuration = 0.1f;
+    [SerializeField] private float delayBetweenButtons = 0.1f;
+    [SerializeField] private float delayAfterSequence = 1.0f;
 
     private List<ButtonCircle.ButtonType> currentSequence = new List<ButtonCircle.ButtonType>();
     private int playerInputIndex = 0;
@@ -97,7 +98,7 @@ public class FocusFlowGame : NetworkBehaviour
             ButtonCircle button = buttonMap[buttonType];
             button.ShowRing();
 
-            yield return new WaitForSeconds(1.0f);
+            yield return new WaitForSeconds(buttonDisplayDuration);
 
             while (button.IsShowingRing)
             {
@@ -170,9 +171,7 @@ public class FocusFlowGame : NetworkBehaviour
         waitingForInput = false;
         multiplierManager.StopTracking();
 
-        int finalPoints = multiplierManager.ApplyAverageMultiplier(currentSequencePoints);
-
-        int pointsEarned = Mathf.RoundToInt(currentSequencePoints);
+        int pointsEarned = multiplierManager.ApplyAverageMultiplier(currentSequencePoints);
         totalScore += pointsEarned;
         FocusFlowData.LocalInstance.UpdateScoreServerRpc(totalScore);
 
@@ -199,7 +198,7 @@ public class FocusFlowGame : NetworkBehaviour
 
     private IEnumerator RestartSequenceAfterDelay()
     {
-        yield return new WaitForSeconds(2.0f);
+        yield return new WaitForSeconds(1.5f);
         RestartSequence();
     }
 
@@ -241,11 +240,13 @@ public class FocusFlowGame : NetworkBehaviour
         scoreTextMesh.color = Color.white;
         scoreTextMesh.text = "Score: 0";
 
+        AddTextOutline(scoreObject, scoreTextMesh, Color.white);
+
         GameObject bonusObject = new GameObject("BonusScoreDisplay");
         bonusObject.transform.SetParent(scoreObject.transform);
         bonusObject.transform.localPosition = new Vector3(2.5f, 0f, 0f);
         bonusObject.transform.localRotation = Quaternion.identity;
-        
+
         bonusScoreTransform = bonusObject.transform;
 
         TextMesh bonusTextMesh = bonusObject.AddComponent<TextMesh>();
@@ -256,7 +257,45 @@ public class FocusFlowGame : NetworkBehaviour
         bonusTextMesh.color = new Color(0.3f, 1f, 0.3f, 1f);
         bonusTextMesh.text = "";
 
+        AddTextOutline(bonusObject, bonusTextMesh, new Color(0.3f, 1f, 0.3f, 1f));
+
         bonusScoreDisplay = bonusObject.AddComponent<BonusScoreDisplay>();
+    }
+
+    private void AddTextOutline(GameObject parentObject, TextMesh mainTextMesh, Color textColor)
+    {
+        Vector2[] outlineOffsets = new Vector2[]
+        {
+            new Vector2(-1, 1), new Vector2(0, 1), new Vector2(1, 1),
+            new Vector2(-1, 0),                     new Vector2(1, 0),
+            new Vector2(-1, -1), new Vector2(0, -1), new Vector2(1, -1)
+        };
+
+        float outlineDistance = 0.01f;
+
+        for (int i = 0; i < outlineOffsets.Length; i++)
+        {
+            GameObject outlineObject = new GameObject($"Outline{i}");
+            outlineObject.transform.SetParent(parentObject.transform);
+            outlineObject.transform.localPosition = new Vector3(
+                outlineOffsets[i].x * outlineDistance,
+                outlineOffsets[i].y * outlineDistance,
+                0.01f
+            );
+            outlineObject.transform.localRotation = Quaternion.identity;
+            outlineObject.transform.localScale = Vector3.one;
+
+            TextMesh outlineTextMesh = outlineObject.AddComponent<TextMesh>();
+            outlineTextMesh.fontSize = mainTextMesh.fontSize;
+            outlineTextMesh.characterSize = mainTextMesh.characterSize;
+            outlineTextMesh.anchor = mainTextMesh.anchor;
+            outlineTextMesh.alignment = mainTextMesh.alignment;
+            outlineTextMesh.color = Color.black;
+            outlineTextMesh.text = mainTextMesh.text;
+
+            TextMeshOutlineSyncer syncer = outlineObject.AddComponent<TextMeshOutlineSyncer>();
+            syncer.Initialize(mainTextMesh, outlineTextMesh);
+        }
     }
 
     private void UpdateScoreDisplay()
