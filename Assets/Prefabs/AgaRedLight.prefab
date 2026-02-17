@@ -195,6 +195,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RedLightPlayerMovement
   ShowTopMostFoldoutHeaderGroup: 1
   speedMultiplier: 10
+  sprintSpeedThreshold: 5
+  penaltyPushBackDistance: 3
+  penaltyFreezeDuration: 1.5
+  movementThreshold: 0.1
+  trafficLight: {fileID: 0}
+  trafficLightOffset: 5
+  playerSkinRenderer: {fileID: 8576045237320093323}
 --- !u!1001 &2472634209218968432
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -328,5 +335,10 @@ MeshRenderer:
 --- !u!95 &8302977585742677729 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: c979ec2f309c19f4eacc9c4b346a9663, type: 3}
+  m_PrefabInstance: {fileID: 2472634209218968432}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &8576045237320093323 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 6148737315974723067, guid: c979ec2f309c19f4eacc9c4b346a9663, type: 3}
   m_PrefabInstance: {fileID: 2472634209218968432}
   m_PrefabAsset: {fileID: 0}

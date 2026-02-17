@@ -8,9 +8,15 @@ public class RedLightPlayerMovement : NetworkBehaviour
     [SerializeField] private float speedMultiplier = 10f;
     [SerializeField] private float sprintSpeedThreshold = 5f;
 
+    [Header("Penalty Settings")]
+    [SerializeField] private float penaltyPushBackDistance = 3f;
+    [SerializeField] private float penaltyFreezeDuration = 1.5f;
+    [SerializeField] private float movementThreshold = 0.1f;
+
     [Header("References")]
     [SerializeField] private Transform trafficLight;
     [SerializeField] private float trafficLightOffset = 5f;
+    [SerializeField] private SkinnedMeshRenderer playerSkinRenderer;
 
     private Rigidbody rb;
     private Animator animator;
@@ -18,6 +24,11 @@ public class RedLightPlayerMovement : NetworkBehaviour
     private bool isStandaloneMode = false;
     private bool isWalkingLocal = false;
     private bool isSprintingLocal = false;
+    private bool isPenalized = false;
+    private float penaltyTimer = 0f;
+    private Color originalColor;
+    private float flashTimer = 0f;
+    private bool isFlashing = false;
 
     private NetworkVariable<bool> isWalking = new NetworkVariable<bool>(
         false,
@@ -41,6 +52,11 @@ public class RedLightPlayerMovement : NetworkBehaviour
         animator = GetComponentInChildren<Animator>();
         animator.applyRootMotion = false;
 
+        if (playerSkinRenderer != null)
+        {
+            originalColor = playerSkinRenderer.material.color;
+        }
+
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening)
         {
             isStandaloneMode = true;
@@ -51,7 +67,9 @@ public class RedLightPlayerMovement : NetworkBehaviour
     {
         if (!isStandaloneMode && !IsOwner) return;
 
+        HandlePenaltyTimer();
         HandleStopInput();
+        HandleFlashEffect();
     }
 
     private void FixedUpdate()
@@ -59,6 +77,76 @@ public class RedLightPlayerMovement : NetworkBehaviour
         if (!isStandaloneMode && !IsOwner) return;
 
         HandleMovement();
+        CheckRedLightViolation();
+    }
+
+    private void HandlePenaltyTimer()
+    {
+        if (isPenalized)
+        {
+            penaltyTimer -= Time.deltaTime;
+            if (penaltyTimer <= 0f)
+            {
+                isPenalized = false;
+            }
+        }
+    }
+
+    private void HandleFlashEffect()
+    {
+        if (!isFlashing) return;
+
+        flashTimer -= Time.deltaTime;
+        if (flashTimer <= 0f)
+        {
+            isFlashing = false;
+            if (playerSkinRenderer != null)
+            {
+                playerSkinRenderer.material.color = originalColor;
+            }
+        }
+        else
+        {
+            if (playerSkinRenderer != null)
+            {
+                float flash = Mathf.PingPong(Time.time * 10f, 1f);
+                playerSkinRenderer.material.color = Color.Lerp(Color.red, originalColor, flash);
+            }
+        }
+    }
+
+    private void CheckRedLightViolation()
+    {
+        if (isPenalized || RedLightManager.Instance == null) return;
+
+        bool isRedLight = RedLightManager.Instance.IsRedLight;
+        float currentSpeed = Mathf.Abs(rb.linearVelocity.z);
+
+        if (isRedLight && currentSpeed > movementThreshold)
+        {
+            ApplyPenalty();
+        }
+    }
+
+    private void ApplyPenalty()
+    {
+        isPenalized = true;
+        penaltyTimer = penaltyFreezeDuration;
+
+        Vector3 newPosition = transform.position;
+        newPosition.z -= penaltyPushBackDistance;
+        transform.position = newPosition;
+
+        rb.linearVelocity = Vector3.zero;
+        isStopped = true;
+
+        StartFlashEffect();
+    }
+
+    private void StartFlashEffect()
+    {
+        isFlashing = true;
+        flashTimer = penaltyFreezeDuration;
     }
 
     private void LateUpdate()
@@ -93,6 +181,8 @@ public class RedLightPlayerMovement : NetworkBehaviour
 
     private void HandleMovement()
     {
+        if (isPenalized) return;
+
         float pedalInput = GetPedalInput();
         float speed = isStopped ? 0f : pedalInput * speedMultiplier;
 
