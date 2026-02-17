@@ -138,7 +138,6 @@ public class RedLightPlayerMovement : NetworkBehaviour
         transform.position = newPosition;
 
         rb.linearVelocity = Vector3.zero;
-        isStopped = true;
 
         StartFlashEffect();
     }
@@ -169,14 +168,11 @@ public class RedLightPlayerMovement : NetworkBehaviour
 
     private void HandleStopInput()
     {
-        bool stopPressed = Application.isEditor
-            ? Input.GetKeyDown(KeyCode.Space)
-            : PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A);
+        bool stopHeld = Application.isEditor
+            ? Input.GetKey(KeyCode.Space)
+            : PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.A);
 
-        if (stopPressed)
-        {
-            isStopped = !isStopped;
-        }
+        isStopped = stopHeld;
     }
 
     private void HandleMovement()
