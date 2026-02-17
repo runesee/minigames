@@ -788,6 +788,7 @@ GameObject:
   - component: {fileID: 277944482}
   - component: {fileID: 277944481}
   - component: {fileID: 277944484}
+  - component: {fileID: 277944485}
   m_Layer: 0
   m_Name: TopCircle
   m_TagString: Untagged
@@ -905,6 +906,21 @@ MonoBehaviour:
   defaultMaterial: {fileID: 2100000, guid: d2d3b1db5b82144d5aaab11b40549cbf, type: 2}
   litMaterial: {fileID: 2100000, guid: 6b0f2306b4a17440780a09ca80326448, type: 2}
   redRingMaterial: {fileID: 2100000, guid: d125d6cb0a31c4441a40c446e7016d6d, type: 2}
+--- !u!114 &277944485
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 277944479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38e20e56921b0470d81de888905efa47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSoundGenerator
+  buttonType: 3
+  volume: 0.3
+  duration: 0.15
 --- !u!1 &292643301
 GameObject:
   m_ObjectHideFlags: 0
@@ -1610,6 +1626,7 @@ GameObject:
   - component: {fileID: 1001543329}
   - component: {fileID: 1001543328}
   - component: {fileID: 1001543331}
+  - component: {fileID: 1001543332}
   m_Layer: 0
   m_Name: LeftCircle
   m_TagString: Untagged
@@ -1727,6 +1744,21 @@ MonoBehaviour:
   defaultMaterial: {fileID: 2100000, guid: d2d3b1db5b82144d5aaab11b40549cbf, type: 2}
   litMaterial: {fileID: 2100000, guid: 3176e70f67dec47688e5ccd103299f01, type: 2}
   redRingMaterial: {fileID: 2100000, guid: d125d6cb0a31c4441a40c446e7016d6d, type: 2}
+--- !u!114 &1001543332
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1001543326}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38e20e56921b0470d81de888905efa47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSoundGenerator
+  buttonType: 2
+  volume: 0.3
+  duration: 0.15
 --- !u!1 &1004569810
 GameObject:
   m_ObjectHideFlags: 0
@@ -3079,6 +3111,7 @@ GameObject:
   - component: {fileID: 1458282861}
   - component: {fileID: 1458282860}
   - component: {fileID: 1458282863}
+  - component: {fileID: 1458282864}
   m_Layer: 0
   m_Name: RightCircle
   m_TagString: Untagged
@@ -3196,6 +3229,21 @@ MonoBehaviour:
   defaultMaterial: {fileID: 2100000, guid: d2d3b1db5b82144d5aaab11b40549cbf, type: 2}
   litMaterial: {fileID: 2100000, guid: e1e620b594a874184809a58d4bc1b28e, type: 2}
   redRingMaterial: {fileID: 2100000, guid: d125d6cb0a31c4441a40c446e7016d6d, type: 2}
+--- !u!114 &1458282864
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1458282858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38e20e56921b0470d81de888905efa47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSoundGenerator
+  buttonType: 1
+  volume: 0.3
+  duration: 0.15
 --- !u!1 &1478852720
 GameObject:
   m_ObjectHideFlags: 0
@@ -4033,6 +4081,7 @@ GameObject:
   - component: {fileID: 1690573576}
   - component: {fileID: 1690573575}
   - component: {fileID: 1690573578}
+  - component: {fileID: 1690573579}
   m_Layer: 0
   m_Name: BottomCircle
   m_TagString: Untagged
@@ -4150,6 +4199,21 @@ MonoBehaviour:
   defaultMaterial: {fileID: 2100000, guid: d2d3b1db5b82144d5aaab11b40549cbf, type: 2}
   litMaterial: {fileID: 2100000, guid: 040024300c36c4e57974a9cdd73eea60, type: 2}
   redRingMaterial: {fileID: 2100000, guid: d125d6cb0a31c4441a40c446e7016d6d, type: 2}
+--- !u!114 &1690573579
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1690573573}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38e20e56921b0470d81de888905efa47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSoundGenerator
+  buttonType: 0
+  volume: 0.3
+  duration: 0.15
 --- !u!1 &1733685585
 GameObject:
   m_ObjectHideFlags: 0

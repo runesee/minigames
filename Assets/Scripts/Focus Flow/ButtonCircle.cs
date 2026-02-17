@@ -19,6 +19,10 @@ public class ButtonCircle : MonoBehaviour
     [Header("Ring Indicator")]
     [SerializeField] private Material redRingMaterial;
 
+    [Header("Audio Settings")]
+    [SerializeField] private AudioClip buttonSound;
+    [SerializeField] private AudioSource audioSource;
+
     private const float LIT_DURATION = 0.2f;
     private const float RING_DURATION = 1.0f;
     private float litTimer = 0f;
@@ -61,6 +65,15 @@ public class ButtonCircle : MonoBehaviour
         isLit = true;
         litTimer = 0f;
         meshRenderer.material = litMaterial;
+        PlayButtonSound();
+    }
+
+    private void PlayButtonSound()
+    {
+        if (buttonSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(buttonSound);
+        }
     }
 
     public void TurnOff()
