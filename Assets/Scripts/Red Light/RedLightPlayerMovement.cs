@@ -8,6 +8,10 @@ public class RedLightPlayerMovement : NetworkBehaviour
     [SerializeField] private float speedMultiplier = 10f;
     [SerializeField] private float sprintSpeedThreshold = 5f;
 
+    [Header("References")]
+    [SerializeField] private Transform trafficLight;
+    [SerializeField] private float trafficLightOffset = 5f;
+
     private Rigidbody rb;
     private Animator animator;
     private bool isStopped = false;
@@ -64,11 +68,20 @@ public class RedLightPlayerMovement : NetworkBehaviour
 
         animator.SetBool("isWalking", walking);
         animator.SetBool("isSprinting", sprinting);
+
+        UpdateTrafficLightPosition();
+    }
+
+    private void UpdateTrafficLightPosition()
+    {
+        Vector3 lightPosition = trafficLight.position;
+        lightPosition.z = transform.position.z + trafficLightOffset;
+        trafficLight.position = lightPosition;
     }
 
     private void HandleStopInput()
     {
-        bool stopPressed = Application.isEditor 
+        bool stopPressed = Application.isEditor
             ? Input.GetKeyDown(KeyCode.Space)
             : PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A);
 
@@ -113,7 +126,7 @@ public class RedLightPlayerMovement : NetworkBehaviour
         {
             return Input.GetKey(KeyCode.UpArrow) ? 0.5f : 0f;
         }
-        
+
         return Mathf.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f);
     }
 }

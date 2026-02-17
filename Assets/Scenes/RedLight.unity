@@ -13425,6 +13425,10 @@ PrefabInstance:
       propertyPath: GlobalObjectIdHash
       value: 1801161071
       objectReference: {fileID: 0}
+    - target: {fileID: 7819368545236342318, guid: bac54cab5e5de41beba7f0311076973d, type: 3}
+      propertyPath: trafficLight
+      value: 
+      objectReference: {fileID: 1796496871}
     - target: {fileID: 7857187294340293347, guid: bac54cab5e5de41beba7f0311076973d, type: 3}
       propertyPath: m_LocalPosition.x
       value: -5
@@ -13474,6 +13478,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: bac54cab5e5de41beba7f0311076973d, type: 3}
+--- !u!4 &1561054072 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7857187294340293347, guid: bac54cab5e5de41beba7f0311076973d, type: 3}
+  m_PrefabInstance: {fileID: 1561054071}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1576223232
 GameObject:
   m_ObjectHideFlags: 0
@@ -16412,6 +16421,7 @@ GameObject:
   - component: {fileID: 1815981849}
   - component: {fileID: 1815981848}
   - component: {fileID: 1815981847}
+  - component: {fileID: 1815981850}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -16486,13 +16496,29 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1815981846}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.5, y: 0, z: 0, w: 0.8660254}
-  m_LocalPosition: {x: 2.5, y: 12.18, z: -13.91}
+  m_LocalRotation: {x: 0.38268346, y: 0, z: 0, w: 0.9238795}
+  m_LocalPosition: {x: -5, y: 10, z: -18}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1815981850
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1815981846}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1230a393cc4e74b89b8daf0581622338, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RedLightCameraFollow
+  target: {fileID: 1561054072}
+  offset: {x: 0, y: 10, z: -8}
+  smoothSpeed: 5
+  minZ: -15
 --- !u!1 &1839413865
 GameObject:
   m_ObjectHideFlags: 0
