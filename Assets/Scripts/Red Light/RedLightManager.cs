@@ -46,11 +46,6 @@ public class RedLightManager : NetworkBehaviour
         base.OnNetworkSpawn();
         isRedLight.OnValueChanged += OnLightStateChanged;
         OnLightStateChanged(false, isRedLight.Value);
-
-        if (IsServer)
-        {
-            StartGame();
-        }
     }
 
     public override void OnNetworkDespawn()

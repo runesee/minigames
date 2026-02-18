@@ -31,6 +31,7 @@ public class RedLightPlayerMovement : NetworkBehaviour
     private float flashTimer = 0f;
     private bool isFlashing = false;
     private bool usingPlayPulse = true;
+    private float startPositionZ = 0f;
 
     private NetworkVariable<bool> isWalking = new NetworkVariable<bool>(
         false,
@@ -68,6 +69,12 @@ public class RedLightPlayerMovement : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
+    public NetworkVariable<float> distanceTraveledNet = new NetworkVariable<float>(
+        0f,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Owner
+    );
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -76,6 +83,8 @@ public class RedLightPlayerMovement : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
+
+        startPositionZ = transform.position.z;
 
         animator = GetComponentInChildren<Animator>();
         if (animator != null)
@@ -133,6 +142,8 @@ public class RedLightPlayerMovement : NetworkBehaviour
         {
             isStandaloneMode = true;
             
+            startPositionZ = transform.position.z;
+            
             animator = GetComponentInChildren<Animator>();
             if (animator != null)
             {
@@ -157,6 +168,14 @@ public class RedLightPlayerMovement : NetworkBehaviour
 
         HandleMovement();
         CheckRedLightViolation();
+        UpdateDistanceTraveled();
+    }
+
+    private void UpdateDistanceTraveled()
+    {
+        if (isStandaloneMode) return;
+
+        distanceTraveledNet.Value = GetTraveledDistance();
     }
 
     private void HandlePenaltyTimer()
@@ -382,16 +401,23 @@ public class RedLightPlayerMovement : NetworkBehaviour
 
     public float GetTraveledDistance()
     {
+        return transform.position.z - startPositionZ;
+    }
+
+    public float GetCurrentPosition()
+    {
         return transform.position.z;
     }
 
     public RedLightGameState.PlayerData GetPlayerData()
     {
+        float distance = isStandaloneMode ? GetTraveledDistance() : distanceTraveledNet.Value;
+        
         return new RedLightGameState.PlayerData(
             guidNet.Value,
             nicknameNet.Value,
             colorNet.Value,
-            GetTraveledDistance()
+            distance
         );
     }
 }

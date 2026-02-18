@@ -1,10 +1,26 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Collections;
 using Unity.Netcode;
+using UnityEngine;
 
 public class RedLightGameState : NetworkBehaviour
 {
     public static RedLightGameState Instance { get; private set; }
+
+    public enum GameState
+    {
+        Waiting,
+        Running,
+        Finished
+    }
+
+    public NetworkVariable<GameState> gameState = new NetworkVariable<GameState>(
+        GameState.Waiting,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
 
     public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
     {
@@ -45,4 +61,40 @@ public class RedLightGameState : NetworkBehaviour
     {
         Instance = this;
     }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void SetGameStateServerRpc(GameState newState)
+    {
+        gameState.Value = newState;
+    }
+
+    public List<PlayerData> GetAllPlayerData()
+    {
+        List<PlayerData> playerDataList = new List<PlayerData>();
+
+        RedLightPlayerMovement[] allPlayers = FindObjectsByType<RedLightPlayerMovement>(FindObjectsSortMode.None);
+        
+        foreach (RedLightPlayerMovement player in allPlayers)
+        {
+            if (player != null)
+            {
+                playerDataList.Add(player.GetPlayerData());
+            }
+        }
+
+        return playerDataList;
+    }
+
+    public List<PlayerData> GetPlayerDataSortedByDistance()
+    {
+        List<PlayerData> playerDataList = GetAllPlayerData();
+        return playerDataList.OrderByDescending(p => p.Distance).ToList();
+    }
+
+    public PlayerData GetWinner()
+    {
+        List<PlayerData> sortedPlayers = GetPlayerDataSortedByDistance();
+        return sortedPlayers.Count > 0 ? sortedPlayers[0] : default;
+    }
 }
+
