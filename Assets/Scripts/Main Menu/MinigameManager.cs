@@ -38,7 +38,7 @@ public class MinigameManager : NetworkBehaviour
     public void StartGameSession()
     {
         if (!IsHost) return;
-        NetworkManager.Singleton.SceneManager.LoadScene("TagTutorial", LoadSceneMode.Single);
+        NetworkManager.Singleton.SceneManager.LoadScene("TailTag", LoadSceneMode.Single);
         currentGameState = MinigameScene.TagTutorial;
     }
 
