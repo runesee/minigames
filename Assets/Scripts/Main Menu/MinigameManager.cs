@@ -15,6 +15,7 @@ public class MinigameManager : NetworkBehaviour
         MainMenu,
         Lobby,
         Scoreboard,
+        RedLight,
         TagTutorial,
         Tag,
     }
@@ -33,8 +34,8 @@ public class MinigameManager : NetworkBehaviour
     public void StartGameSession()
     {
         if (!IsHost) return;
-        NetworkManager.Singleton.SceneManager.LoadScene("TagTutorial", LoadSceneMode.Single);
-        currentGameState = MinigameScene.TagTutorial;
+        NetworkManager.Singleton.SceneManager.LoadScene("RedLight", LoadSceneMode.Single);
+        currentGameState = MinigameScene.RedLight;
     }
 
     // General method called by each scene's GameState class once finished.
@@ -44,6 +45,10 @@ public class MinigameManager : NetworkBehaviour
         if (!IsHost) return;
         switch (currentGameState)
         {
+            case MinigameScene.RedLight:
+                NetworkManager.Singleton.SceneManager.LoadScene("Scoreboard", LoadSceneMode.Single);
+                currentGameState = MinigameScene.Scoreboard;
+                break;
             case MinigameScene.TagTutorial:
                 NetworkManager.Singleton.SceneManager.LoadScene("TagScene", LoadSceneMode.Single);
                 currentGameState = MinigameScene.Tag;
@@ -53,7 +58,12 @@ public class MinigameManager : NetworkBehaviour
                 currentGameState = MinigameScene.Scoreboard;
                 break;
             case MinigameScene.Scoreboard:
-                if (previousGameState == MinigameScene.Tag)
+                if (previousGameState == MinigameScene.RedLight)
+                {
+                    NetworkManager.Singleton.SceneManager.LoadScene("TagTutorial", LoadSceneMode.Single);
+                    currentGameState = MinigameScene.TagTutorial;
+                }
+                else if (previousGameState == MinigameScene.Tag)
                 {
                     NetworkManager.Singleton.SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
                     currentGameState = MinigameScene.MainMenu;

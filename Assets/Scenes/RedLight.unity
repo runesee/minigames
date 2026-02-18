@@ -5337,6 +5337,7 @@ GameObject:
   - component: {fileID: 628284182}
   - component: {fileID: 628284183}
   - component: {fileID: 628284184}
+  - component: {fileID: 628284185}
   m_Layer: 0
   m_Name: RedLightGameManager
   m_TagString: Untagged
@@ -5407,6 +5408,19 @@ MonoBehaviour:
   redLightMinDuration: 2
   redLightMaxDuration: 5
   autoStartInEditor: 1
+--- !u!114 &628284185
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 628284181}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 34880378dd8a241ebb4d8fe06a27e22c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RedLightGameState
+  ShowTopMostFoldoutHeaderGroup: 1
 --- !u!1 &628914438
 GameObject:
   m_ObjectHideFlags: 0
@@ -5851,6 +5865,88 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 656162521}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &666732738
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 666732739}
+  - component: {fileID: 666732740}
+  - component: {fileID: 666732741}
+  m_Layer: 0
+  m_Name: PlayerSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &666732739
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 666732738}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &666732740
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 666732738}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 2917372779
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!114 &666732741
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 666732738}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed1e4746a4c784bac9dc4ebe2a3d91db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RedLightPlayerSpawner
+  ShowTopMostFoldoutHeaderGroup: 1
+  playerPrefab: {fileID: 8587370964938106638, guid: bac54cab5e5de41beba7f0311076973d, type: 3}
+  spawnPoints:
+  - {fileID: 1282548937}
+  - {fileID: 536427418}
+  - {fileID: 744552308}
+  - {fileID: 514952904}
+  trafficLights:
+  - {fileID: 1796496873}
+  - {fileID: 1725073739}
+  - {fileID: 2066477524}
+  - {fileID: 1320352449}
 --- !u!1 &667141187
 GameObject:
   m_ObjectHideFlags: 0
@@ -13413,76 +13509,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &1561054071
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 7048628099198034754, guid: bac54cab5e5de41beba7f0311076973d, type: 3}
-      propertyPath: GlobalObjectIdHash
-      value: 1801161071
-      objectReference: {fileID: 0}
-    - target: {fileID: 7819368545236342318, guid: bac54cab5e5de41beba7f0311076973d, type: 3}
-      propertyPath: trafficLight
-      value: 
-      objectReference: {fileID: 1796496871}
-    - target: {fileID: 7857187294340293347, guid: bac54cab5e5de41beba7f0311076973d, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -5
-      objectReference: {fileID: 0}
-    - target: {fileID: 7857187294340293347, guid: bac54cab5e5de41beba7f0311076973d, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 7857187294340293347, guid: bac54cab5e5de41beba7f0311076973d, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -10
-      objectReference: {fileID: 0}
-    - target: {fileID: 7857187294340293347, guid: bac54cab5e5de41beba7f0311076973d, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7857187294340293347, guid: bac54cab5e5de41beba7f0311076973d, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7857187294340293347, guid: bac54cab5e5de41beba7f0311076973d, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7857187294340293347, guid: bac54cab5e5de41beba7f0311076973d, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7857187294340293347, guid: bac54cab5e5de41beba7f0311076973d, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7857187294340293347, guid: bac54cab5e5de41beba7f0311076973d, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7857187294340293347, guid: bac54cab5e5de41beba7f0311076973d, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8587370964938106638, guid: bac54cab5e5de41beba7f0311076973d, type: 3}
-      propertyPath: m_Name
-      value: Player1
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: bac54cab5e5de41beba7f0311076973d, type: 3}
---- !u!4 &1561054072 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 7857187294340293347, guid: bac54cab5e5de41beba7f0311076973d, type: 3}
-  m_PrefabInstance: {fileID: 1561054071}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1576223232
 GameObject:
   m_ObjectHideFlags: 0
@@ -16515,7 +16541,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1230a393cc4e74b89b8daf0581622338, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RedLightCameraFollow
-  target: {fileID: 1561054072}
+  target: {fileID: 0}
   offset: {x: 0, y: 10, z: -8}
   smoothSpeed: 5
   minZ: -15
@@ -19264,4 +19290,4 @@ SceneRoots:
   - {fileID: 628284182}
   - {fileID: 1236084007}
   - {fileID: 617083250}
-  - {fileID: 1561054071}
+  - {fileID: 666732739}

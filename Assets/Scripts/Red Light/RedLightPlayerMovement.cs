@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
+using Unity.Collections;
 
 [RequireComponent(typeof(Rigidbody))]
 public class RedLightPlayerMovement : NetworkBehaviour
@@ -42,24 +43,79 @@ public class RedLightPlayerMovement : NetworkBehaviour
         NetworkVariableWritePermission.Owner
     );
 
+    public NetworkVariable<FixedString64Bytes> colorNet = new NetworkVariable<FixedString64Bytes>(
+        "#D6877F",
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
+    public NetworkVariable<FixedString64Bytes> nicknameNet = new NetworkVariable<FixedString64Bytes>(
+        "Player",
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
+    public NetworkVariable<FixedString64Bytes> guidNet = new NetworkVariable<FixedString64Bytes>(
+        "",
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
     }
 
-    private void Start()
+    public override void OnNetworkSpawn()
     {
-        animator = GetComponentInChildren<Animator>();
-        animator.applyRootMotion = false;
+        base.OnNetworkSpawn();
 
-        if (playerSkinRenderer != null)
+        animator = GetComponentInChildren<Animator>();
+        if (animator != null)
         {
-            originalColor = playerSkinRenderer.material.color;
+            animator.applyRootMotion = false;
         }
 
+        colorNet.OnValueChanged += OnSkinColorChanged;
+
+        string color = IsOwner ? PlayerPrefs.GetString("Color") : colorNet.Value.ToString();
+        SetSkinColor(color);
+
+        if (IsOwner)
+        {
+            string nickname = PlayerPrefs.GetString("Username", "Player");
+            string guid = PlayerPrefs.GetString("Guid");
+            UpdateColorServerRpc(color);
+            UpdateNicknameServerRpc(nickname);
+            UpdateGuidServerRpc(guid);
+
+            RedLightCameraFollow cameraFollow = Camera.main?.GetComponent<RedLightCameraFollow>();
+            if (cameraFollow != null)
+            {
+                cameraFollow.SetTarget(transform);
+            }
+        }
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        base.OnNetworkDespawn();
+        colorNet.OnValueChanged -= OnSkinColorChanged;
+    }
+
+    private void Start()
+    {
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening)
         {
             isStandaloneMode = true;
+            
+            animator = GetComponentInChildren<Animator>();
+            if (animator != null)
+            {
+                animator.applyRootMotion = false;
+            }
+
+            originalColor = playerSkinRenderer.material.color;
         }
     }
 
@@ -100,18 +156,12 @@ public class RedLightPlayerMovement : NetworkBehaviour
         if (flashTimer <= 0f)
         {
             isFlashing = false;
-            if (playerSkinRenderer != null)
-            {
-                playerSkinRenderer.material.color = originalColor;
-            }
+            playerSkinRenderer.material.color = originalColor;
         }
         else
         {
-            if (playerSkinRenderer != null)
-            {
-                float flash = Mathf.PingPong(Time.time * 10f, 1f);
-                playerSkinRenderer.material.color = Color.Lerp(Color.red, originalColor, flash);
-            }
+            float flash = Mathf.PingPong(Time.time * 10f, 1f);
+            playerSkinRenderer.material.color = Color.Lerp(Color.red, originalColor, flash);
         }
     }
 
@@ -161,6 +211,8 @@ public class RedLightPlayerMovement : NetworkBehaviour
 
     private void UpdateTrafficLightPosition()
     {
+        if (trafficLight == null) return;
+
         Vector3 lightPosition = trafficLight.position;
         lightPosition.z = transform.position.z + trafficLightOffset;
         trafficLight.position = lightPosition;
@@ -214,5 +266,73 @@ public class RedLightPlayerMovement : NetworkBehaviour
         }
 
         return Mathf.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f);
+    }
+
+    private void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
+    {
+        SetSkinColor(newValue.Value.ToString());
+    }
+
+    private void SetSkinColor(string color)
+    {
+        if (ColorUtility.TryParseHtmlString(color, out var skinColor))
+        {
+            playerSkinRenderer.material.color = skinColor;
+            originalColor = skinColor;
+        }
+    }
+
+    [ServerRpc]
+    public void UpdateColorServerRpc(string color)
+    {
+        colorNet.Value = new FixedString64Bytes(color);
+    }
+
+    [ServerRpc]
+    public void UpdateNicknameServerRpc(string nickname)
+    {
+        nicknameNet.Value = nickname;
+    }
+
+    [ServerRpc]
+    public void UpdateGuidServerRpc(string guid)
+    {
+        guidNet.Value = guid;
+    }
+
+    public void AssignTrafficLight(TrafficLightController light)
+    {
+        if (!IsServer) return;
+        
+        trafficLight = light.transform;
+        AssignTrafficLightClientRpc(light.GetComponent<NetworkObject>().NetworkObjectId);
+    }
+
+    [ClientRpc]
+    private void AssignTrafficLightClientRpc(ulong lightNetworkObjectId)
+    {
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(lightNetworkObjectId, out var networkObject))
+        {
+            TrafficLightController controller = networkObject.GetComponent<TrafficLightController>();
+            if (controller != null)
+            {
+                trafficLight = controller.transform;
+            }
+        }
+    }
+
+    public float GetTraveledDistance()
+    {
+        return transform.position.z;
+    }
+
+    public RedLightGameState.PlayerData GetPlayerData()
+    {
+        return new RedLightGameState.PlayerData(
+            guidNet.Value,
+            nicknameNet.Value,
+            colorNet.Value,
+            GetTraveledDistance()
+        );
     }
 }
