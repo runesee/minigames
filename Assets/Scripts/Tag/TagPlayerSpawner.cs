@@ -18,18 +18,7 @@ public class TagPlayerSpawner : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         if (!IsServer) return;
-
-        spawnPoints.Add(new Vector3(14f, 1f, -0.5f));
-        spawnPoints.Add(new Vector3(-14f, 1f, -0.5f));
-        spawnPoints.Add(new Vector3(0f, 1f, -5f));
-        spawnPoints.Add(new Vector3(0f, 1f, 5f));
-        spawnPoints.Add(new Vector3(-7f, 1f, 9f));
-        spawnPoints.Add(new Vector3(7f, 1f, 9f));
-        spawnPoints.Add(new Vector3(-7f, 1f, -10f));
-        spawnPoints.Add(new Vector3(7f, 1f, -10f));
-
         NetworkManager.Singleton.OnClientConnectedCallback += SpawnPlayer;
-        
         StartCoroutine(SpawnAllPlayersAfterDelay());
     }
     
@@ -47,7 +36,6 @@ public class TagPlayerSpawner : NetworkBehaviour
     private void SpawnPlayer(ulong clientId)
     {
         if (!IsServer) return;
-        // TODO : Need to check if space is occupied for late-joining clients (reconnect)
         Vector3 spawnPoint = spawnPoints.GetRandom();
         spawnPoints.Remove(spawnPoint);
         GameObject playerInstance = Instantiate(playerPrefab, spawnPoint, Quaternion.identity);
