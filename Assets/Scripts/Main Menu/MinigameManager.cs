@@ -20,8 +20,8 @@ public class MinigameManager : NetworkBehaviour
         Tag,
         FocusFlow,
         FocusFlowTutorial,
-        TailTag,
-        TailTagTutorial,
+        BalloonTag,
+        BalloonTagTutorial,
     }
 
     public MinigameScene currentGameState = MinigameScene.MainMenu;
@@ -38,8 +38,8 @@ public class MinigameManager : NetworkBehaviour
     public void StartGameSession()
     {
         if (!IsHost) return;
-        NetworkManager.Singleton.SceneManager.LoadScene("TailTag", LoadSceneMode.Single);
-        currentGameState = MinigameScene.TagTutorial;
+        NetworkManager.Singleton.SceneManager.LoadScene("BalloonTag", LoadSceneMode.Single);
+        currentGameState = MinigameScene.BalloonTag;
     }
 
     // General method called by each scene's GameState class once finished.
@@ -66,7 +66,7 @@ public class MinigameManager : NetworkBehaviour
                 NetworkManager.Singleton.SceneManager.LoadScene("FocusFlow", LoadSceneMode.Single);
                 currentGameState = MinigameScene.FocusFlow;
                 break;
-            case MinigameScene.TailTag:
+            case MinigameScene.BalloonTag:
                 NetworkManager.Singleton.SceneManager.LoadScene("Scoreboard", LoadSceneMode.Single);
                 currentGameState = MinigameScene.Scoreboard;
                 break;
@@ -79,9 +79,9 @@ public class MinigameManager : NetworkBehaviour
                 else if (previousGameState == MinigameScene.FocusFlow)
                 {
                     NetworkManager.Singleton.SceneManager.LoadScene("TailTagTutorial", LoadSceneMode.Single);
-                    currentGameState = MinigameScene.TailTagTutorial;
+                    currentGameState = MinigameScene.BalloonTagTutorial;
                 }
-                else if (previousGameState == MinigameScene.TailTag)
+                else if (previousGameState == MinigameScene.BalloonTag)
                 {
                     NetworkManager.Singleton.SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
                     currentGameState = MinigameScene.MainMenu;

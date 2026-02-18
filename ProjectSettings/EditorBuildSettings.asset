@@ -27,7 +27,7 @@ EditorBuildSettings:
     path: Assets/Scenes/Tutorial/FocusFlowTutorial.unity
     guid: 5cfb2181a5f34ed45a118379abe80579
   - enabled: 1
-    path: Assets/Scenes/TailTag.unity
+    path: Assets/Scenes/BalloonTag.unity
     guid: c792f5a548b5e22488c2c980153d1201
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 289c1b55c9541489481df5cc06664110, type: 3}

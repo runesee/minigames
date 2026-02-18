@@ -4854,7 +4854,7 @@ GameObject:
   - component: {fileID: 8235293641429638268}
   - component: {fileID: 5568033458682530780}
   m_Layer: 0
-  m_Name: AgaTailTag
+  m_Name: AgaBalloonTag
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
