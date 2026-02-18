@@ -44,6 +44,12 @@ public class RedLightPlayerMovement : NetworkBehaviour
         NetworkVariableWritePermission.Owner
     );
 
+    private NetworkVariable<bool> isPenalizedNet = new NetworkVariable<bool>(
+        false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
     public NetworkVariable<FixedString64Bytes> colorNet = new NetworkVariable<FixedString64Bytes>(
         "#D6877F",
         NetworkVariableReadPermission.Everyone,
@@ -93,6 +99,7 @@ public class RedLightPlayerMovement : NetworkBehaviour
         }
 
         colorNet.OnValueChanged += OnSkinColorChanged;
+        isPenalizedNet.OnValueChanged += OnPenaltyStateChanged;
 
         string color = IsOwner ? PlayerPrefs.GetString("Color") : colorNet.Value.ToString();
         SetSkinColor(color);
@@ -117,6 +124,7 @@ public class RedLightPlayerMovement : NetworkBehaviour
     {
         base.OnNetworkDespawn();
         colorNet.OnValueChanged -= OnSkinColorChanged;
+        isPenalizedNet.OnValueChanged -= OnPenaltyStateChanged;
     }
 
     private void Start()
@@ -141,7 +149,6 @@ public class RedLightPlayerMovement : NetworkBehaviour
 
         HandlePenaltyTimer();
         HandleStopInput();
-        HandleFlashEffect();
     }
 
     private void FixedUpdate()
@@ -160,6 +167,11 @@ public class RedLightPlayerMovement : NetworkBehaviour
             if (penaltyTimer <= 0f)
             {
                 isPenalized = false;
+                
+                if (IsServer)
+                {
+                    isPenalizedNet.Value = false;
+                }
             }
         }
     }
@@ -205,6 +217,19 @@ public class RedLightPlayerMovement : NetworkBehaviour
 
         rb.linearVelocity = Vector3.zero;
 
+        ApplyPenaltyServerRpc();
+    }
+
+    [ServerRpc]
+    private void ApplyPenaltyServerRpc()
+    {
+        isPenalizedNet.Value = true;
+        StartFlashEffectClientRpc();
+    }
+
+    [ClientRpc]
+    private void StartFlashEffectClientRpc()
+    {
         StartFlashEffect();
     }
 
@@ -223,6 +248,7 @@ public class RedLightPlayerMovement : NetworkBehaviour
         animator.SetBool("isSprinting", sprinting);
 
         UpdateTrafficLightPosition();
+        HandleFlashEffect();
     }
 
     private void UpdateTrafficLightPosition()
@@ -296,6 +322,14 @@ public class RedLightPlayerMovement : NetworkBehaviour
     private void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
     {
         SetSkinColor(newValue.Value.ToString());
+    }
+
+    private void OnPenaltyStateChanged(bool previousValue, bool newValue)
+    {
+        if (newValue && !isFlashing)
+        {
+            StartFlashEffect();
+        }
     }
 
     private void SetSkinColor(string color)
