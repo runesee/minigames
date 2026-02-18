@@ -20,6 +20,8 @@ public class MinigameManager : NetworkBehaviour
         Tag,
         FocusFlow,
         FocusFlowTutorial,
+        TailTag,
+        TailTagTutorial,
     }
 
     public MinigameScene currentGameState = MinigameScene.MainMenu;
@@ -64,6 +66,10 @@ public class MinigameManager : NetworkBehaviour
                 NetworkManager.Singleton.SceneManager.LoadScene("FocusFlow", LoadSceneMode.Single);
                 currentGameState = MinigameScene.FocusFlow;
                 break;
+            case MinigameScene.TailTag:
+                NetworkManager.Singleton.SceneManager.LoadScene("Scoreboard", LoadSceneMode.Single);
+                currentGameState = MinigameScene.Scoreboard;
+                break;
             case MinigameScene.Scoreboard:
                 if (previousGameState == MinigameScene.Tag)
                 {
@@ -71,6 +77,11 @@ public class MinigameManager : NetworkBehaviour
                     currentGameState = MinigameScene.FocusFlowTutorial;
                 }
                 else if (previousGameState == MinigameScene.FocusFlow)
+                {
+                    NetworkManager.Singleton.SceneManager.LoadScene("TailTagTutorial", LoadSceneMode.Single);
+                    currentGameState = MinigameScene.TailTagTutorial;
+                }
+                else if (previousGameState == MinigameScene.TailTag)
                 {
                     NetworkManager.Singleton.SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
                     currentGameState = MinigameScene.MainMenu;
