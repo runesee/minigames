@@ -30,6 +30,7 @@ public class RedLightPlayerMovement : NetworkBehaviour
     private Color originalColor;
     private float flashTimer = 0f;
     private bool isFlashing = false;
+    private bool usingPlayPulse = true;
 
     private NetworkVariable<bool> isWalking = new NetworkVariable<bool>(
         false,
@@ -74,6 +75,21 @@ public class RedLightPlayerMovement : NetworkBehaviour
         if (animator != null)
         {
             animator.applyRootMotion = false;
+        }
+
+        if (usingPlayPulse)
+        {
+            try
+            {
+                if (!PlayPulse.PlayPulseService.IsInitialized)
+                {
+                    usingPlayPulse = false;
+                }
+            }
+            catch
+            {
+                usingPlayPulse = false;
+            }
         }
 
         colorNet.OnValueChanged += OnSkinColorChanged;
@@ -220,9 +236,16 @@ public class RedLightPlayerMovement : NetworkBehaviour
 
     private void HandleStopInput()
     {
-        bool stopHeld = Application.isEditor
-            ? Input.GetKey(KeyCode.Space)
-            : PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.A);
+        bool stopHeld;
+        
+        if (usingPlayPulse)
+        {
+            stopHeld = PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.A);
+        }
+        else
+        {
+            stopHeld = Input.GetKey(KeyCode.Space);
+        }
 
         isStopped = stopHeld;
     }
@@ -260,12 +283,14 @@ public class RedLightPlayerMovement : NetworkBehaviour
 
     private float GetPedalInput()
     {
-        if (Application.isEditor)
+        if (usingPlayPulse)
+        {
+            return Mathf.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f);
+        }
+        else
         {
             return Input.GetKey(KeyCode.UpArrow) ? 0.5f : 0f;
         }
-
-        return Mathf.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f);
     }
 
     private void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
