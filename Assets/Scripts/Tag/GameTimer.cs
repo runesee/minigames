@@ -8,7 +8,6 @@ public class GameTimer : NetworkBehaviour
     [Header("Timer Settings")]
     [SerializeField] private float gameDurationInSeconds = 60f;
     [SerializeField] private TextMeshProUGUI timerText;
-    public bool isTag;
 
     private NetworkVariable<float> remainingTime = new NetworkVariable<float>(
         0f,
@@ -42,30 +41,35 @@ public class GameTimer : NetworkBehaviour
 
     private System.Collections.IEnumerator WaitForTagGameState()
     {
-        if (isTag)
+        while (TagGameState.Instance == null)
         {
-            while (TagGameState.Instance == null) yield return new WaitForSeconds(0.1f);
-            TagGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
-            if (IsServer) OnGameStateChanged(GameState.Initializing, TagGameState.Instance.gameState.Value);
+            yield return new WaitForSeconds(0.1f);
         }
-        else
+
+        TagGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
+
+        if (IsServer)
         {
-            while (BalloonTagGameState.Instance == null) yield return new WaitForSeconds(0.1f);
-            BalloonTagGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
-            if (IsServer) OnGameStateChanged(GameState.Initializing, BalloonTagGameState.Instance.gameState.Value);
+            OnGameStateChanged(GameState.Initializing, TagGameState.Instance.gameState.Value);
         }
     }
 
     public override void OnNetworkDespawn()
     {
         remainingTime.OnValueChanged -= OnRemainingTimeChanged;
-        if (TagGameState.Instance != null) TagGameState.Instance.gameState.OnValueChanged -= OnGameStateChanged;
-        else if (BalloonTagGameState.Instance != null) BalloonTagGameState.Instance.gameState.OnValueChanged -= OnGameStateChanged;
+
+        if (TagGameState.Instance != null)
+        {
+            TagGameState.Instance.gameState.OnValueChanged -= OnGameStateChanged;
+        }
     }
 
     private void Update()
     {
-        if (!timerRunning.Value) return;
+        if (!timerRunning.Value)
+        {
+            return;
+        }
 
         double currentTime = IsServer ? NetworkManager.ServerTime.Time : NetworkManager.LocalTime.Time;
         float newRemainingTime = Mathf.Max(0f, (float)(timerEndTime.Value - currentTime));
@@ -125,17 +129,12 @@ public class GameTimer : NetworkBehaviour
         {
             TagGameState.Instance.SetGameStateServerRpc(GameState.Stopped);
         }
-        else if (BalloonTagGameState.Instance != null && IsServer)
-        {
-            BalloonTagGameState.Instance.SetGameStateServerRpc(GameState.Stopped);
-        }
         StartCoroutine(Handover());
     }
 
     private IEnumerator Handover()
     {
         yield return new WaitForSeconds(8f);
-        if(IsHost && isTag) TagGameState.Instance.SetGameStateServerRpc(GameState.Handover);
-        else if (IsHost) BalloonTagGameState.Instance.SetGameStateServerRpc(GameState.Handover);
+        if(IsHost) TagGameState.Instance.SetGameStateServerRpc(GameState.Handover);
     }
 }

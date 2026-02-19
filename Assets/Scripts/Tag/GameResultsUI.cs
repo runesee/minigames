@@ -55,17 +55,6 @@ public class GameResultsUI : NetworkBehaviour
                 StartCoroutine(WaitForFocusFlowGameState());
             }
         }
-        else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.BalloonTag)
-        {
-            if (BalloonTagGameState.Instance != null)
-            {
-                BalloonTagGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
-            }
-            else
-            {
-                StartCoroutine(WaitForBalloonTagGameState());
-            }
-        }
     }
 
     private System.Collections.IEnumerator WaitForTagGameState()
@@ -80,12 +69,6 @@ public class GameResultsUI : NetworkBehaviour
         FocusFlowGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
     }
 
-    private System.Collections.IEnumerator WaitForBalloonTagGameState()
-    {
-        while (BalloonTagGameState.Instance == null)  yield return new WaitForSeconds(0.1f);
-        BalloonTagGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
-    }
-
     public override void OnNetworkDespawn()
     {
         if (TagGameState.Instance != null)
@@ -95,10 +78,6 @@ public class GameResultsUI : NetworkBehaviour
         else if (FocusFlowGameState.Instance != null)
         {
             FocusFlowGameState.Instance.gameState.OnValueChanged -= OnGameStateChanged;
-        }
-        else if (BalloonTagGameState.Instance != null)
-        {
-            BalloonTagGameState.Instance.gameState.OnValueChanged -= OnGameStateChanged;
         }
     }
 
@@ -217,23 +196,6 @@ public class GameResultsUI : NetworkBehaviour
     }
 
     private List<PlayerResult> AddFocusFlowResults(List<PlayerResult> results)
-    {
-        foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
-        {
-            FocusFlowData data = obj.GetComponent<FocusFlowData>();
-            if (data == null) continue;
-            results.Add(new PlayerResult
-            {
-                clientId = data.OwnerClientId,
-                score = data.totalScoreNet.Value,
-                nickname = data.nicknameNet.Value.ToSafeString(),
-                color = data.colorNet.Value
-            });
-        }
-        return results;
-    }
-
-    private List<PlayerResult> AddBalloonTagResults(List<PlayerResult> results)
     {
         foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
         {
