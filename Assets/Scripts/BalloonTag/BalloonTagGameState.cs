@@ -98,12 +98,13 @@ public class BalloonTagGameState : NetworkBehaviour
         {
             foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
             {
-                var player = obj.GetComponent<PlayerTagMovement>();
+                var player = obj.GetComponent<PlayerBalloonTag>();
                 if (!player) continue;
-                PlayerData data = new PlayerData(); //player.GetTagData(); TODO
+                PlayerData data = player.GetTagData();
                 this.PlayerDataList.Add(data);
             }
             var rankedPlayers = PlayerDataList.OrderBy(p => p.balloonCount).ToList();
+            rankedPlayers.Reverse();
             for (int i = 0; i < rankedPlayers.Count; i++)
             {
                 float score = i < scores.Length ? scores[i] : 0f;
