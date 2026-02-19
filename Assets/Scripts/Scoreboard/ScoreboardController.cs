@@ -35,7 +35,7 @@ public class ScoreboardController : NetworkBehaviour
 
     private IEnumerator DelayedInit()
     {
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(3f);
 
         if (IsHost)
         {
