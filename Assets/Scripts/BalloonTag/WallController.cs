@@ -18,7 +18,7 @@ public class WallController : NetworkBehaviour
     {
         while (true)
         {
-            yield return new WaitForSeconds(7f);
+            yield return new WaitForSeconds(4f);
             wall_toggle = !wall_toggle;
             UpdateWallsClientRpc(wall_toggle);
         }
