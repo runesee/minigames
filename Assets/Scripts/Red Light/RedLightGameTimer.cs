@@ -62,7 +62,7 @@ public class RedLightGameTimer : NetworkBehaviour
     private IEnumerator StartGameAfterDelay()
     {
         yield return new WaitForSeconds(waitingDuration);
-        RedLightGameState.Instance.SetGameStateServerRpc(RedLightGameState.GameState.Running);
+        RedLightGameState.Instance.SetGameStateServerRpc(GameState.Running);
     }
 
     public override void OnNetworkDespawn()
@@ -98,13 +98,13 @@ public class RedLightGameTimer : NetworkBehaviour
         }
     }
 
-    private void OnGameStateChanged(RedLightGameState.GameState previousState, RedLightGameState.GameState newState)
+    private void OnGameStateChanged(GameState previousState, GameState newState)
     {
         UpdateStateDisplay(newState);
 
         if (!IsServer) return;
 
-        if (newState == RedLightGameState.GameState.Running)
+        if (newState == GameState.Running)
         {
             timerEndTime.Value = NetworkManager.ServerTime.Time + gameDurationInSeconds;
             remainingTime.Value = gameDurationInSeconds;
@@ -115,7 +115,7 @@ public class RedLightGameTimer : NetworkBehaviour
                 RedLightManager.Instance.StartGame();
             }
         }
-        else if (newState == RedLightGameState.GameState.Finished)
+        else if (newState == GameState.Stopped)
         {
             timerRunning.Value = false;
 
@@ -140,20 +140,24 @@ public class RedLightGameTimer : NetworkBehaviour
         timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
     }
 
-    private void UpdateStateDisplay(RedLightGameState.GameState state)
+    private void UpdateStateDisplay(GameState state)
     {
         if (stateText == null) return;
 
         switch (state)
         {
-            case RedLightGameState.GameState.Waiting:
+            case GameState.Initializing:
+            case GameState.Idling:
                 stateText.text = "GET READY!";
                 break;
-            case RedLightGameState.GameState.Running:
+            case GameState.Running:
                 stateText.text = "";
                 break;
-            case RedLightGameState.GameState.Finished:
-                stateText.text = "GAME FINISHED!";
+            case GameState.Stopped:
+                stateText.text = "";
+                break;
+            case GameState.Handover:
+                stateText.text = "";
                 break;
         }
     }
@@ -162,19 +166,22 @@ public class RedLightGameTimer : NetworkBehaviour
     {
         if (RedLightGameState.Instance != null && IsServer)
         {
-            RedLightGameState.Instance.SetGameStateServerRpc(RedLightGameState.GameState.Finished);
+            RedLightGameState.Instance.SetGameStateServerRpc(GameState.Stopped);
         }
 
-        StartCoroutine(TransitionToScoreboard());
+        if (IsServer)
+        {
+            StartCoroutine(TransitionToHandover());
+        }
     }
 
-    private IEnumerator TransitionToScoreboard()
+    private IEnumerator TransitionToHandover()
     {
-        yield return new WaitForSeconds(5f);
+        yield return new WaitForSeconds(6f);
         
-        if (IsHost && MinigameManager.Instance != null)
+        if (IsHost && RedLightGameState.Instance != null)
         {
-            MinigameManager.Instance.SceneFinished();
+            RedLightGameState.Instance.SetGameStateServerRpc(GameState.Handover);
         }
     }
 }

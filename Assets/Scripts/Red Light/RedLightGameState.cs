@@ -9,18 +9,13 @@ public class RedLightGameState : NetworkBehaviour
 {
     public static RedLightGameState Instance { get; private set; }
 
-    public enum GameState
-    {
-        Waiting,
-        Running,
-        Finished
-    }
-
     public NetworkVariable<GameState> gameState = new NetworkVariable<GameState>(
-        GameState.Waiting,
+        GameState.Initializing,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
+
+    private float[] scores = { 10, 6, 3, 1 };
 
     public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
     {
@@ -62,6 +57,70 @@ public class RedLightGameState : NetworkBehaviour
         Instance = this;
     }
 
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+        gameState.OnValueChanged += OnGameStateChanged;
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        base.OnNetworkDespawn();
+        gameState.OnValueChanged -= OnGameStateChanged;
+    }
+
+    private void OnGameStateChanged(GameState previousState, GameState newState)
+    {
+        if (newState == GameState.Handover)
+        {
+            SaveScoresToSessionManager();
+            MinigameManager.Instance.SceneFinished();
+        }
+    }
+
+    private void SaveScoresToSessionManager()
+    {
+        if (!IsServer) return;
+
+        List<PlayerData> rankedPlayers = GetPlayerDataSortedByDistance();
+
+        for (int i = 0; i < rankedPlayers.Count; i++)
+        {
+            float score = i < scores.Length ? scores[i] : 0f;
+            FixedString64Bytes guid = rankedPlayers[i].Guid;
+            FixedString64Bytes nickname = rankedPlayers[i].nickname;
+            FixedString64Bytes color = rankedPlayers[i].color;
+            
+            SessionManager.PlayerData globalSessionData = SessionManager.Instance.GetDataByGuid(guid);
+            SessionManager.PlayerData scoredPlayerData = new SessionManager.PlayerData(
+                guid, 
+                nickname, 
+                color, 
+                score + globalSessionData.Score
+            );
+            SessionManager.Instance.SaveData(scoredPlayerData);
+        }
+
+        // Fill remaining slots if less than 4 players
+        if (rankedPlayers.Count < 4)
+        {
+            for (int i = rankedPlayers.Count; i < 4; i++)
+            {
+                Color playerColor = PlayerColorManager.AvailableColors[i];
+                string colorHex = $"#{ColorUtility.ToHtmlStringRGB(playerColor)}";
+                
+                SessionManager.Instance.SaveData(
+                    new SessionManager.PlayerData(
+                        new FixedString64Bytes(Guid.NewGuid().ToString()),
+                        $"Player {i+1}",
+                        new FixedString64Bytes(colorHex),
+                        0f
+                    )
+                );
+            }
+        }
+    }
+
     [ServerRpc(RequireOwnership = false)]
     public void SetGameStateServerRpc(GameState newState)
     {
@@ -89,12 +148,6 @@ public class RedLightGameState : NetworkBehaviour
     {
         List<PlayerData> playerDataList = GetAllPlayerData();
         return playerDataList.OrderByDescending(p => p.Distance).ToList();
-    }
-
-    public PlayerData GetWinner()
-    {
-        List<PlayerData> sortedPlayers = GetPlayerDataSortedByDistance();
-        return sortedPlayers.Count > 0 ? sortedPlayers[0] : default;
     }
 }
 
