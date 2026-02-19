@@ -37,6 +37,11 @@ public class PlayerBalloonTag : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner
     );
+    private NetworkVariable<bool> isFrozen = new NetworkVariable<bool>(
+    false,
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server
+    );
     private NetworkVariable<bool> isShowingBoostParticlesNet = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
@@ -230,14 +235,16 @@ public class PlayerBalloonTag : NetworkBehaviour
         isPunching = attackAction.WasPerformedThisFrame() || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A);
         isPunchingNet.Value = isPunching;
 
-        if (isPunching)
+        if (isPunching && !isFrozen.Value)
         {
             PlayerBalloonTag target = FindClosestPlayerInRange(2.5f);
-
-            if (target != null)
-            {
-                TagPlayerServerRpc(target.NetworkObjectId); // Set target as tagged and hit (can tag others, play animation)
-            }
+            if (target != null) TagPlayerServerRpc(target.NetworkObjectId);
+        }
+        else if (isFrozen.Value)
+        {
+            double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
+            double timeSinceTagged = serverTime - lastTagTimeNet.Value;
+            if (timeSinceTagged >= 0.7f) UnfreezePlayerServerRpc();
         }
 
         // Handle animations and update position based on input actions
@@ -337,9 +344,19 @@ public class PlayerBalloonTag : NetworkBehaviour
         victim.balloonCountNet.Value -= 1f;
         this.balloonCountNet.Value += 1f;
 
-        // Add timediff to current player
-        timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
-        victim.lastTagTimeNet.Value = serverTime;
+        // Add timediff to current player and prevent tagging again for another .7 seconds
+        this.isFrozen.Value = true;
+        this.timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
+        this.lastTagTimeNet.Value = serverTime;
+    }
+
+    /// <summary>
+    /// Re-enable user actions after freeze period.
+    /// </summary>
+    [ServerRpc]
+    private void UnfreezePlayerServerRpc()
+    {
+        isFrozen.Value = false;
     }
 
     /// <summary>
