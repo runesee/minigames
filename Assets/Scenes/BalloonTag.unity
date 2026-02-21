@@ -8229,6 +8229,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   gameDurationInSeconds: 150
   timerText: {fileID: 443790207}
+  isTag: 0
 --- !u!1 &927912698
 GameObject:
   m_ObjectHideFlags: 0
