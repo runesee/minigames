@@ -8229,7 +8229,6 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   gameDurationInSeconds: 150
   timerText: {fileID: 443790207}
-  isTag: 0
 --- !u!1 &927912698
 GameObject:
   m_ObjectHideFlags: 0
@@ -12783,7 +12782,7 @@ GameObject:
   - component: {fileID: 2129432699}
   - component: {fileID: 2129432701}
   m_Layer: 0
-  m_Name: TailTagWallController
+  m_Name: BalloonTagWallController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -19069,7 +19068,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Time spent tagged
+  m_text: Balloons
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

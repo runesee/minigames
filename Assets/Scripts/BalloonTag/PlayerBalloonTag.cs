@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System;
 using Unity.VisualScripting;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
@@ -62,6 +63,11 @@ public class PlayerBalloonTag : NetworkBehaviour
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Server
     );
+    public NetworkVariable<BalloonState> balloonsNet = new NetworkVariable<BalloonState>(
+    new BalloonState(2, "#D6877F"),
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server
+    );
     public NetworkVariable<FixedString64Bytes> nicknameNet = new NetworkVariable<FixedString64Bytes>(
     "Player",
     NetworkVariableReadPermission.Everyone,
@@ -72,13 +78,9 @@ public class PlayerBalloonTag : NetworkBehaviour
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Server
     );
-    public NetworkVariable<float> balloonCountNet = new NetworkVariable<float>(
-    2f,
-    NetworkVariableReadPermission.Everyone,
-    NetworkVariableWritePermission.Server
-    );
 
     public ParticleSystem sprintParticleEffect;
+    public List<GameObject> BalloonPrefabs;
     private InputAction attackAction;
     private InputAction moveAction;
     private InputAction sprintAction;
@@ -127,6 +129,7 @@ public class PlayerBalloonTag : NetworkBehaviour
         // Subscribe to color and sprint particle changes
         colorNet.OnValueChanged += OnSkinColorChanged;
         isShowingBoostParticlesNet.OnValueChanged += OnSprintParticlesChanged;
+        balloonsNet.OnValueChanged += OnBalloonsChanged;
 
         // Apply initial player-selected color
         var data = LocalPlayerStorage.Load();
@@ -139,13 +142,14 @@ public class PlayerBalloonTag : NetworkBehaviour
             UpdateColorServerRpc(color);
             UpdateNicknameServerRpc(data.nickname);
             UpdateGuidServerRpc(data.guid);
-        } 
+        }
     }
 
     public override void OnNetworkDespawn()
     {
         colorNet.OnValueChanged -= OnSkinColorChanged;
         isShowingBoostParticlesNet.OnValueChanged -= OnSprintParticlesChanged;
+        balloonsNet.OnValueChanged -= OnBalloonsChanged;
     }
 
     private void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
@@ -159,6 +163,16 @@ public class PlayerBalloonTag : NetworkBehaviour
         if (newValue && !sprintParticleEffect.isPlaying) sprintParticleEffect.Play();
         else if (sprintParticleEffect.isPlaying) sprintParticleEffect.Stop();
     }
+    
+    void OnBalloonsChanged(BalloonState previousValue, BalloonState newValue)
+    {
+        for (int i = 0; i < BalloonPrefabs.Count; i++)
+        {
+            BalloonPrefabs[i].SetActive(i < newValue.count);
+            UnityEngine.ColorUtility.TryParseHtmlString(newValue.GetColor(i).ToString(), out var color);
+            BalloonPrefabs[i].GetComponentInChildren<MeshRenderer>().material.color = color;
+        }
+    }
 
     /// <summary>
     /// Helper method for changing a player model's color.
@@ -168,6 +182,9 @@ public class PlayerBalloonTag : NetworkBehaviour
     {
         UnityEngine.ColorUtility.TryParseHtmlString(color, out var skinColor);
         playerSkinRenderer.material.color = skinColor;
+        BalloonPrefabs[0].GetComponentInChildren<MeshRenderer>().material.color = skinColor;
+        BalloonPrefabs[1].GetComponentInChildren<MeshRenderer>().material.color = skinColor;
+        if (IsOwner) InitializeBalloonsServerRpc(color);
     }
 
     public BalloonTagGameState.PlayerData GetTagData()
@@ -176,7 +193,7 @@ public class PlayerBalloonTag : NetworkBehaviour
             guidNet.Value,
             nicknameNet.Value,
             colorNet.Value,
-            balloonCountNet.Value,
+            balloonsNet.Value.count,
             lastTagTimeNet.Value
         );
         return playerData;
@@ -203,7 +220,7 @@ public class PlayerBalloonTag : NetworkBehaviour
                 {
                     playerName = $"Player{player.OwnerClientId}";
                 }
-                var balloons = player.balloonCountNet.Value;
+                var balloons = player.balloonsNet.Value.count;
                 var balloon_label = (balloons != 1) ? "Balloons" : "Balloon";
                 GUILayout.TextArea($"{playerName}: {balloons.ToString():F1} {balloon_label}");
             }
@@ -329,6 +346,12 @@ public class PlayerBalloonTag : NetworkBehaviour
     {
         guidNet.Value = guid;
     }
+ 
+    [ServerRpc]
+    public void InitializeBalloonsServerRpc(FixedString64Bytes color)
+    {
+        balloonsNet.Value = new BalloonState(2, color);
+    }
 
     /// <summary>
     /// Set targeted player as tagged on server, and disable their movement.
@@ -340,9 +363,15 @@ public class PlayerBalloonTag : NetworkBehaviour
     {
         double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
         var victim = NetworkManager.Singleton.SpawnManager.SpawnedObjects[victimId].GetComponent<PlayerBalloonTag>();
-        if (victim.balloonCountNet.Value <= 0f) return;
-        victim.balloonCountNet.Value -= 1f;
-        this.balloonCountNet.Value += 1f;
+        BalloonState localBalloons = this.balloonsNet.Value;
+        BalloonState victimBalloons = victim.balloonsNet.Value;
+        if (victimBalloons.count <= 0) return;
+
+        localBalloons.SetColor(localBalloons.count, victimBalloons.GetColor(victimBalloons.count - 1));
+        localBalloons.count++;
+        victimBalloons.count--;
+        this.balloonsNet.Value = localBalloons;
+        victim.balloonsNet.Value = victimBalloons;
 
         // Add timediff to current player and prevent tagging again for another .7 seconds
         this.isFrozen.Value = true;
