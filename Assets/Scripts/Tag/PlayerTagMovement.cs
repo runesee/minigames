@@ -179,7 +179,15 @@ public class PlayerTagMovement : NetworkBehaviour
             UpdateColorServerRpc(color);
             UpdateNicknameServerRpc(data.nickname);
             UpdateGuidServerRpc(data.guid);
-        } 
+        }
+        if (IsHost && IsOwner) StartCoroutine(WaitForPlayerConnect());
+    }
+
+    private System.Collections.IEnumerator WaitForPlayerConnect()
+    {
+        while (NetworkManager.Singleton.ConnectedClientsList.Count < 2 || TagGameState.Instance == null) yield return new WaitForSeconds(0.1f);
+        TagGameState.Instance.SetGameStateServerRpc(GameState.Running);
+        SetInitialTaggedPlayer();
     }
 
     public override void OnNetworkDespawn()
@@ -267,29 +275,7 @@ public class PlayerTagMovement : NetworkBehaviour
         }
         GUILayout.EndArea();
 
-        // Draw menu items
-        GUILayout.BeginArea(new Rect(10, 10, 200, 200));
-        if (GUILayout.Button("Shutdown"))
-        {
-            if (NetworkManager.Singleton.IsHost)
-            {
-                MinigameManager.Instance.TerminateConnection();
-            }
-        }
-
-        if (NetworkManager.Singleton.ConnectedClientsList.Count >= 2 && TagGameState.Instance.gameState.Value == GameState.Idling && NetworkManager.Singleton.IsHost)
-        {
-            if (GUILayout.Button("Start Game"))
-            {
-                TagGameState.Instance.SetGameStateServerRpc(GameState.Running);
-                SetInitialTaggedPlayer();
-            }
-        }
-        GUILayout.EndArea();
-
-        if (IsOwner) {
-            DrawStaminaBar();
-        }
+        if (IsOwner) DrawStaminaBar();
     }
 
     private void Update()

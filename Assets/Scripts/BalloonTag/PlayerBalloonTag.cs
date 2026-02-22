@@ -143,6 +143,13 @@ public class PlayerBalloonTag : NetworkBehaviour
             UpdateNicknameServerRpc(data.nickname);
             UpdateGuidServerRpc(data.guid);
         }
+        if (IsHost) StartCoroutine(WaitForPlayerConnect());
+    }
+
+    private System.Collections.IEnumerator WaitForPlayerConnect()
+    {
+        while (NetworkManager.Singleton.ConnectedClientsList.Count < 2 || BalloonTagGameState.Instance == null) yield return new WaitForSeconds(0.1f);
+        BalloonTagGameState.Instance.SetGameStateServerRpc(GameState.Running);
     }
 
     public override void OnNetworkDespawn()
@@ -197,45 +204,6 @@ public class PlayerBalloonTag : NetworkBehaviour
             lastTagTimeNet.Value
         );
         return playerData;
-    }
-
-    // There is arguably a lot of logic in onGUI, which runs often.
-    // TODO : Move this logic when a better UI solution is in place.
-    void OnGUI()
-    {
-        if (!BalloonTagGameState.Instance || !NetworkManager.Singleton) return;
-
-        // Draw scoreboard
-        GUILayout.BeginArea(new Rect(Screen.width - 210, 10, 200, 300));
-        if (BalloonTagGameState.Instance.gameState.Value == GameState.Running)
-        {
-            GUILayout.TextArea("Scoreboard");
-            foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
-            {
-                var player = obj.GetComponent<PlayerBalloonTag>();
-                if (!player) continue;
-                
-                string playerName = player.nicknameNet.Value.ToString();
-                if (string.IsNullOrEmpty(playerName))
-                {
-                    playerName = $"Player{player.OwnerClientId}";
-                }
-                var balloons = player.balloonsNet.Value.count;
-                var balloon_label = (balloons != 1) ? "Balloons" : "Balloon";
-                GUILayout.TextArea($"{playerName}: {balloons.ToString():F1} {balloon_label}");
-            }
-        }
-        GUILayout.EndArea();
-
-        GUILayout.BeginArea(new Rect(10, 10, 200, 200));
-        if (NetworkManager.Singleton.ConnectedClientsList.Count >= 2 && BalloonTagGameState.Instance.gameState.Value == GameState.Idling && NetworkManager.Singleton.IsHost)
-        {
-            if (GUILayout.Button("Start Game"))
-            {
-                BalloonTagGameState.Instance.SetGameStateServerRpc(GameState.Running);
-            }
-        }
-        GUILayout.EndArea();
     }
 
     private void Update()
