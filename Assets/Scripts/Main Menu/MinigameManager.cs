@@ -38,8 +38,8 @@ public class MinigameManager : NetworkBehaviour
     public void StartGameSession()
     {
         if (!IsHost) return;
-        NetworkManager.Singleton.SceneManager.LoadScene("TagScene", LoadSceneMode.Single);
-        currentGameState = MinigameScene.Tag;
+        NetworkManager.Singleton.SceneManager.LoadScene("TagTutorial", LoadSceneMode.Single);
+        currentGameState = MinigameScene.TagTutorial;
     }
 
     // General method called by each scene's GameState class once finished.
@@ -65,6 +65,10 @@ public class MinigameManager : NetworkBehaviour
             case MinigameScene.FocusFlowTutorial:
                 NetworkManager.Singleton.SceneManager.LoadScene("FocusFlow", LoadSceneMode.Single);
                 currentGameState = MinigameScene.FocusFlow;
+                break;
+            case MinigameScene.BalloonTagTutorial:
+                NetworkManager.Singleton.SceneManager.LoadScene("BalloonTag", LoadSceneMode.Single);
+                currentGameState = MinigameScene.BalloonTag;
                 break;
             case MinigameScene.BalloonTag:
                 NetworkManager.Singleton.SceneManager.LoadScene("Scoreboard", LoadSceneMode.Single);
