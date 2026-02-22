@@ -78,7 +78,7 @@ public class MinigameManager : NetworkBehaviour
                 }
                 else if (previousGameState == MinigameScene.FocusFlow)
                 {
-                    NetworkManager.Singleton.SceneManager.LoadScene("TailTagTutorial", LoadSceneMode.Single);
+                    NetworkManager.Singleton.SceneManager.LoadScene("BalloonTagTutorial", LoadSceneMode.Single);
                     currentGameState = MinigameScene.BalloonTagTutorial;
                 }
                 else if (previousGameState == MinigameScene.BalloonTag)
