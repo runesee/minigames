@@ -20,6 +20,10 @@ public class PlayerTagMovement : NetworkBehaviour
     public float minZ = -13f;
     public float maxZ = 12f;
 
+    [Header("Audio settings")]
+    public AudioSource audioSource;
+    public AudioClip tagClip;
+
     private NetworkVariable<bool> isWalkingNet = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
@@ -496,6 +500,7 @@ public class PlayerTagMovement : NetworkBehaviour
         timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
         victim.lastTagTimeNet.Value = serverTime;
         TagGameState.Instance.taggedPlayerIdNet.Value = victimId;
+        PlayTagSoundClientRpc();
     }
 
     [ClientRpc]
@@ -505,6 +510,12 @@ public class PlayerTagMovement : NetworkBehaviour
         isWalkingNet.Value = false;
         isSprintingNet.Value = false;
         isTauntingNet.Value = false;
+    }
+
+    [ClientRpc]
+    private void PlayTagSoundClientRpc()
+    {
+        audioSource?.PlayOneShot(tagClip);
     }
 
     /// <summary>
