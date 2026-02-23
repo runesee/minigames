@@ -486,6 +486,8 @@ GameObject:
   m_Component:
   - component: {fileID: 111759731}
   - component: {fileID: 111759732}
+  - component: {fileID: 111759733}
+  - component: {fileID: 111759734}
   m_Layer: 0
   m_Name: MusicManager
   m_TagString: Untagged
@@ -521,7 +523,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 3706f7e6071fe304c93617122c6cab2e, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.2
+  m_Volume: 0.1
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -605,6 +607,50 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &111759733
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 111759730}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 2896458571
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!114 &111759734
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 111759730}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2c26dcdeff042143bdc903581710223, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  ShowTopMostFoldoutHeaderGroup: 1
+  lobbyMusic: {fileID: 8300000, guid: 3706f7e6071fe304c93617122c6cab2e, type: 3}
+  tutorialMusic: {fileID: 8300000, guid: b0c23ceabd41634479f5daebb84214a2, type: 3}
+  tagMusic: {fileID: 8300000, guid: c4b92ffd3d4e57d42ae8121052ac0193, type: 3}
+  focusFlowMusic: {fileID: 8300000, guid: 93067ec685091954a81a2a0f35f3ab7b, type: 3}
+  scoreboardMusic: {fileID: 8300000, guid: f43330fdf0ea45b40b78bb89a42d9fbd, type: 3}
+  audioSource: {fileID: 111759732}
 --- !u!1 &141065545
 GameObject:
   m_ObjectHideFlags: 0
