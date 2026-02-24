@@ -523,11 +523,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: In Tag, the winner is the player that spends the least amount of time as
-    a hunter. One player will start as the hunter. The hunter must chase other players
-    and tag them once within range, or risk losing the game! Pedal your way around
-    the map, and use your boost for a quick getaway. Keep moving to refill your boost
-    meter.
+  m_text: "\u2022 One player starts as the hunter\n\n\u2022 Tag others to pass the
+    hunter role\n\n\u2022 Win by being the hunter for the least time\n\n\u2022 Pedal
+    and use your Boost to escape\n\n\u2022 Keep moving to recharge Boost"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
