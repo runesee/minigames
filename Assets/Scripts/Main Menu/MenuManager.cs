@@ -200,11 +200,16 @@ public class MenuManager : MonoBehaviour
     public void OnConfirmButtonClicked()
     {
         string nickname = nicknameInputField.text;
-        int colorIndex = colorDropdown.value;
-        PlayerPrefs.SetString("Color", "#" + ColorUtility.ToHtmlStringRGB(PlayerColorManager.GetColor(colorIndex)));
-
         if (string.IsNullOrWhiteSpace(nickname)) return;
-        PlayerPrefs.SetString("Username", nickname);
+
+        var data = LocalPlayerStorage.Load() ?? new LocalPlayerData();
+        var newData = new LocalPlayerData
+        {
+            guid = data.guid,
+            nickname = nickname,
+            color = "#" + ColorUtility.ToHtmlStringRGB(PlayerColorManager.GetColor(colorDropdown.value))
+        };
+        LocalPlayerStorage.Save(newData);
 
         if (ipInputField != null && string.IsNullOrWhiteSpace(ipInputField.text)) return;
 

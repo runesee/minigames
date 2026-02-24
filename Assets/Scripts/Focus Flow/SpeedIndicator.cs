@@ -3,7 +3,7 @@ using UnityEngine;
 public class SpeedIndicator : MonoBehaviour
 {
     [SerializeField] private ScoreMultiplierManager multiplierManager;
-
+    public SkinnedMeshRenderer playerSkin;
     private const float MinYPosition = -0.5f;
     private const float MaxYPosition = 0.5f;
     private const int ZoneCount = 5;
@@ -37,6 +37,8 @@ public class SpeedIndicator : MonoBehaviour
         }
 
         characterAnimator = GetComponentInChildren<Animator>();
+        UnityEngine.ColorUtility.TryParseHtmlString(FocusFlowData.LocalInstance.colorNet.Value.ToString(), out var skinColor);
+        playerSkin.material.color = skinColor;
         CreateSpeedArrow();
     }
 

@@ -56,9 +56,12 @@ public class SessionManager : NetworkBehaviour
     public virtual void Start()
     {
         // New client connected, need to assign them a unique GUID
-        if (PlayerPrefs.GetString("Guid") == "")
+        var data = LocalPlayerStorage.Load();
+        data ??= new LocalPlayerData();
+        if (string.IsNullOrEmpty(data.guid))
         {
-            PlayerPrefs.SetString("Guid", System.Guid.NewGuid().ToString());
+            data.guid = System.Guid.NewGuid().ToString();
+            LocalPlayerStorage.Save(data);
         }
     }
 
@@ -70,7 +73,8 @@ public class SessionManager : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        FixedString64Bytes guid = new FixedString64Bytes(PlayerPrefs.GetString("Guid"));
+        var data = LocalPlayerStorage.Load();
+        FixedString64Bytes guid = new FixedString64Bytes(data.guid);
         PlayerData playerData = new PlayerData(guid);
         if (IsOwner)
         {

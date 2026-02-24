@@ -94,12 +94,10 @@ public class LobbyManager : NetworkBehaviour
     {
         if (IsClient)
         {
-            string nickname = PlayerPrefs.GetString("Username", "Player");
-            string colorHex = PlayerPrefs.GetString("Color", "#FFFFFF");
-            Color color = Color.white;
-            ColorUtility.TryParseHtmlString(colorHex, out color);
-
-            RequestJoinServerRpc(NetworkManager.Singleton.LocalClientId, nickname, color);
+            var data = LocalPlayerStorage.Load();
+            string colorHex = data.color;
+            ColorUtility.TryParseHtmlString(colorHex, out Color color);
+            RequestJoinServerRpc(NetworkManager.Singleton.LocalClientId, data.nickname, color);
         }
     }
 

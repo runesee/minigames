@@ -188,7 +188,8 @@ public class GameResultsUI : NetworkBehaviour
             {
                 clientId = player.OwnerClientId,
                 score = totalTime,
-                nickname = nickname
+                nickname = nickname,
+                color = player.colorNet.Value
             });
         }
         return results;
@@ -204,7 +205,8 @@ public class GameResultsUI : NetworkBehaviour
             {
                 clientId = data.OwnerClientId,
                 score = data.totalScoreNet.Value,
-                nickname = data.nicknameNet.Value.ToSafeString()
+                nickname = data.nicknameNet.Value.ToSafeString(),
+                color = data.colorNet.Value
             });
         }
         return results;
@@ -245,8 +247,9 @@ public class GameResultsUI : NetworkBehaviour
             card.gameObject.SetActive(true);
 
             UnityEngine.ColorUtility.TryParseHtmlString(medalColors[i], out var medalColor);
+            UnityEngine.ColorUtility.TryParseHtmlString(results[i].color.Value, out var playerColor);
             card.bonusText.color = medalColor;
-            card.nicknameText.color = medalColor;
+            card.nicknameText.color = playerColor;
             card.bonusText.text = "#" + (1+i).ToString();
             rectTransform.anchoredPosition = new Vector2(0, cardYPositions[i]);
         }
@@ -265,12 +268,14 @@ public class GameResultsUI : NetworkBehaviour
         public ulong clientId;
         public double score;
         public FixedString64Bytes nickname;
+        public FixedString64Bytes color;
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
             serializer.SerializeValue(ref clientId);
             serializer.SerializeValue(ref score);
             serializer.SerializeValue(ref nickname);
+            serializer.SerializeValue(ref color);
         }
     }
 }
