@@ -20,6 +20,12 @@ public class PlayerTagMovement : NetworkBehaviour
     public float minZ = -13f;
     public float maxZ = 12f;
 
+    [Header("Audio settings")]
+    public AudioSource tagAudioSource;
+    public AudioSource boostAudioSource;
+    public AudioClip tagClip;
+    public AudioClip boostClip;
+
     private NetworkVariable<bool> isWalkingNet = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
@@ -311,13 +317,17 @@ public class PlayerTagMovement : NetworkBehaviour
         isTaunting = interactAction.IsPressed() || PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.Y);
         isPunching = attackAction.WasPerformedThisFrame() || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A);
         isPunchingNet.Value = isPunching && isTaggedNet.Value;
+        bool wasBoosting = isBoosting;
         isBoosting = (sprintAction.IsPressed() || PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.B)) && staminaNet.Value >= minStaminaToBoost;
+        
+        if (isBoosting && !wasBoosting) boostAudioSource?.PlayOneShot(boostClip); // Start playing boost audio
+        else if (!isBoosting) boostAudioSource?.Stop(); // Stopped boosting, stop current audio
 
         // Set target player as isHit if punched by punching player
         if (isPunching && isTaggedNet.Value)
         {
             PlayerTagMovement target = FindClosestPlayerInRange(2.5f);
-
+            tagAudioSource?.PlayOneShot(tagClip);
             if (target != null)
             {
                 TagPlayerServerRpc(target.NetworkObjectId); // Set target as tagged and hit (can tag others, play animation)
@@ -482,6 +492,13 @@ public class PlayerTagMovement : NetworkBehaviour
         timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
         victim.lastTagTimeNet.Value = serverTime;
         TagGameState.Instance.taggedPlayerIdNet.Value = victimId;
+        PlayTagSoundClientRpc();
+    }
+
+    [ClientRpc]
+    private void PlayTagSoundClientRpc()
+    {
+        if (!tagAudioSource.isPlaying) tagAudioSource?.PlayOneShot(tagClip);
     }
 
     [ClientRpc]

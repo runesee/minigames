@@ -40,6 +40,7 @@ public class MinigameManager : NetworkBehaviour
         if (!IsHost) return;
         NetworkManager.Singleton.SceneManager.LoadScene("TagTutorial", LoadSceneMode.Single);
         currentGameState = MinigameScene.TagTutorial;
+        MusicManager.Instance?.PlaySong(currentGameState);
     }
 
     // General method called by each scene's GameState class once finished.
@@ -97,6 +98,7 @@ public class MinigameManager : NetworkBehaviour
                 currentGameState = MinigameScene.MainMenu;
                 break;
         }
+        MusicManager.Instance?.PlaySong(currentGameState);
     }
 
     public void StartConnection(string ipAddress, ushort portNumber, bool isUserHost)
