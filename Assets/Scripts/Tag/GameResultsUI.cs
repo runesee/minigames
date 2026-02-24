@@ -55,6 +55,17 @@ public class GameResultsUI : NetworkBehaviour
                 StartCoroutine(WaitForFocusFlowGameState());
             }
         }
+        else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.BalloonTag)
+        {
+            if (BalloonTagGameState.Instance != null)
+            {
+                BalloonTagGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
+            }
+            else
+            {
+                StartCoroutine(WaitForBalloonTagGameState());
+            }
+        }
     }
 
     private System.Collections.IEnumerator WaitForTagGameState()
@@ -69,6 +80,12 @@ public class GameResultsUI : NetworkBehaviour
         FocusFlowGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
     }
 
+    private System.Collections.IEnumerator WaitForBalloonTagGameState()
+    {
+        while (BalloonTagGameState.Instance == null)  yield return new WaitForSeconds(0.1f);
+        BalloonTagGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
+    }
+
     public override void OnNetworkDespawn()
     {
         if (TagGameState.Instance != null)
@@ -78,6 +95,10 @@ public class GameResultsUI : NetworkBehaviour
         else if (FocusFlowGameState.Instance != null)
         {
             FocusFlowGameState.Instance.gameState.OnValueChanged -= OnGameStateChanged;
+        }
+        else if (BalloonTagGameState.Instance != null)
+        {
+            BalloonTagGameState.Instance.gameState.OnValueChanged -= OnGameStateChanged;
         }
     }
 
@@ -212,6 +233,23 @@ public class GameResultsUI : NetworkBehaviour
         return results;
     }
 
+    private List<PlayerResult> AddBalloonTagResults(List<PlayerResult> results)
+    {
+        foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
+        {
+            var player = obj.GetComponent<PlayerBalloonTag>();
+            if (player == null) continue;
+            results.Add(new PlayerResult
+            {
+                clientId = player.OwnerClientId,
+                score = player.balloonsNet.Value.count,
+                nickname = player.nicknameNet.Value.ToSafeString(),
+                color = player.colorNet.Value
+            });
+        }
+        return results;
+    }
+
     private void BuildResultsText()
     {
         if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag)
@@ -222,8 +260,12 @@ public class GameResultsUI : NetworkBehaviour
         {
             results = AddFocusFlowResults(results);
         }
+        else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.BalloonTag)
+        {
+            results = AddBalloonTagResults(results);
+        }
         results = results.OrderBy(r => r.score).ToList();
-        if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.FocusFlow) results.Reverse();
+        if (MinigameManager.Instance.currentGameState != MinigameManager.MinigameScene.Tag) results.Reverse();
         UpdateCanvas(results);
     }
 
@@ -237,7 +279,8 @@ public class GameResultsUI : NetworkBehaviour
         for (int i = 0; i < results.Count; i++)
         {
             string playerName = results[i].nickname.Value;
-            string time = results[i].score.ToString("F2");
+            double score = results[i].score;
+            string time = MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag ? score.ToString("F2") : score.ToString();
             time = MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag ? time + "s" : time;
 
             var card = playerCards[i];

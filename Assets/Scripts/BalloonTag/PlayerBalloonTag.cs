@@ -2,15 +2,13 @@ using Unity.Netcode;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Linq;
-using System.Collections.Generic;
 using System;
-using PlayPulse.Api.Utils;
 using Unity.VisualScripting;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
-public class PlayerTagMovement : NetworkBehaviour
+public class PlayerBalloonTag : NetworkBehaviour
 {
     [SerializeField] private SkinnedMeshRenderer playerSkinRenderer;
 
@@ -35,20 +33,15 @@ public class PlayerTagMovement : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner
     );
-    private NetworkVariable<bool> isHitNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-    public NetworkVariable<bool> isTaggedNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
     private NetworkVariable<bool> isTauntingNet = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner
+    );
+    private NetworkVariable<bool> isFrozen = new NetworkVariable<bool>(
+    false,
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server
     );
     private NetworkVariable<bool> isShowingBoostParticlesNet = new NetworkVariable<bool>(
         false,
@@ -70,70 +63,41 @@ public class PlayerTagMovement : NetworkBehaviour
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Server
     );
-
+    public NetworkVariable<BalloonState> balloonsNet = new NetworkVariable<BalloonState>(
+    new BalloonState(2, "#D6877F"),
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server
+    );
     public NetworkVariable<FixedString64Bytes> nicknameNet = new NetworkVariable<FixedString64Bytes>(
     "Player",
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Server
     );
-
     public NetworkVariable<FixedString64Bytes> guidNet = new NetworkVariable<FixedString64Bytes>(
     "",
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Server
     );
 
-    private NetworkVariable<float> staminaNet = new NetworkVariable<float>(
-        100f,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
-
     public ParticleSystem sprintParticleEffect;
+    public List<GameObject> BalloonPrefabs;
     private InputAction attackAction;
     private InputAction moveAction;
     private InputAction sprintAction;
     private InputAction interactAction;
-    private InputAction resetTaggedPlayerDebug;
     private Animator animator;
     private Rigidbody rb;
 
     private bool isPunching;
     private bool isTaunting;
     private bool canTaunt;
-    private bool isBoosting;
-    private float pedalResistance;
     private float smoothedPedalSpeed = 0f;
-    private bool USING_PLAYPULSE = true; // Flag for dev/bike movement toggling.
-    private readonly float walkSpeed = 5f;
-    private readonly float boostSpeed = 8f;
-    private readonly float maxStamina = 100f;
-    private readonly float staminaDrainRate = 20f;
-    private readonly float staminaRegenRateFast = 15f;
-    private readonly float sprintSpeedThreshold = 3.3f;
-    private readonly float exhaustedSpeedMultiplier = 0.3f;
-    private readonly float minStaminaToBoost = 5f;
-    private readonly float taggedStaminaBoostMultiplier = 1.5f;
+    private bool USING_PLAYPULSE = false; // Flag for dev/bike movement toggling.
+    private readonly float sprintSpeedThreshold = 0.65f;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-    }
-
-    void Start()
-    {
-        if (!USING_PLAYPULSE) return;
-        // Initialize connection with PP-service, which should already by started.
-        try
-        {
-            if (!PlayPulse.PlayPulseService.IsInitialized)
-            {
-                // Reset resistance
-                pedalResistance = 0.2f;
-                PlayPulse.Input.Input.ResistanceSetPoint = pedalResistance;
-            }
-        }
-        catch { USING_PLAYPULSE = false; } // Bike connection failed, overriding to use keyboard instead
     }
 
     public override void OnNetworkSpawn()
@@ -157,16 +121,15 @@ public class PlayerTagMovement : NetworkBehaviour
         sprintAction = InputSystem.actions.FindAction("Sprint");
         attackAction = InputSystem.actions.FindAction("Attack");
         interactAction = InputSystem.actions.FindAction("Interact");
-        resetTaggedPlayerDebug = InputSystem.actions.FindAction("Crouch");
         moveAction.Enable();
         sprintAction.Enable();
         attackAction.Enable();
         interactAction.Enable();
-        resetTaggedPlayerDebug.Enable();
 
         // Subscribe to color and sprint particle changes
         colorNet.OnValueChanged += OnSkinColorChanged;
         isShowingBoostParticlesNet.OnValueChanged += OnSprintParticlesChanged;
+        balloonsNet.OnValueChanged += OnBalloonsChanged;
 
         // Apply initial player-selected color
         var data = LocalPlayerStorage.Load();
@@ -180,20 +143,20 @@ public class PlayerTagMovement : NetworkBehaviour
             UpdateNicknameServerRpc(data.nickname);
             UpdateGuidServerRpc(data.guid);
         }
-        if (IsHost && IsOwner) StartCoroutine(WaitForPlayerConnect());
+        if (IsHost) StartCoroutine(WaitForPlayerConnect());
     }
 
     private System.Collections.IEnumerator WaitForPlayerConnect()
     {
-        while (NetworkManager.Singleton.ConnectedClientsList.Count < 2 || TagGameState.Instance == null) yield return new WaitForSeconds(0.1f);
-        TagGameState.Instance.SetGameStateServerRpc(GameState.Running);
-        SetInitialTaggedPlayer();
+        while (NetworkManager.Singleton.ConnectedClientsList.Count < 2 || BalloonTagGameState.Instance == null) yield return new WaitForSeconds(0.1f);
+        BalloonTagGameState.Instance.SetGameStateServerRpc(GameState.Running);
     }
 
     public override void OnNetworkDespawn()
     {
         colorNet.OnValueChanged -= OnSkinColorChanged;
         isShowingBoostParticlesNet.OnValueChanged -= OnSprintParticlesChanged;
+        balloonsNet.OnValueChanged -= OnBalloonsChanged;
     }
 
     private void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
@@ -207,6 +170,16 @@ public class PlayerTagMovement : NetworkBehaviour
         if (newValue && !sprintParticleEffect.isPlaying) sprintParticleEffect.Play();
         else if (sprintParticleEffect.isPlaying) sprintParticleEffect.Stop();
     }
+    
+    void OnBalloonsChanged(BalloonState previousValue, BalloonState newValue)
+    {
+        for (int i = 0; i < BalloonPrefabs.Count; i++)
+        {
+            BalloonPrefabs[i].SetActive(i < newValue.count);
+            UnityEngine.ColorUtility.TryParseHtmlString(newValue.GetColor(i).ToString(), out var color);
+            BalloonPrefabs[i].GetComponentInChildren<MeshRenderer>().material.color = color;
+        }
+    }
 
     /// <summary>
     /// Helper method for changing a player model's color.
@@ -216,92 +189,27 @@ public class PlayerTagMovement : NetworkBehaviour
     {
         UnityEngine.ColorUtility.TryParseHtmlString(color, out var skinColor);
         playerSkinRenderer.material.color = skinColor;
+        BalloonPrefabs[0].GetComponentInChildren<MeshRenderer>().material.color = skinColor;
+        BalloonPrefabs[1].GetComponentInChildren<MeshRenderer>().material.color = skinColor;
+        if (IsOwner) InitializeBalloonsServerRpc(color);
     }
 
-    public TagGameState.PlayerData GetTagData()
+    public BalloonTagGameState.PlayerData GetTagData()
     {
-        var position = transform.position;
-        double totalTime = timeSpentTaggedNet.Value;
-        if (NetworkObjectId == TagGameState.Instance.taggedPlayerIdNet.Value)
-        {
-            double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
-            totalTime += serverTime - lastTagTimeNet.Value;
-        }
-
-        TagGameState.PlayerData playerData = new TagGameState.PlayerData(
+        BalloonTagGameState.PlayerData playerData = new BalloonTagGameState.PlayerData(
             guidNet.Value,
             nicknameNet.Value,
             colorNet.Value,
-            position.x,
-            position.z,
-            totalTime,
-            lastTagTimeNet.Value,
-            isTaggedNet.Value
+            balloonsNet.Value.count,
+            lastTagTimeNet.Value
         );
         return playerData;
     }
 
-    // There is arguably a lot of logic in onGUI, which runs often.
-    // TODO : Move this logic when a better UI solution is in place.
-    void OnGUI()
-    {
-        if (!TagGameState.Instance || !NetworkManager.Singleton) return;
-
-        // Draw scoreboard
-        GUILayout.BeginArea(new Rect(Screen.width - 210, 10, 200, 300));
-        if (TagGameState.Instance.gameState.Value == GameState.Running)
-        {
-            GUILayout.TextArea("Scoreboard");
-            foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
-            {
-                var player = obj.GetComponent<PlayerTagMovement>();
-                if (!player) continue;
-
-                double displayTime = player.timeSpentTaggedNet.Value;
-
-                if (player.NetworkObjectId == TagGameState.Instance.taggedPlayerIdNet.Value)
-                {
-                    double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
-                    displayTime += serverTime - player.lastTagTimeNet.Value;
-                }
-                
-                string playerName = player.nicknameNet.Value.ToString();
-                if (string.IsNullOrEmpty(playerName))
-                {
-                    playerName = $"Player{player.OwnerClientId}";
-                }
-                GUILayout.TextArea($"{playerName}: {displayTime:F1}s");
-            }
-        }
-        GUILayout.EndArea();
-
-        if (IsOwner) DrawStaminaBar();
-    }
-
     private void Update()
     {
-        if (TagGameState.Instance != null && TagGameState.Instance.gameState.Value != GameState.Running) return;
-
-        // Attempt to change gears if user presses right or left trigger
-        if (USING_PLAYPULSE)
-        {
-            float deltaResistance = PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.RightTrigger) ? 0.2f : -0.2f;
-            if (PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.RightTrigger)
-            || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.LeftTrigger))
-            {
-                pedalResistance = Math.Clamp(pedalResistance + deltaResistance, 0.0f, 1.0f);
-                PlayPulse.Input.Input.ResistanceSetPoint = pedalResistance;
-            }
-        }
-
+        if (BalloonTagGameState.Instance != null && BalloonTagGameState.Instance.gameState.Value != GameState.Running) return;
         if (!IsOwner) return;
-        double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
-        if (isHitNet.Value)
-        {
-            double timeSinceTagged = serverTime - lastTagTimeNet.Value;
-            if (timeSinceTagged < 1.8f) return;
-            else UnfreezePlayerServerRpc();
-        }
 
         // Parse InputInteractions
         Vector2 input = moveAction.ReadValue<Vector2>();
@@ -310,18 +218,18 @@ public class PlayerTagMovement : NetworkBehaviour
             PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.Y);
         isTaunting = interactAction.IsPressed() || PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.Y);
         isPunching = attackAction.WasPerformedThisFrame() || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A);
-        isPunchingNet.Value = isPunching && isTaggedNet.Value;
-        isBoosting = (sprintAction.IsPressed() || PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.B)) && staminaNet.Value >= minStaminaToBoost;
+        isPunchingNet.Value = isPunching;
 
-        // Set target player as isHit if punched by punching player
-        if (isPunching && isTaggedNet.Value)
+        if (isPunching && !isFrozen.Value)
         {
-            PlayerTagMovement target = FindClosestPlayerInRange(2.5f);
-
-            if (target != null)
-            {
-                TagPlayerServerRpc(target.NetworkObjectId); // Set target as tagged and hit (can tag others, play animation)
-            }
+            PlayerBalloonTag target = FindClosestPlayerInRange(2.5f);
+            if (target != null) TagPlayerServerRpc(target.NetworkObjectId);
+        }
+        else if (isFrozen.Value)
+        {
+            double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
+            double timeSinceTagged = serverTime - lastTagTimeNet.Value;
+            if (timeSinceTagged >= 0.7f) UnfreezePlayerServerRpc();
         }
 
         // Handle animations and update position based on input actions
@@ -331,10 +239,15 @@ public class PlayerTagMovement : NetworkBehaviour
         float pedalAnimationSpeed = USING_PLAYPULSE ? 1.6f * pedalSpeed : 1f;
         joystickOffset = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ?
         new Vector3((-1) * PlayPulse.Input.Input.JoystickX, 0, (-1) * PlayPulse.Input.Input.JoystickY) : joystickOffset;
-        float moveSpeed = (isBoosting ? boostSpeed : walkSpeed) * (staminaNet.Value <= 0f ? exhaustedSpeedMultiplier : 1f) * pedalSpeed;
 
         if (joystickOffset.sqrMagnitude > 0.01f)
         {
+            // Play running animation if movement speed above threshold
+            isSprintingNet.Value = pedalSpeed > sprintSpeedThreshold;
+            isWalkingNet.Value = !isSprintingNet.Value;
+            isShowingBoostParticlesNet.Value = isSprintingNet.Value;
+            float moveSpeed = 5f * pedalSpeed;
+
             Quaternion lastRotation = Quaternion.LookRotation(joystickOffset);
             transform.rotation = Quaternion.Slerp(transform.rotation, lastRotation, 10f * Time.deltaTime);
             animator.speed = pedalAnimationSpeed;
@@ -343,13 +256,6 @@ public class PlayerTagMovement : NetworkBehaviour
             newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
             newPosition.z = Mathf.Clamp(newPosition.z, minZ, maxZ);
             rb.MovePosition(newPosition);
-            UpdateStamina(isBoosting);
-
-            // Play running animation if movement speed above threshold
-            // TODO : use a range instead of ONE value to prevent jitter!
-            isSprintingNet.Value = moveSpeed > sprintSpeedThreshold;
-            isWalkingNet.Value = !isSprintingNet.Value;
-            isShowingBoostParticlesNet.Value = isBoosting && (USING_PLAYPULSE ? pedalSpeed > 0f : input.sqrMagnitude > 0.1f);
         }
         else
         {
@@ -377,10 +283,6 @@ public class PlayerTagMovement : NetworkBehaviour
         {
             isTauntingNet.Value = false;
         }
-
-        if (resetTaggedPlayerDebug.WasPressedThisFrame() && IsHost) {
-            SetInitialTaggedPlayer();
-        }
     }
 
     private void LateUpdate()
@@ -388,47 +290,7 @@ public class PlayerTagMovement : NetworkBehaviour
         animator.SetBool("isWalking", isWalkingNet.Value);
         animator.SetBool("isSprinting", isSprintingNet.Value);
         animator.SetBool("isPunching", isPunchingNet.Value);
-        animator.SetBool("isHit", isHitNet.Value);
         animator.SetBool("isTaunting", isTauntingNet.Value);
-    }
-
-    /// <summary>
-    /// Helper function for allocating one player as tagged.
-    /// </summary>
-    private void SetInitialTaggedPlayer() {
-        // We have to do a lot of parsing as custom class objects are not serializable with Netcode (currently)
-        var players = NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values
-        .Select(playerObject => playerObject.GetComponent<PlayerTagMovement>())
-        .Where(player => player != null)
-        .ToList();
-        var random = UnityEngine.Random.Range(0, players.Count);
-        var selectedPlayer = players[random];
-        SetInitialTaggedPlayerServerRpc(selectedPlayer.NetworkObjectId);
-    }
-
-    /// <summary>
-    /// Helper function for rendering the stamina bar in OnGui.
-    /// </summary>
-    private void DrawStaminaBar()
-    {
-        float barWidth = 200f;
-        float barHeight = 20f;
-        float padding = 20f;
-        float xPos = Screen.width - barWidth - padding;
-        float yPos = Screen.height - barHeight - padding;
-
-        Rect backgroundRect = new Rect(xPos, yPos, barWidth, barHeight);
-        GUI.color = new Color(0.2f, 0.2f, 0.2f, 0.8f);
-        GUI.DrawTexture(backgroundRect, Texture2D.whiteTexture);
-
-        float currentMaxStamina = GetCurrentMaxStamina();
-        float staminaPercent = staminaNet.Value / currentMaxStamina;
-        Rect fillRect = new Rect(xPos, yPos, barWidth * staminaPercent, barHeight);
-
-        Color fillColor = Color.Lerp(Color.red, Color.green, staminaPercent);
-        GUI.color = fillColor;
-        GUI.DrawTexture(fillRect, Texture2D.whiteTexture);
-        GUI.color = Color.white;
     }
 
     /// <summary>
@@ -452,14 +314,11 @@ public class PlayerTagMovement : NetworkBehaviour
     {
         guidNet.Value = guid;
     }
-
-    /// <summary>
-    /// Re-enable user actions after freeze period.
-    /// </summary>
+ 
     [ServerRpc]
-    private void UnfreezePlayerServerRpc()
+    public void InitializeBalloonsServerRpc(FixedString64Bytes color)
     {
-        isHitNet.Value = false;
+        balloonsNet.Value = new BalloonState(2, color);
     }
 
     /// <summary>
@@ -471,41 +330,30 @@ public class PlayerTagMovement : NetworkBehaviour
     private void TagPlayerServerRpc(ulong victimId)
     {
         double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
+        var victim = NetworkManager.Singleton.SpawnManager.SpawnedObjects[victimId].GetComponent<PlayerBalloonTag>();
+        BalloonState localBalloons = this.balloonsNet.Value;
+        BalloonState victimBalloons = victim.balloonsNet.Value;
+        if (victimBalloons.count <= 0) return;
 
-        isTaggedNet.Value = false;
-        var victim = NetworkManager.Singleton.SpawnManager.SpawnedObjects[victimId].GetComponent<PlayerTagMovement>();
-        victim.isHitNet.Value = true;
-        victim.isTaggedNet.Value = true;
-        if (IsOwner) StopAnimationsClientRpc();
+        localBalloons.SetColor(localBalloons.count, victimBalloons.GetColor(victimBalloons.count - 1));
+        localBalloons.count++;
+        victimBalloons.count--;
+        this.balloonsNet.Value = localBalloons;
+        victim.balloonsNet.Value = victimBalloons;
 
-        // Add timediff to current player
-        timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
-        victim.lastTagTimeNet.Value = serverTime;
-        TagGameState.Instance.taggedPlayerIdNet.Value = victimId;
-    }
-
-    [ClientRpc]
-    void StopAnimationsClientRpc()
-    {
-        if (!IsOwner) return;
-        isWalkingNet.Value = false;
-        isSprintingNet.Value = false;
-        isTauntingNet.Value = false;
+        // Add timediff to current player and prevent tagging again for another .7 seconds
+        this.isFrozen.Value = true;
+        this.timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
+        this.lastTagTimeNet.Value = serverTime;
     }
 
     /// <summary>
-    /// Set a player as tagged on the server.
-    /// Used for initializing the game state.
+    /// Re-enable user actions after freeze period.
     /// </summary>
-    /// <param name="playerId"></param> ID of player that starts tagged.
     [ServerRpc]
-    private void SetInitialTaggedPlayerServerRpc(ulong playerId)
+    private void UnfreezePlayerServerRpc()
     {
-        var playerObject = NetworkManager.Singleton.SpawnManager.SpawnedObjects[playerId]
-                    .GetComponent<PlayerTagMovement>();
-        playerObject.isTaggedNet.Value = true;
-        playerObject.lastTagTimeNet.Value = NetworkManager.Singleton.ServerTime.FixedTime;
-        TagGameState.Instance.taggedPlayerIdNet.Value = playerId;
+        isFrozen.Value = false;
     }
 
     /// <summary>
@@ -513,29 +361,29 @@ public class PlayerTagMovement : NetworkBehaviour
     /// </summary>
     /// <param name="range"></param> Limit for how far a player can tag.
     /// <returns></returns> A PlayerTagMovement object or null.
-    private PlayerTagMovement FindClosestPlayerInRange(float range)
+    private PlayerBalloonTag FindClosestPlayerInRange(float range)
     {
-        PlayerTagMovement closest = null;
+        PlayerBalloonTag closest = null;
         float shortest = Mathf.Infinity;
         bool isWithinBounds = false;
         GameObject _player = new GameObject();
-        PlayerTagMovement taggedPlayer = this;
-        foreach (var player in FindObjectsByType(typeof(PlayerTagMovement), FindObjectsSortMode.None))
+        PlayerBalloonTag taggedPlayer = this;
+        foreach (var player in FindObjectsByType(typeof(PlayerBalloonTag), FindObjectsSortMode.None))
         {
             if (player == this) continue;
 
-            float distance = Vector3.Distance(transform.position, ((PlayerTagMovement)player).transform.position);
+            float distance = Vector3.Distance(transform.position, ((PlayerBalloonTag)player).transform.position);
 
             if (distance < range && distance < shortest)
             {
                 shortest = distance;
-                closest = (PlayerTagMovement)player;
+                closest = (PlayerBalloonTag)player;
                 Vector3 targetVector = (closest.transform.position - transform.position).normalized;
 
                 // Within bounds if angle between position diff vector and tagged player's forward vector < 45 degrees
                 Quaternion.FromToRotation(transform.forward, targetVector).ToAngleAxis(out float angle, out Vector3 axis);
                 isWithinBounds = Mathf.Abs(angle) <= (distance > range / 2 ? 70f : 45f);
-                taggedPlayer = (PlayerTagMovement)player;
+                taggedPlayer = (PlayerBalloonTag)player;
                 _player = player.GameObject();
             }
         }
@@ -548,31 +396,5 @@ public class PlayerTagMovement : NetworkBehaviour
             }
         }
         return isWithinBounds ? closest : null;
-    }
-
-    /// <summary>
-    /// Helper function for reducing current stamina while sprinting.
-    /// </summary>
-    /// <param name="isCurrentlySprinting"></param>
-    private void UpdateStamina(bool isCurrentlySprinting)
-    {
-        if (!IsOwner) return;
-
-        float currentMaxStamina = GetCurrentMaxStamina();
-        float regenMultiplier = isTaggedNet.Value ? taggedStaminaBoostMultiplier : 1f;
-
-        if (isCurrentlySprinting)
-        {
-            staminaNet.Value = Mathf.Max(0f, staminaNet.Value - staminaDrainRate * Time.deltaTime);
-        }
-        else
-        {
-            staminaNet.Value = Mathf.Min(currentMaxStamina, staminaNet.Value + staminaRegenRateFast * regenMultiplier * Time.deltaTime);
-        }
-    }
-
-    private float GetCurrentMaxStamina()
-    {
-        return isTaggedNet.Value ? maxStamina * taggedStaminaBoostMultiplier : maxStamina;
     }
 }

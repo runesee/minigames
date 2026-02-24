@@ -20,6 +20,8 @@ public class MinigameManager : NetworkBehaviour
         Tag,
         FocusFlow,
         FocusFlowTutorial,
+        BalloonTag,
+        BalloonTagTutorial,
     }
 
     public MinigameScene currentGameState = MinigameScene.MainMenu;
@@ -64,6 +66,14 @@ public class MinigameManager : NetworkBehaviour
                 NetworkManager.Singleton.SceneManager.LoadScene("FocusFlow", LoadSceneMode.Single);
                 currentGameState = MinigameScene.FocusFlow;
                 break;
+            case MinigameScene.BalloonTagTutorial:
+                NetworkManager.Singleton.SceneManager.LoadScene("BalloonTag", LoadSceneMode.Single);
+                currentGameState = MinigameScene.BalloonTag;
+                break;
+            case MinigameScene.BalloonTag:
+                NetworkManager.Singleton.SceneManager.LoadScene("Scoreboard", LoadSceneMode.Single);
+                currentGameState = MinigameScene.Scoreboard;
+                break;
             case MinigameScene.Scoreboard:
                 if (previousGameState == MinigameScene.Tag)
                 {
@@ -71,6 +81,11 @@ public class MinigameManager : NetworkBehaviour
                     currentGameState = MinigameScene.FocusFlowTutorial;
                 }
                 else if (previousGameState == MinigameScene.FocusFlow)
+                {
+                    NetworkManager.Singleton.SceneManager.LoadScene("BalloonTagTutorial", LoadSceneMode.Single);
+                    currentGameState = MinigameScene.BalloonTagTutorial;
+                }
+                else if (previousGameState == MinigameScene.BalloonTag)
                 {
                     NetworkManager.Singleton.SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
                     currentGameState = MinigameScene.MainMenu;
