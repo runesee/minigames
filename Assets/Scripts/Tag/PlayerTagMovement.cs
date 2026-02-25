@@ -318,7 +318,7 @@ public class PlayerTagMovement : NetworkBehaviour
         isPunching = attackAction.WasPerformedThisFrame() || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A);
         isPunchingNet.Value = isPunching && isTaggedNet.Value;
         bool wasBoosting = isBoosting;
-        isBoosting = (sprintAction.IsPressed() || PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.B)) && staminaNet.Value >= minStaminaToBoost;
+        isBoosting = (sprintAction.IsPressed() || PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.RightTrigger)) && staminaNet.Value >= minStaminaToBoost;
         
         if (isBoosting && !wasBoosting) boostAudioSource?.PlayOneShot(boostClip); // Start playing boost audio
         else if (!isBoosting) boostAudioSource?.Stop(); // Stopped boosting, stop current audio
