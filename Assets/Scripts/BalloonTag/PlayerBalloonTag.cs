@@ -236,7 +236,7 @@ public class PlayerBalloonTag : NetworkBehaviour
         float smoothing = 1f - Mathf.Exp(-10f * Time.deltaTime);
         float inputSpeed = Math.Clamp(PlayPulse.Input.Input.Speed, 0f, 1f);
         smoothedPedalSpeed = Mathf.Lerp(smoothedPedalSpeed, inputSpeed, smoothing);
-        float pedalSpeed = USING_PLAYPULSE ? smoothedPedalSpeed : 0.4f;
+        float pedalSpeed = USING_PLAYPULSE ? smoothedPedalSpeed : 0.5f;
         float pedalAnimationSpeed = USING_PLAYPULSE ? 1.6f * pedalSpeed : 1f;
         joystickOffset = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ?
         new Vector3((-1) * PlayPulse.Input.Input.JoystickX, 0, (-1) * PlayPulse.Input.Input.JoystickY) : joystickOffset;
@@ -247,7 +247,7 @@ public class PlayerBalloonTag : NetworkBehaviour
             isSprintingNet.Value = pedalSpeed > sprintSpeedThreshold;
             isWalkingNet.Value = !isSprintingNet.Value;
             isShowingBoostParticlesNet.Value = isSprintingNet.Value;
-            float moveSpeed = 5f * pedalSpeed;
+            float moveSpeed = 6f * pedalSpeed;
 
             Quaternion lastRotation = Quaternion.LookRotation(joystickOffset);
             transform.rotation = Quaternion.Slerp(transform.rotation, lastRotation, 10f * Time.deltaTime);
