@@ -18,6 +18,10 @@ public class PlayerBalloonTag : NetworkBehaviour
     public float minZ = -13f;
     public float maxZ = 12f;
 
+    [Header("Audio settings")]
+    public AudioSource tagAudioSource;
+    public AudioClip tagClip;
+
     private NetworkVariable<bool> isWalkingNet = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
@@ -220,16 +224,12 @@ public class PlayerBalloonTag : NetworkBehaviour
         isPunching = attackAction.WasPerformedThisFrame() || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A);
         isPunchingNet.Value = isPunching;
 
-        if (isPunching && !isFrozen.Value)
+        if (isPunching && NetworkManager.Singleton.ServerTime.FixedTime - lastTagTimeNet.Value > 0.7)
         {
             PlayerBalloonTag target = FindClosestPlayerInRange(2.5f);
+            tagAudioSource?.PlayOneShot(tagClip);
             if (target != null) TagPlayerServerRpc(target.NetworkObjectId);
-        }
-        else if (isFrozen.Value)
-        {
-            double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
-            double timeSinceTagged = serverTime - lastTagTimeNet.Value;
-            if (timeSinceTagged >= 0.7f) UnfreezePlayerServerRpc();
+            else TagServerRpc();
         }
 
         // Handle animations and update position based on input actions
@@ -321,6 +321,13 @@ public class PlayerBalloonTag : NetworkBehaviour
         balloonsNet.Value = new BalloonState(2, color);
     }
 
+    [ClientRpc]
+    private void PlayTagSoundClientRpc()
+    {
+        if (!tagAudioSource.isPlaying) tagAudioSource?.PlayOneShot(tagClip);
+    }
+
+
     /// <summary>
     /// Set targeted player as tagged on server, and disable their movement.
     /// Also update time tagging player has been tagged.
@@ -342,8 +349,18 @@ public class PlayerBalloonTag : NetworkBehaviour
         victim.balloonsNet.Value = victimBalloons;
 
         // Add timediff to current player and prevent tagging again for another .7 seconds
-        this.isFrozen.Value = true;
         this.timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
+        this.lastTagTimeNet.Value = serverTime;
+        PlayTagSoundClientRpc();
+    }
+
+    /// <summary>
+    /// RPC that prevents spamming of tag when NOT hitting a target.
+    /// </summary>
+    [ServerRpc]
+    private void TagServerRpc()
+    {
+        double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
         this.lastTagTimeNet.Value = serverTime;
     }
 
