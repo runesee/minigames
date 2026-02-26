@@ -48,7 +48,7 @@ public class PhaseVisualFeedback : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (mainCircleMaterial != null && originalMainCircleColor != default(Color))
+        if (mainCircleMaterial != null)
         {
             mainCircleMaterial.color = originalMainCircleColor;
         }

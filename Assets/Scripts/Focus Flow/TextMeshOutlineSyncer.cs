@@ -13,9 +13,6 @@ public class TextMeshOutlineSyncer : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (mainTextMesh != null && outlineTextMesh != null)
-        {
-            outlineTextMesh.text = mainTextMesh.text;
-        }
+        outlineTextMesh.text = mainTextMesh.text;
     }
 }

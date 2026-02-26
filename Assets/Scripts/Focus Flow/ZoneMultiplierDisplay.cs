@@ -12,9 +12,6 @@ public class ZoneMultiplierDisplay : MonoBehaviour
 
     private void Start()
     {
-        // SpeedDisplayArea is disabled when the speedometer UI is active.
-        // GameObject.Find does not find inactive objects, so we disable this
-        // component rather than crash.
         GameObject speedDisplayArea = GameObject.Find("SpeedDisplayArea");
         if (speedDisplayArea == null)
         {

@@ -175,10 +175,7 @@ public class FocusFlowGame : NetworkBehaviour
         totalScore += pointsEarned;
         FocusFlowData.LocalInstance.UpdateScoreServerRpc(totalScore);
 
-        if (bonusScoreDisplay != null)
-        {
-            bonusScoreDisplay.ShowBonus(pointsEarned);
-        }
+        bonusScoreDisplay.ShowBonus(pointsEarned);
 
         currentSequencePoints *= 2f;
         UpdateScoreDisplay();
@@ -306,14 +303,11 @@ public class FocusFlowGame : NetworkBehaviour
 
     private void UpdateBonusPosition()
     {
-        if (bonusScoreTransform != null && scoreTextMesh != null)
+        MeshRenderer renderer = scoreTextMesh.GetComponent<MeshRenderer>();
+        if (renderer != null)
         {
-            MeshRenderer renderer = scoreTextMesh.GetComponent<MeshRenderer>();
-            if (renderer != null)
-            {
-                float textWidth = renderer.bounds.size.x;
-                bonusScoreTransform.localPosition = new Vector3(textWidth + 0.3f, 0f, 0f);
-            }
+            float textWidth = renderer.bounds.size.x;
+            bonusScoreTransform.localPosition = new Vector3(textWidth + 0.3f, 0f, 0f);
         }
     }
 }
