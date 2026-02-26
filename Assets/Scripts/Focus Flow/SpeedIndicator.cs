@@ -13,14 +13,13 @@ public class SpeedIndicator : MonoBehaviour
     private const float SprintThreshold = 0.6f;
     private const float IntervalIdealSpeed = 1.0f;
 
-    // Fixed color palette for the rest phase (left → right: too fast → too slow).
     private static readonly Color[] RestZoneColors = new Color[]
     {
-        new Color(0.90f, 0.10f, 0.10f),  // Zone 0 (fast) — red
-        new Color(0.00f, 0.45f, 0.10f),  // Zone 1        — darkest green
-        new Color(0.00f, 0.85f, 0.20f),  // Zone 2        — green
-        new Color(1.00f, 0.90f, 0.00f),  // Zone 3        — yellow
-        new Color(1.00f, 0.50f, 0.00f),  // Zone 4 (slow) — orange
+        new Color(0.90f, 0.10f, 0.10f),
+        new Color(0.00f, 0.45f, 0.10f),
+        new Color(0.00f, 0.85f, 0.20f),
+        new Color(1.00f, 0.90f, 0.00f),
+        new Color(1.00f, 0.50f, 0.00f),
     };
 
     private int currentActiveZone = -1;
@@ -28,10 +27,6 @@ public class SpeedIndicator : MonoBehaviour
     private bool lastKnownIntervalPhase;
     private bool phaseInitialized = false;
 
-    /// <summary>
-    /// Returns the current speed zone index mapped for ScoreMultiplierManager.
-    /// Zone 0 = fastest, Zone 4 = slowest (inverted from internal zone ordering).
-    /// </summary>
     public int GetCurrentZoneIndex()
     {
         return ZoneCount - 1 - currentActiveZone;
@@ -49,7 +44,6 @@ public class SpeedIndicator : MonoBehaviour
             playerSkin.material.color = skinColor;
         }
 
-        // Apply initial zone colors based on the starting phase.
         UpdatePhaseColors();
     }
 
@@ -58,21 +52,17 @@ public class SpeedIndicator : MonoBehaviour
         float normalizedSpeed = ReadNormalizedSpeed();
 
         if (speedometerDisplay != null)
-        {
             speedometerDisplay.SetNormalizedSpeed(normalizedSpeed);
-        }
 
         UpdateAnimator(normalizedSpeed);
-        UpdateZoneHighlight(normalizedSpeed);
+        UpdateActiveZone(normalizedSpeed);
         UpdatePhaseColors();
     }
 
     private float ReadNormalizedSpeed()
     {
         if (multiplierManager != null && multiplierManager.IsTracking)
-        {
             return multiplierManager.GetAverageNormalizedSpeed();
-        }
 
         return Mathf.Clamp(PlayPulse.Input.Input.Speed, 0f, 1f) + 0.3f;
     }
@@ -88,7 +78,7 @@ public class SpeedIndicator : MonoBehaviour
         characterAnimator.SetBool("isSprinting", isSprinting);
     }
 
-    private void UpdateZoneHighlight(float normalizedSpeed)
+    private void UpdateActiveZone(float normalizedSpeed)
     {
         int activeZone = Mathf.Clamp(
             Mathf.FloorToInt(normalizedSpeed * ZoneCount),
@@ -97,15 +87,8 @@ public class SpeedIndicator : MonoBehaviour
         if (activeZone == currentActiveZone) return;
 
         currentActiveZone = activeZone;
-
-        if (speedometerDisplay != null)
-            speedometerDisplay.HighlightZone(currentActiveZone);
     }
 
-    /// <summary>
-    /// Recomputes zone colors whenever the interval/rest phase changes.
-    /// Ideal speed is 1.0 during intervals and 0.3 during rest.
-    /// </summary>
     private void UpdatePhaseColors()
     {
         if (multiplierManager == null || speedometerDisplay == null) return;

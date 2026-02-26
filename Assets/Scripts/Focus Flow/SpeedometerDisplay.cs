@@ -27,7 +27,6 @@ public class SpeedometerDisplay : MonoBehaviour
     private static readonly Color ColorRed    = new Color(0.90f, 0.10f, 0.10f);
 
     private const int ZoneCount = 5;
-    private const float BrightnessMultiplier = 1.8f;
     private const float ArcDepthZ    =  0.00f;
     private const float NeedleDepthZ = -0.05f;
 
@@ -37,7 +36,6 @@ public class SpeedometerDisplay : MonoBehaviour
     private readonly List<Material> allRuntimeMaterials = new List<Material>();
     private readonly List<GameObject> generatedObjects = new List<GameObject>();
     private Transform needlePivot;
-    private int currentActiveZone = -1;
 
     private float minSpeedAngleDeg;
     private float maxSpeedAngleDeg;
@@ -92,7 +90,6 @@ public class SpeedometerDisplay : MonoBehaviour
         allRuntimeMaterials.Clear();
         zoneMaterials = null;
         needlePivot = null;
-        currentActiveZone = -1;
     }
 
     private void Cleanup()
@@ -115,7 +112,6 @@ public class SpeedometerDisplay : MonoBehaviour
 
         zoneMaterials = null;
         needlePivot = null;
-        currentActiveZone = -1;
     }
 
     private void BuildArcSegments()
@@ -276,9 +272,7 @@ public class SpeedometerDisplay : MonoBehaviour
 
         for (int i = 0; i < ZoneCount; i++)
         {
-            zoneMaterials[i].color = (i == currentActiveZone)
-                ? zoneColors[i] * BrightnessMultiplier
-                : zoneColors[i];
+            zoneMaterials[i].color = zoneColors[i];
         }
     }
 
@@ -295,19 +289,6 @@ public class SpeedometerDisplay : MonoBehaviour
         if (needlePivot == null) return;
         float angle = Mathf.Lerp(minSpeedAngleDeg, maxSpeedAngleDeg, normalizedSpeed);
         needlePivot.localRotation = Quaternion.Euler(0f, 0f, angle);
-    }
-
-    public void HighlightZone(int zoneIndex)
-    {
-        if (zoneMaterials == null || zoneIndex == currentActiveZone) return;
-
-        if (currentActiveZone >= 0 && currentActiveZone < ZoneCount)
-            zoneMaterials[currentActiveZone].color = zoneColors[currentActiveZone];
-
-        currentActiveZone = zoneIndex;
-
-        if (currentActiveZone >= 0 && currentActiveZone < ZoneCount)
-            zoneMaterials[currentActiveZone].color = zoneColors[currentActiveZone] * BrightnessMultiplier;
     }
 
     private void OnDestroy()
