@@ -11,9 +11,22 @@ public class SpeedIndicator : MonoBehaviour
     private const int ZoneCount = 5;
     private const float WalkThreshold = 0.1f;
     private const float SprintThreshold = 0.6f;
+    private const float IntervalIdealSpeed = 1.0f;
+
+    // Fixed color palette for the rest phase (left → right: too fast → too slow).
+    private static readonly Color[] RestZoneColors = new Color[]
+    {
+        new Color(0.90f, 0.10f, 0.10f),  // Zone 0 (fast) — red
+        new Color(0.00f, 0.45f, 0.10f),  // Zone 1        — darkest green
+        new Color(0.00f, 0.85f, 0.20f),  // Zone 2        — green
+        new Color(1.00f, 0.90f, 0.00f),  // Zone 3        — yellow
+        new Color(1.00f, 0.50f, 0.00f),  // Zone 4 (slow) — orange
+    };
 
     private int currentActiveZone = -1;
     private Animator characterAnimator;
+    private bool lastKnownIntervalPhase;
+    private bool phaseInitialized = false;
 
     /// <summary>
     /// Returns the current speed zone index mapped for ScoreMultiplierManager.
@@ -35,6 +48,9 @@ public class SpeedIndicator : MonoBehaviour
                 out Color skinColor);
             playerSkin.material.color = skinColor;
         }
+
+        // Apply initial zone colors based on the starting phase.
+        UpdatePhaseColors();
     }
 
     private void Update()
@@ -48,6 +64,7 @@ public class SpeedIndicator : MonoBehaviour
 
         UpdateAnimator(normalizedSpeed);
         UpdateZoneHighlight(normalizedSpeed);
+        UpdatePhaseColors();
     }
 
     private float ReadNormalizedSpeed()
@@ -57,7 +74,7 @@ public class SpeedIndicator : MonoBehaviour
             return multiplierManager.GetAverageNormalizedSpeed();
         }
 
-        return Mathf.Clamp(PlayPulse.Input.Input.Speed, 0f, 1f) + 0.2f;
+        return Mathf.Clamp(PlayPulse.Input.Input.Speed, 0f, 1f);
     }
 
     private void UpdateAnimator(float normalizedSpeed)
@@ -82,8 +99,27 @@ public class SpeedIndicator : MonoBehaviour
         currentActiveZone = activeZone;
 
         if (speedometerDisplay != null)
-        {
             speedometerDisplay.HighlightZone(currentActiveZone);
-        }
+    }
+
+    /// <summary>
+    /// Recomputes zone colors whenever the interval/rest phase changes.
+    /// Ideal speed is 1.0 during intervals and 0.3 during rest.
+    /// </summary>
+    private void UpdatePhaseColors()
+    {
+        if (multiplierManager == null || speedometerDisplay == null) return;
+
+        bool isInterval = multiplierManager.IsIntervalPhase;
+
+        if (phaseInitialized && isInterval == lastKnownIntervalPhase) return;
+
+        lastKnownIntervalPhase = isInterval;
+        phaseInitialized = true;
+
+        if (isInterval)
+            speedometerDisplay.UpdateZoneColors(IntervalIdealSpeed);
+        else
+            speedometerDisplay.SetZoneColors(RestZoneColors);
     }
 }

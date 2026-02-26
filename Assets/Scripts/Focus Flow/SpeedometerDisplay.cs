@@ -22,24 +22,17 @@ public class SpeedometerDisplay : MonoBehaviour
     [SerializeField] private float needleBaseWidth = 0.025f;
     [SerializeField] private Color needleColor = Color.white;
 
-    [Header("Zone Colors")]
-    [Tooltip("Index 0 = minimum speed (green), index 4 = maximum speed (red).")]
-    [SerializeField]
-    private Color[] zoneColors = new Color[]
-    {
-        new Color(0.00f, 0.80f, 0.20f),
-        new Color(0.55f, 0.90f, 0.10f),
-        new Color(1.00f, 0.85f, 0.00f),
-        new Color(1.00f, 0.45f, 0.00f),
-        new Color(0.90f, 0.10f, 0.10f),
-    };
+    private static readonly Color ColorGreen  = new Color(0.00f, 0.85f, 0.20f);
+    private static readonly Color ColorYellow = new Color(1.00f, 0.90f, 0.00f);
+    private static readonly Color ColorRed    = new Color(0.90f, 0.10f, 0.10f);
 
     private const int ZoneCount = 5;
     private const float BrightnessMultiplier = 1.8f;
-    // Local Z offsets so each layer renders cleanly in front of the one behind it.
-    // Negative Z = closer to the camera (which is at world Z = -10).
-    private const float ArcDepthZ = 0.00f;
+    private const float ArcDepthZ    =  0.00f;
     private const float NeedleDepthZ = -0.05f;
+
+    // Runtime zone colors computed from ideal speed — not serialized.
+    private Color[] zoneColors;
 
     private Material[] zoneMaterials;
     private readonly List<Material> allRuntimeMaterials = new List<Material>();
@@ -49,6 +42,12 @@ public class SpeedometerDisplay : MonoBehaviour
 
     private float minSpeedAngleDeg;
     private float maxSpeedAngleDeg;
+
+    // Cached colors so Rebuild() can re-apply whichever palette was last active.
+    private Color[] lastAppliedColors;
+
+    // Cached so Rebuild() can immediately re-apply colors if it fires during Play Mode.
+    private float lastIdealSpeed = -1f;
 
     private void OnEnable()
     {
@@ -66,8 +65,10 @@ public class SpeedometerDisplay : MonoBehaviour
     {
         UnityEditor.EditorApplication.delayCall += () =>
         {
-            if (this != null && isActiveAndEnabled)
-                Rebuild();
+            // Never rebuild during Play Mode — Start() sets phase colors after OnEnable,
+            // and a delayed Rebuild would wipe them before Update() re-detects the phase.
+            if (this == null || !isActiveAndEnabled || Application.isPlaying) return;
+            Rebuild();
         };
     }
 #endif
@@ -81,6 +82,10 @@ public class SpeedometerDisplay : MonoBehaviour
 
         BuildArcSegments();
         BuildNeedle();
+
+        // Re-apply whichever palette was active before this Rebuild fired.
+        if (Application.isPlaying && lastAppliedColors != null)
+            SetZoneColors(lastAppliedColors);
     }
 
     private void DestroyAllChildren()
@@ -126,12 +131,16 @@ public class SpeedometerDisplay : MonoBehaviour
         float degreesPerZone = totalArcDegrees / ZoneCount;
         float halfGap = zoneGapDegrees / 2f;
 
+        zoneColors    = new Color[ZoneCount];
         zoneMaterials = new Material[ZoneCount];
 
         for (int i = 0; i < ZoneCount; i++)
         {
+            // Neutral gray until UpdateZoneColors is called with the current phase.
+            zoneColors[i] = Color.gray;
+
             float segStart = minSpeedAngleDeg - i * degreesPerZone + halfGap;
-            float segEnd = minSpeedAngleDeg - (i + 1) * degreesPerZone - halfGap;
+            float segEnd   = minSpeedAngleDeg - (i + 1) * degreesPerZone - halfGap;
 
             GameObject segObj = new GameObject($"SpeedometerZone_{i}");
             segObj.transform.SetParent(transform, false);
@@ -142,10 +151,8 @@ public class SpeedometerDisplay : MonoBehaviour
             MeshRenderer mr = segObj.AddComponent<MeshRenderer>();
             mf.sharedMesh = BuildArcMesh(segStart, segEnd, innerRadius, outerRadius, arcSubdivisions);
 
-            Color baseColor = i < zoneColors.Length ? zoneColors[i] : Color.white;
-            Material mat = CreateMaterial(baseColor);
+            Material mat = CreateMaterial(Color.gray);
             mr.sharedMaterial = mat;
-
             zoneMaterials[i] = mat;
         }
     }
@@ -280,6 +287,70 @@ public class SpeedometerDisplay : MonoBehaviour
 
         allRuntimeMaterials.Add(mat);
         return mat;
+    }
+
+    /// <summary>
+    /// Recomputes zone colors based on distance from idealSpeed (used for the interval gradient).
+    /// Green = closest zone, red = farthest zone, yellow in between.
+    /// </summary>
+    public void UpdateZoneColors(float idealSpeed)
+    {
+        if (zoneMaterials == null) return;
+
+        lastIdealSpeed = idealSpeed;
+
+        float maxDistance = 0f;
+        for (int i = 0; i < ZoneCount; i++)
+        {
+            float centre = (i + 0.5f) / ZoneCount;
+            maxDistance = Mathf.Max(maxDistance, Mathf.Abs(centre - idealSpeed));
+        }
+
+        for (int i = 0; i < ZoneCount; i++)
+        {
+            float centre = (i + 0.5f) / ZoneCount;
+            float distance = Mathf.Abs(centre - idealSpeed);
+            float t = maxDistance > 0f ? distance / maxDistance : 0f;
+            zoneColors[i] = EvaluateDistanceColor(t);
+        }
+
+        ApplyZoneColors();
+    }
+
+    /// <summary>
+    /// Directly assigns per-zone colors (index 0 = leftmost arc zone, index 4 = rightmost).
+    /// Use this for fixed palettes that don't follow a distance gradient.
+    /// </summary>
+    public void SetZoneColors(Color[] colors)
+    {
+        if (zoneMaterials == null || colors == null) return;
+
+        for (int i = 0; i < ZoneCount && i < colors.Length; i++)
+            zoneColors[i] = colors[i];
+
+        ApplyZoneColors();
+    }
+
+    private void ApplyZoneColors()
+    {
+        lastAppliedColors = (Color[])zoneColors.Clone();
+
+        for (int i = 0; i < ZoneCount; i++)
+        {
+            if (zoneMaterials[i] == null) continue;
+            zoneMaterials[i].color = (i == currentActiveZone)
+                ? zoneColors[i] * BrightnessMultiplier
+                : zoneColors[i];
+        }
+    }
+
+    /// <summary>Maps normalised distance [0=ideal, 1=farthest] to a green→yellow→red gradient.</summary>
+    private static Color EvaluateDistanceColor(float t)
+    {
+        t = Mathf.Clamp01(t);
+        return t < 0.5f
+            ? Color.Lerp(ColorGreen,  ColorYellow, t * 2f)
+            : Color.Lerp(ColorYellow, ColorRed,   (t - 0.5f) * 2f);
     }
 
     public void SetNormalizedSpeed(float normalizedSpeed)
