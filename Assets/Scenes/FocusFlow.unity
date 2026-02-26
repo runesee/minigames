@@ -905,6 +905,8 @@ MonoBehaviour:
   defaultMaterial: {fileID: 2100000, guid: d2d3b1db5b82144d5aaab11b40549cbf, type: 2}
   litMaterial: {fileID: 2100000, guid: 6b0f2306b4a17440780a09ca80326448, type: 2}
   redRingMaterial: {fileID: 2100000, guid: d125d6cb0a31c4441a40c446e7016d6d, type: 2}
+  buttonSound: {fileID: 0}
+  audioSource: {fileID: 0}
 --- !u!114 &277944485
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1749,6 +1751,8 @@ MonoBehaviour:
   defaultMaterial: {fileID: 2100000, guid: d2d3b1db5b82144d5aaab11b40549cbf, type: 2}
   litMaterial: {fileID: 2100000, guid: 3176e70f67dec47688e5ccd103299f01, type: 2}
   redRingMaterial: {fileID: 2100000, guid: d125d6cb0a31c4441a40c446e7016d6d, type: 2}
+  buttonSound: {fileID: 0}
+  audioSource: {fileID: 0}
 --- !u!114 &1001543332
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3260,6 +3264,8 @@ MonoBehaviour:
   defaultMaterial: {fileID: 2100000, guid: d2d3b1db5b82144d5aaab11b40549cbf, type: 2}
   litMaterial: {fileID: 2100000, guid: e1e620b594a874184809a58d4bc1b28e, type: 2}
   redRingMaterial: {fileID: 2100000, guid: d125d6cb0a31c4441a40c446e7016d6d, type: 2}
+  buttonSound: {fileID: 0}
+  audioSource: {fileID: 0}
 --- !u!114 &1458282864
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4105,6 +4111,8 @@ MonoBehaviour:
   defaultMaterial: {fileID: 2100000, guid: d2d3b1db5b82144d5aaab11b40549cbf, type: 2}
   litMaterial: {fileID: 2100000, guid: 040024300c36c4e57974a9cdd73eea60, type: 2}
   redRingMaterial: {fileID: 2100000, guid: d125d6cb0a31c4441a40c446e7016d6d, type: 2}
+  buttonSound: {fileID: 0}
+  audioSource: {fileID: 0}
 --- !u!114 &1690573579
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8962,13 +8970,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1733685585}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: -10, y: 9, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!1001 &1742682781
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14553,13 +14561,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1983560927}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 10, y: 9, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!1001 &2081761129
 PrefabInstance:
   m_ObjectHideFlags: 0
