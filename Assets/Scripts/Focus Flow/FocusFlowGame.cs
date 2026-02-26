@@ -226,7 +226,7 @@ public class FocusFlowGame : NetworkBehaviour
         }
         else
         {
-            scoreObject.transform.position = new Vector3(-5f, -2f, -1f);
+            scoreObject.transform.position = new Vector3(-10f, -3.5f, -1f);
         }
 
         scoreTextMesh = scoreObject.AddComponent<TextMesh>();
