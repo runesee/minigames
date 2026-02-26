@@ -137,7 +137,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!23 &23730328
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1141,6 +1141,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpeedIndicator
   multiplierManager: {fileID: 1070814576}
+  speedometerDisplay: {fileID: 0}
   playerSkin: {fileID: 523095379}
 --- !u!137 &523095379 stripped
 SkinnedMeshRenderer:
@@ -1583,6 +1584,82 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &881380469
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 881380472}
+  - component: {fileID: 881380471}
+  - component: {fileID: 881380470}
+  m_Layer: 0
+  m_Name: SpeedometerHost
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &881380470
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 881380469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a88828b2c10fa4d15bea42288e3b6bc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpeedIndicator
+  multiplierManager: {fileID: 1070814576}
+  speedometerDisplay: {fileID: 881380471}
+  playerSkin: {fileID: 0}
+--- !u!114 &881380471
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 881380469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ec387594e9234e5d9cef0538831429a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpeedometerDisplay
+  innerRadius: 6.5
+  outerRadius: 7.8
+  totalArcDegrees: 240
+  arcCenterAngleDeg: 90
+  arcSubdivisions: 24
+  zoneGapDegrees: 3
+  needleLength: 6
+  needleBaseWidth: 0.3
+  hubRadius: 0.45
+  needleColor: {r: 1, g: 1, b: 1, a: 1}
+  zoneColors:
+  - {r: 0, g: 0.8, b: 0.2, a: 1}
+  - {r: 0.55, g: 0.9, b: 0.1, a: 1}
+  - {r: 1, g: 0.85, b: 0, a: 1}
+  - {r: 1, g: 0.45, b: 0, a: 1}
+  - {r: 0.9, g: 0.1, b: 0.1, a: 1}
+--- !u!4 &881380472
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 881380469}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 8.65, y: 2.27, z: 4.4}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &899322971
 GameObject:
   m_ObjectHideFlags: 0
@@ -2158,7 +2235,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ScoreMultiplierManager
   intervalTimer: {fileID: 1070814573}
-  speedIndicator: {fileID: 523095378}
+  speedIndicator: {fileID: 881380470}
 --- !u!114 &1070814577
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14744,3 +14821,4 @@ SceneRoots:
   - {fileID: 1276430572}
   - {fileID: 1733685589}
   - {fileID: 1983560931}
+  - {fileID: 881380472}
