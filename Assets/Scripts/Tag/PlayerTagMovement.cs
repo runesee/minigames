@@ -287,20 +287,8 @@ public class PlayerTagMovement : NetworkBehaviour
     private void Update()
     {
         if (TagGameState.Instance != null && TagGameState.Instance.gameState.Value != GameState.Running) return;
-
-        // Attempt to change gears if user presses right or left trigger
-        if (USING_PLAYPULSE)
-        {
-            float deltaResistance = PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.RightTrigger) ? 0.2f : -0.2f;
-            if (PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.RightTrigger)
-            || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.LeftTrigger))
-            {
-                pedalResistance = Math.Clamp(pedalResistance + deltaResistance, 0.0f, 1.0f);
-                PlayPulse.Input.Input.ResistanceSetPoint = pedalResistance;
-            }
-        }
-
         if (!IsOwner) return;
+        
         double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
         if (isHitNet.Value)
         {
