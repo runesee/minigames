@@ -333,7 +333,7 @@ public class GameResultsUI : NetworkBehaviour
             
             string playerName = results[i].nickname.Value;
             double score = results[i].score;
-            string time = MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag ? score.ToString("F2") : score.ToString();
+            string time = MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag ? score.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "s" : score.ToString();
             
             if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag)
             {
