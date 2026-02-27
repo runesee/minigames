@@ -66,7 +66,8 @@ public class TaggedPlayerVisualizer : NetworkBehaviour
         
         if (IsOwner)
         {
-            UnityEngine.ColorUtility.TryParseHtmlString(PlayerPrefs.GetString("Color"), out var skinColor);
+            var data = LocalPlayerStorage.Load();
+            UnityEngine.ColorUtility.TryParseHtmlString(data.color, out var skinColor);
             glowColorNet.Value = skinColor;
         }
 

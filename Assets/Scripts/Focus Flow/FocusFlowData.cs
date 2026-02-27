@@ -31,14 +31,12 @@ public class FocusFlowData : NetworkBehaviour
     {
         if (IsOwner)
         {
+            var data = LocalPlayerStorage.Load();
             LocalInstance = this;
             // Save player data for scoreboard handover
-            string color = PlayerPrefs.GetString("Color");
-            string nickname = PlayerPrefs.GetString("Username");
-            string guid = PlayerPrefs.GetString("Guid");
-            UpdateColorServerRpc(color);
-            UpdateNicknameServerRpc(nickname);
-            UpdateGuidServerRpc(guid);
+            UpdateColorServerRpc(data.color);
+            UpdateNicknameServerRpc(data.nickname);
+            UpdateGuidServerRpc(data.guid);
         }
     }
 

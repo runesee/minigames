@@ -20,6 +20,12 @@ public class PlayerTagMovement : NetworkBehaviour
     public float minZ = -13f;
     public float maxZ = 12f;
 
+    [Header("Audio settings")]
+    public AudioSource tagAudioSource;
+    public AudioSource boostAudioSource;
+    public AudioClip tagClip;
+    public AudioClip boostClip;
+
     private NetworkVariable<bool> isWalkingNet = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
@@ -168,19 +174,26 @@ public class PlayerTagMovement : NetworkBehaviour
         colorNet.OnValueChanged += OnSkinColorChanged;
         isShowingBoostParticlesNet.OnValueChanged += OnSprintParticlesChanged;
 
-        // Apply initial player-selected color 
-        string color = IsOwner ? PlayerPrefs.GetString("Color") : colorNet.Value.ToString();
+        // Apply initial player-selected color
+        var data = LocalPlayerStorage.Load();
+        string color = IsOwner ? data.color : colorNet.Value.ToString();
         SetSkinColor(color);
 
         if (IsOwner)
         {
-            // Apply player-selected nickname
-            string nickname = PlayerPrefs.GetString("Username", "Player");
-            string guid = PlayerPrefs.GetString("Guid");
+            // Apply player-selected nickname and color
             UpdateColorServerRpc(color);
-            UpdateNicknameServerRpc(nickname);
-            UpdateGuidServerRpc(guid);
-        } 
+            UpdateNicknameServerRpc(data.nickname);
+            UpdateGuidServerRpc(data.guid);
+        }
+        if (IsHost && IsOwner) StartCoroutine(WaitForPlayerConnect());
+    }
+
+    private System.Collections.IEnumerator WaitForPlayerConnect()
+    {
+        while (NetworkManager.Singleton.ConnectedClientsList.Count < 2 || TagGameState.Instance == null) yield return new WaitForSeconds(0.1f);
+        TagGameState.Instance.SetGameStateServerRpc(GameState.Running);
+        SetInitialTaggedPlayer();
     }
 
     public override void OnNetworkDespawn()
@@ -268,29 +281,7 @@ public class PlayerTagMovement : NetworkBehaviour
         }
         GUILayout.EndArea();
 
-        // Draw menu items
-        GUILayout.BeginArea(new Rect(10, 10, 200, 200));
-        if (GUILayout.Button("Shutdown"))
-        {
-            if (NetworkManager.Singleton.IsHost)
-            {
-                MinigameManager.Instance.TerminateConnection();
-            }
-        }
-
-        if (NetworkManager.Singleton.ConnectedClientsList.Count >= 2 && TagGameState.Instance.gameState.Value == GameState.Idling && NetworkManager.Singleton.IsHost)
-        {
-            if (GUILayout.Button("Start Game"))
-            {
-                TagGameState.Instance.SetGameStateServerRpc(GameState.Running);
-                SetInitialTaggedPlayer();
-            }
-        }
-        GUILayout.EndArea();
-
-        if (IsOwner) {
-            DrawStaminaBar();
-        }
+        if (IsOwner) DrawStaminaBar();
     }
 
     private void Update()
@@ -326,13 +317,17 @@ public class PlayerTagMovement : NetworkBehaviour
         isTaunting = interactAction.IsPressed() || PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.Y);
         isPunching = attackAction.WasPerformedThisFrame() || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A);
         isPunchingNet.Value = isPunching && isTaggedNet.Value;
+        bool wasBoosting = isBoosting;
         isBoosting = (sprintAction.IsPressed() || PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.B)) && staminaNet.Value >= minStaminaToBoost;
+        
+        if (isBoosting && !wasBoosting) boostAudioSource?.PlayOneShot(boostClip); // Start playing boost audio
+        else if (!isBoosting) boostAudioSource?.Stop(); // Stopped boosting, stop current audio
 
         // Set target player as isHit if punched by punching player
         if (isPunching && isTaggedNet.Value)
         {
             PlayerTagMovement target = FindClosestPlayerInRange(2.5f);
-
+            tagAudioSource?.PlayOneShot(tagClip);
             if (target != null)
             {
                 TagPlayerServerRpc(target.NetworkObjectId); // Set target as tagged and hit (can tag others, play animation)
@@ -497,6 +492,13 @@ public class PlayerTagMovement : NetworkBehaviour
         timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
         victim.lastTagTimeNet.Value = serverTime;
         TagGameState.Instance.taggedPlayerIdNet.Value = victimId;
+        PlayTagSoundClientRpc();
+    }
+
+    [ClientRpc]
+    private void PlayTagSoundClientRpc()
+    {
+        if (!tagAudioSource.isPlaying) tagAudioSource?.PlayOneShot(tagClip);
     }
 
     [ClientRpc]

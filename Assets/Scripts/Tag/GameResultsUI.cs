@@ -67,6 +67,17 @@ public class GameResultsUI : NetworkBehaviour
                 StartCoroutine(WaitForRedLightGameState());
             }
         }
+        else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.BalloonTag)
+        {
+            if (BalloonTagGameState.Instance != null)
+            {
+                BalloonTagGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
+            }
+            else
+            {
+                StartCoroutine(WaitForBalloonTagGameState());
+            }
+        }
     }
 
     private System.Collections.IEnumerator WaitForTagGameState()
@@ -87,6 +98,12 @@ public class GameResultsUI : NetworkBehaviour
         RedLightGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
     }
 
+    private System.Collections.IEnumerator WaitForBalloonTagGameState()
+    {
+        while (BalloonTagGameState.Instance == null)  yield return new WaitForSeconds(0.1f);
+        BalloonTagGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
+    }
+
     public override void OnNetworkDespawn()
     {
         if (TagGameState.Instance != null)
@@ -100,6 +117,10 @@ public class GameResultsUI : NetworkBehaviour
         else if (RedLightGameState.Instance != null)
         {
             RedLightGameState.Instance.gameState.OnValueChanged -= OnGameStateChanged;
+        }
+        else if (BalloonTagGameState.Instance != null)
+        {
+            BalloonTagGameState.Instance.gameState.OnValueChanged -= OnGameStateChanged;
         }
     }
 
@@ -211,7 +232,8 @@ public class GameResultsUI : NetworkBehaviour
             {
                 clientId = player.OwnerClientId,
                 score = totalTime,
-                nickname = nickname
+                nickname = nickname,
+                color = player.colorNet.Value
             });
         }
         return results;
@@ -227,7 +249,42 @@ public class GameResultsUI : NetworkBehaviour
             {
                 clientId = data.OwnerClientId,
                 score = data.totalScoreNet.Value,
-                nickname = data.nicknameNet.Value.ToSafeString()
+                nickname = data.nicknameNet.Value.ToSafeString(),
+                color = data.colorNet.Value
+            });
+        }
+        return results;
+    }
+
+    private List<PlayerResult> AddBalloonTagResults(List<PlayerResult> results)
+    {
+        foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
+        {
+            var player = obj.GetComponent<PlayerBalloonTag>();
+            if (player == null) continue;
+            results.Add(new PlayerResult
+            {
+                clientId = player.OwnerClientId,
+                score = player.balloonsNet.Value.count,
+                nickname = player.nicknameNet.Value.ToSafeString(),
+                color = player.colorNet.Value
+            });
+        }
+        return results;
+    }
+
+    private List<PlayerResult> AddRedLightResults(List<PlayerResult> results)
+    {
+        foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
+        {
+            RedLightPlayerMovement player = obj.GetComponent<RedLightPlayerMovement>();
+            if (player == null) continue;
+
+            results.Add(new PlayerResult
+            {
+                clientId = player.OwnerClientId,
+                score = player.distanceTraveledNet.Value,
+                nickname = player.nicknameNet.Value
             });
         }
         return results;
@@ -265,9 +322,13 @@ public class GameResultsUI : NetworkBehaviour
             results = AddRedLightResults(results);
         }
         
+        else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.BalloonTag)
+        {
+            results = AddBalloonTagResults(results);
+        }
         results = results.OrderBy(r => r.score).ToList();
         
-        if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.FocusFlow ||
+        if (MinigameManager.Instance.currentGameState != MinigameManager.MinigameScene.Tag ||
             MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.RedLight)
         {
             results.Reverse();
@@ -288,7 +349,8 @@ public class GameResultsUI : NetworkBehaviour
             if (i >= playerCards.Count) break;
             
             string playerName = results[i].nickname.Value;
-            string time = results[i].score.ToString("F2");
+            double score = results[i].score;
+            string time = MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag ? score.ToString("F2") : score.ToString();
             
             if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag)
             {
@@ -306,8 +368,9 @@ public class GameResultsUI : NetworkBehaviour
             card.gameObject.SetActive(true);
 
             UnityEngine.ColorUtility.TryParseHtmlString(medalColors[i], out var medalColor);
+            UnityEngine.ColorUtility.TryParseHtmlString(results[i].color.Value, out var playerColor);
             card.bonusText.color = medalColor;
-            card.nicknameText.color = medalColor;
+            card.nicknameText.color = playerColor;
             card.bonusText.text = "#" + (1+i).ToString();
             rectTransform.anchoredPosition = new Vector2(0, cardYPositions[i]);
         }
@@ -326,12 +389,14 @@ public class GameResultsUI : NetworkBehaviour
         public ulong clientId;
         public double score;
         public FixedString64Bytes nickname;
+        public FixedString64Bytes color;
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
             serializer.SerializeValue(ref clientId);
             serializer.SerializeValue(ref score);
             serializer.SerializeValue(ref nickname);
+            serializer.SerializeValue(ref color);
         }
     }
 }

@@ -22,6 +22,8 @@ public class MinigameManager : NetworkBehaviour
         FocusFlow,
         RedLightTutorial,
         RedLight
+        BalloonTag,
+        BalloonTagTutorial,
     }
 
     public MinigameScene currentGameState = MinigameScene.MainMenu;
@@ -40,6 +42,7 @@ public class MinigameManager : NetworkBehaviour
         if (!IsHost) return;
         NetworkManager.Singleton.SceneManager.LoadScene("TagTutorial", LoadSceneMode.Single);
         currentGameState = MinigameScene.TagTutorial;
+        MusicManager.Instance?.PlaySong(currentGameState);
     }
 
     // General method called by each scene's GameState class once finished.
@@ -74,6 +77,14 @@ public class MinigameManager : NetworkBehaviour
                 NetworkManager.Singleton.SceneManager.LoadScene("Scoreboard", LoadSceneMode.Single);
                 currentGameState = MinigameScene.Scoreboard;
                 break;
+            case MinigameScene.BalloonTagTutorial:
+                NetworkManager.Singleton.SceneManager.LoadScene("BalloonTag", LoadSceneMode.Single);
+                currentGameState = MinigameScene.BalloonTag;
+                break;
+            case MinigameScene.BalloonTag:
+                NetworkManager.Singleton.SceneManager.LoadScene("Scoreboard", LoadSceneMode.Single);
+                currentGameState = MinigameScene.Scoreboard;
+                break;
             case MinigameScene.Scoreboard:
                 if (previousGameState == MinigameScene.Tag)
                 {
@@ -87,6 +98,11 @@ public class MinigameManager : NetworkBehaviour
                 }
                 else if (previousGameState == MinigameScene.RedLight)
                 {
+                    NetworkManager.Singleton.SceneManager.LoadScene("BalloonTagTutorial", LoadSceneMode.Single);
+                    currentGameState = MinigameScene.BalloonTagTutorial;
+                }
+                else if (previousGameState == MinigameScene.BalloonTag)
+                {
                     NetworkManager.Singleton.SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
                     currentGameState = MinigameScene.MainMenu;
                 }
@@ -97,6 +113,7 @@ public class MinigameManager : NetworkBehaviour
                 currentGameState = MinigameScene.MainMenu;
                 break;
         }
+        MusicManager.Instance?.PlaySong(currentGameState);
     }
 
     public void StartConnection(string ipAddress, ushort portNumber, bool isUserHost)

@@ -32,7 +32,7 @@ public class MainMenuController : MonoBehaviour
 
             GUILayout.Space(10);
             GUILayout.Label("Join Game:");
-            GUILayout.Label("Enter Host IP Address:");  // TODO : Store previous host IP in playerprefs to make it faster to connect when testing/playing
+            GUILayout.Label("Enter Host IP Address:");
             ipAddress = GUILayout.TextField(ipAddress, GUILayout.Width(200));
 
             if (GUILayout.Button("Join as Client", GUILayout.Height(40)))
