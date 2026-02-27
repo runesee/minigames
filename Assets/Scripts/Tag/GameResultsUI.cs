@@ -290,23 +290,6 @@ public class GameResultsUI : NetworkBehaviour
         return results;
     }
 
-    private List<PlayerResult> AddRedLightResults(List<PlayerResult> results)
-    {
-        foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
-        {
-            RedLightPlayerMovement player = obj.GetComponent<RedLightPlayerMovement>();
-            if (player == null) continue;
-
-            results.Add(new PlayerResult
-            {
-                clientId = player.OwnerClientId,
-                score = player.distanceTraveledNet.Value,
-                nickname = player.nicknameNet.Value
-            });
-        }
-        return results;
-    }
-
     private void BuildResultsText()
     {
         if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag)

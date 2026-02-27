@@ -21,7 +21,7 @@ public class MinigameManager : NetworkBehaviour
         FocusFlowTutorial,
         FocusFlow,
         RedLightTutorial,
-        RedLight
+        RedLight,
         BalloonTag,
         BalloonTagTutorial,
     }
