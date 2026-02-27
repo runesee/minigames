@@ -33,6 +33,7 @@ public class GameResultsUI : NetworkBehaviour
     private void Start()
     {
         resultsPanel?.SetActive(false);
+        
         if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag)
         {
             if (TagGameState.Instance != null)
@@ -53,6 +54,17 @@ public class GameResultsUI : NetworkBehaviour
             else
             {
                 StartCoroutine(WaitForFocusFlowGameState());
+            }
+        }
+        else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.RedLight)
+        {
+            if (RedLightGameState.Instance != null)
+            {
+                RedLightGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
+            }
+            else
+            {
+                StartCoroutine(WaitForRedLightGameState());
             }
         }
         else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.BalloonTag)
@@ -80,6 +92,12 @@ public class GameResultsUI : NetworkBehaviour
         FocusFlowGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
     }
 
+    private System.Collections.IEnumerator WaitForRedLightGameState()
+    {
+        while (RedLightGameState.Instance == null) yield return new WaitForSeconds(0.1f);
+        RedLightGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
+    }
+
     private System.Collections.IEnumerator WaitForBalloonTagGameState()
     {
         while (BalloonTagGameState.Instance == null)  yield return new WaitForSeconds(0.1f);
@@ -95,6 +113,10 @@ public class GameResultsUI : NetworkBehaviour
         else if (FocusFlowGameState.Instance != null)
         {
             FocusFlowGameState.Instance.gameState.OnValueChanged -= OnGameStateChanged;
+        }
+        else if (RedLightGameState.Instance != null)
+        {
+            RedLightGameState.Instance.gameState.OnValueChanged -= OnGameStateChanged;
         }
         else if (BalloonTagGameState.Instance != null)
         {
@@ -120,8 +142,9 @@ public class GameResultsUI : NetworkBehaviour
     private void HideResults()
     {
         resultsPanel?.SetActive(false);
-        fireworksLeft?.Stop();
-        fireworksRight?.Stop();
+        
+        if (fireworksLeft != null) fireworksLeft.Stop();
+        if (fireworksRight != null) fireworksRight.Stop();
     }
 
     private IEnumerator ShowResultsWithAnimation()
@@ -133,8 +156,8 @@ public class GameResultsUI : NetworkBehaviour
 
         resultsPanel.SetActive(true);
 
-        fireworksLeft?.Play();
-        fireworksRight?.Play();
+        if (fireworksLeft != null) fireworksLeft.Play();
+        if (fireworksRight != null) fireworksRight.Play();
 
         float elapsed = 0f;
         Vector3 startScale = Vector3.zero;
@@ -250,6 +273,23 @@ public class GameResultsUI : NetworkBehaviour
         return results;
     }
 
+    private List<PlayerResult> AddRedLightResults(List<PlayerResult> results)
+    {
+        foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
+        {
+            RedLightPlayerMovement player = obj.GetComponent<RedLightPlayerMovement>();
+            if (player == null) continue;
+
+            results.Add(new PlayerResult
+            {
+                clientId = player.OwnerClientId,
+                score = player.distanceTraveledNet.Value,
+                nickname = player.nicknameNet.Value
+            });
+        }
+        return results;
+    }
+
     private void BuildResultsText()
     {
         if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag)
@@ -260,12 +300,23 @@ public class GameResultsUI : NetworkBehaviour
         {
             results = AddFocusFlowResults(results);
         }
+        else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.RedLight)
+        {
+            results = AddRedLightResults(results);
+        }
+        
         else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.BalloonTag)
         {
             results = AddBalloonTagResults(results);
         }
         results = results.OrderBy(r => r.score).ToList();
-        if (MinigameManager.Instance.currentGameState != MinigameManager.MinigameScene.Tag) results.Reverse();
+        
+        if (MinigameManager.Instance.currentGameState != MinigameManager.MinigameScene.Tag ||
+            MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.RedLight)
+        {
+            results.Reverse();
+        }
+        
         UpdateCanvas(results);
     }
 
@@ -278,10 +329,20 @@ public class GameResultsUI : NetworkBehaviour
 
         for (int i = 0; i < results.Count; i++)
         {
+            if (i >= playerCards.Count) break;
+            
             string playerName = results[i].nickname.Value;
             double score = results[i].score;
             string time = MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag ? score.ToString("F2") : score.ToString();
-            time = MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag ? time + "s" : time;
+            
+            if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag)
+            {
+                time = time + "s";
+            }
+            else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.RedLight)
+            {
+                time = time + "m";
+            }
 
             var card = playerCards[i];
             card.nicknameText.text = playerName;
