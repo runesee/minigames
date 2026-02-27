@@ -18,8 +18,10 @@ public class MinigameManager : NetworkBehaviour
         Scoreboard,
         TagTutorial,
         Tag,
-        FocusFlow,
         FocusFlowTutorial,
+        FocusFlow,
+        RedLightTutorial,
+        RedLight,
         BalloonTag,
         BalloonTagTutorial,
     }
@@ -59,13 +61,21 @@ public class MinigameManager : NetworkBehaviour
                 NetworkManager.Singleton.SceneManager.LoadScene("Scoreboard", LoadSceneMode.Single);
                 currentGameState = MinigameScene.Scoreboard;
                 break;
+            case MinigameScene.FocusFlowTutorial:
+                NetworkManager.Singleton.SceneManager.LoadScene("FocusFlow", LoadSceneMode.Single);
+                currentGameState = MinigameScene.FocusFlow;
+                break;
             case MinigameScene.FocusFlow:
                 NetworkManager.Singleton.SceneManager.LoadScene("Scoreboard", LoadSceneMode.Single);
                 currentGameState = MinigameScene.Scoreboard;
                 break;
-            case MinigameScene.FocusFlowTutorial:
-                NetworkManager.Singleton.SceneManager.LoadScene("FocusFlow", LoadSceneMode.Single);
-                currentGameState = MinigameScene.FocusFlow;
+            case MinigameScene.RedLightTutorial:
+                NetworkManager.Singleton.SceneManager.LoadScene("RedLight", LoadSceneMode.Single);
+                currentGameState = MinigameScene.RedLight;
+                break;
+            case MinigameScene.RedLight:
+                NetworkManager.Singleton.SceneManager.LoadScene("Scoreboard", LoadSceneMode.Single);
+                currentGameState = MinigameScene.Scoreboard;
                 break;
             case MinigameScene.BalloonTagTutorial:
                 NetworkManager.Singleton.SceneManager.LoadScene("BalloonTag", LoadSceneMode.Single);
@@ -82,6 +92,11 @@ public class MinigameManager : NetworkBehaviour
                     currentGameState = MinigameScene.FocusFlowTutorial;
                 }
                 else if (previousGameState == MinigameScene.FocusFlow)
+                {
+                    NetworkManager.Singleton.SceneManager.LoadScene("RedLightTutorial", LoadSceneMode.Single);
+                    currentGameState = MinigameScene.RedLightTutorial;
+                }
+                else if (previousGameState == MinigameScene.RedLight)
                 {
                     NetworkManager.Singleton.SceneManager.LoadScene("BalloonTagTutorial", LoadSceneMode.Single);
                     currentGameState = MinigameScene.BalloonTagTutorial;
