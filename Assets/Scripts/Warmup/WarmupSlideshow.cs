@@ -1,11 +1,19 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using TMPro;
 
 public class WarmupSlideshow : MonoBehaviour
 {
     [Header("Slides")]
     [Tooltip("Assign all slide root GameObjects in display order.")]
     [SerializeField] private GameObject[] slides;
+
+    [Header("Navigation Arrows")]
+    [SerializeField] private TextMeshProUGUI leftArrow;
+    [SerializeField] private TextMeshProUGUI rightArrow;
+
+    private const float ArrowActiveAlpha = 0.85f;
+    private const float ArrowDimmedAlpha = 0.15f;
 
     private int currentIndex = 0;
 
@@ -87,5 +95,23 @@ public class WarmupSlideshow : MonoBehaviour
         }
 
         currentIndex = index;
+        UpdateArrows();
+    }
+
+    private void UpdateArrows()
+    {
+        if (leftArrow != null)
+        {
+            var c = leftArrow.color;
+            c.a = currentIndex > 0 ? ArrowActiveAlpha : ArrowDimmedAlpha;
+            leftArrow.color = c;
+        }
+
+        if (rightArrow != null)
+        {
+            var c = rightArrow.color;
+            c.a = currentIndex < slides.Length - 1 ? ArrowActiveAlpha : ArrowDimmedAlpha;
+            rightArrow.color = c;
+        }
     }
 }
