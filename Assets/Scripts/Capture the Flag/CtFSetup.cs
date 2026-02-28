@@ -34,11 +34,6 @@ public class CtFSetup : NetworkBehaviour
     {
         for (int i = 0; i < data.Count; i++)
         {
-            playerCards[i].gameObject.SetActive(true);
-            playerCards[i].nicknameText.text = data[i].nickname.ToString();
-            UnityEngine.ColorUtility.TryParseHtmlString(data[i].color.ToString(), out var playerColor);
-            playerCards[i].nicknameText.color = playerColor;
-
             if (i % 2 == 0)
             {
                 if (IsHost) CtFGameState.Instance.greenPrefabs.Add(data[i].Guid);
@@ -54,6 +49,17 @@ public class CtFSetup : NetworkBehaviour
         }
     }
 
+    private void InitializeCanvas(List<SetupData> data)
+    {
+        for (int i = 0; i < data.Count; i++)
+        {
+            playerCards[i].gameObject.SetActive(true);
+            playerCards[i].nicknameText.text = data[i].nickname.ToString();
+            UnityEngine.ColorUtility.TryParseHtmlString(data[i].color.ToString(), out var playerColor);
+            playerCards[i].nicknameText.color = playerColor;
+        }
+    }
+
     private void SpawnPlayer(ulong clientId)
     {
         if (!IsServer) return;
@@ -64,17 +70,24 @@ public class CtFSetup : NetworkBehaviour
 
     private IEnumerator DisplaySetupPanel()
     {
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(1f);
         setupPanel.SetActive(true);
         yield return new WaitForSeconds(8f);
         setupPanel.SetActive(false);
         if (IsServer) foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds) SpawnPlayer(clientId);
     }
 
+    private IEnumerator DelayedUpdateCanvas(List<SetupData> data)
+    {
+        yield return new WaitForSeconds(2f);
+        UpdateCanvas(data.ToList());
+    }
+
     [ClientRpc]
     private void ShowSetupClientRpc(SetupData[] data)
     {
-        UpdateCanvas(data.ToList());
+        InitializeCanvas(data.ToList());
+        StartCoroutine(DelayedUpdateCanvas(data.ToList()));
     }
 
     private struct SetupData : INetworkSerializable
