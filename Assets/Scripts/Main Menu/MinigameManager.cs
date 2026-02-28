@@ -22,6 +22,7 @@ public class MinigameManager : NetworkBehaviour
         FocusFlowTutorial,
         BalloonTag,
         BalloonTagTutorial,
+        CaptureTheFlag,
     }
 
     public MinigameScene currentGameState = MinigameScene.MainMenu;
@@ -78,8 +79,8 @@ public class MinigameManager : NetworkBehaviour
             case MinigameScene.Scoreboard:
                 if (previousGameState == MinigameScene.Tag)
                 {
-                    NetworkManager.Singleton.SceneManager.LoadScene("FocusFlowTutorial", LoadSceneMode.Single);
-                    currentGameState = MinigameScene.FocusFlowTutorial;
+                    NetworkManager.Singleton.SceneManager.LoadScene("CaptureTheFlag", LoadSceneMode.Single);
+                    currentGameState = MinigameScene.CaptureTheFlag;
                 }
                 else if (previousGameState == MinigameScene.FocusFlow)
                 {

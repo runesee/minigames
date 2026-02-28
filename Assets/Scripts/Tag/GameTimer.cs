@@ -2,13 +2,13 @@ using Unity.Netcode;
 using UnityEngine;
 using TMPro;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class GameTimer : NetworkBehaviour
 {
     [Header("Timer Settings")]
     [SerializeField] private float gameDurationInSeconds = 60f;
     [SerializeField] private TextMeshProUGUI timerText;
-    public bool isTag;
 
     private NetworkVariable<float> remainingTime = new NetworkVariable<float>(
         0f,
@@ -42,17 +42,23 @@ public class GameTimer : NetworkBehaviour
 
     private System.Collections.IEnumerator WaitForTagGameState()
     {
-        if (isTag)
+        if (SceneManager.GetActiveScene().name == "TagScene")
         {
             while (TagGameState.Instance == null) yield return new WaitForSeconds(0.1f);
             TagGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
             if (IsServer) OnGameStateChanged(GameState.Initializing, TagGameState.Instance.gameState.Value);
         }
-        else
+        else if (SceneManager.GetActiveScene().name == "BalloonTag")
         {
             while (BalloonTagGameState.Instance == null) yield return new WaitForSeconds(0.1f);
             BalloonTagGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
             if (IsServer) OnGameStateChanged(GameState.Initializing, BalloonTagGameState.Instance.gameState.Value);
+        }
+        else if (SceneManager.GetActiveScene().name == "CaptureTheFlag")
+        {
+            while (CtFGameState.Instance == null) yield return new WaitForSeconds(0.1f);
+            CtFGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
+            if (IsServer) OnGameStateChanged(GameState.Initializing, CtFGameState.Instance.gameState.Value);
         }
     }
 
@@ -61,6 +67,7 @@ public class GameTimer : NetworkBehaviour
         remainingTime.OnValueChanged -= OnRemainingTimeChanged;
         if (TagGameState.Instance != null) TagGameState.Instance.gameState.OnValueChanged -= OnGameStateChanged;
         else if (BalloonTagGameState.Instance != null) BalloonTagGameState.Instance.gameState.OnValueChanged -= OnGameStateChanged;
+        else if (CtFGameState.Instance != null) CtFGameState.Instance.gameState.OnValueChanged -= OnGameStateChanged;
     }
 
     private void Update()
@@ -129,13 +136,18 @@ public class GameTimer : NetworkBehaviour
         {
             BalloonTagGameState.Instance.SetGameStateServerRpc(GameState.Stopped);
         }
+        else if (CtFGameState.Instance != null && IsServer)
+        {
+            CtFGameState.Instance.SetGameStateServerRpc(GameState.Stopped);
+        }
         StartCoroutine(Handover());
     }
 
     private IEnumerator Handover()
     {
         yield return new WaitForSeconds(8f);
-        if(IsHost && isTag) TagGameState.Instance.SetGameStateServerRpc(GameState.Handover);
-        else if (IsHost) BalloonTagGameState.Instance.SetGameStateServerRpc(GameState.Handover);
+        if(IsHost && SceneManager.GetActiveScene().name == "TagScene") TagGameState.Instance.SetGameStateServerRpc(GameState.Handover);
+        else if (IsHost && SceneManager.GetActiveScene().name == "BalloonTag") BalloonTagGameState.Instance.SetGameStateServerRpc(GameState.Handover);
+        else if (IsHost && SceneManager.GetActiveScene().name == "CaptureTheFlag") CtFGameState.Instance.SetGameStateServerRpc(GameState.Handover);
     }
 }
