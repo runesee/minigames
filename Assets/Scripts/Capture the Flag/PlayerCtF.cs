@@ -216,7 +216,7 @@ public class PlayerCtF : NetworkBehaviour
             guidNet.Value,
             nicknameNet.Value,
             colorNet.Value,
-            0, // TODO
+            teamNet.Value,
             lastTagTimeNet.Value
         );
         return playerData;

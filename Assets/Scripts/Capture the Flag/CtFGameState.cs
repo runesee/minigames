@@ -15,27 +15,35 @@ public class CtFGameState : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
+    public NetworkVariable<int> blueScore = new NetworkVariable<int>(
+        0,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+    public NetworkVariable<int> greenScore = new NetworkVariable<int>(
+    0,
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server
+    );
 
-    private readonly float[] scores = { 10f, 6f, 3f, 1f };
+    public readonly float[] scores = { 6f, 6f, 3f, 3f };
     private bool shouldChangeScene = false;
     public List<PlayerData> PlayerDataList = new List<PlayerData>();
-    public List<FixedString64Bytes> greenPrefabs = new List<FixedString64Bytes>();
-    public List<FixedString64Bytes> bluePrefabs = new List<FixedString64Bytes>();
 
     public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
     {
         public FixedString64Bytes Guid;
         public FixedString64Bytes nickname;
         public FixedString64Bytes color;
-        public float balloonCount;
+        public PlayerCtF.Team team;
         public double LastTagTime;
 
-        public PlayerData(FixedString64Bytes Guid, FixedString64Bytes nickname, FixedString64Bytes color, float balloonCount, double LastTagTime)
+        public PlayerData(FixedString64Bytes Guid, FixedString64Bytes nickname, FixedString64Bytes color, PlayerCtF.Team team, double LastTagTime)
         {
             this.Guid = Guid;
             this.nickname = nickname;
             this.color = color;
-            this.balloonCount = balloonCount;
+            this.team = team;
             this.LastTagTime = LastTagTime;
         }
 
@@ -44,7 +52,7 @@ public class CtFGameState : NetworkBehaviour
             this.Guid = Guid;
             this.nickname = "";
             this.color = "";
-            this.balloonCount = 2f;
+            this.team = PlayerCtF.Team.None;
             this.LastTagTime = 0d;
         }
 
@@ -55,7 +63,7 @@ public class CtFGameState : NetworkBehaviour
                 Guid.Equals(other.Guid) && 
                 nickname.Equals(other.nickname) &&
                 color.Equals(other.color) &&
-                balloonCount.Equals(other.balloonCount) &&
+                team.Equals(other.team) &&
                 LastTagTime.Equals(other.LastTagTime)
             );    
         }
@@ -65,7 +73,7 @@ public class CtFGameState : NetworkBehaviour
             serializer.SerializeValue(ref Guid);
             serializer.SerializeValue(ref nickname);
             serializer.SerializeValue(ref color);
-            serializer.SerializeValue(ref balloonCount);
+            serializer.SerializeValue(ref team);
             serializer.SerializeValue(ref LastTagTime);
         }
     }
@@ -106,8 +114,8 @@ public class CtFGameState : NetworkBehaviour
                 PlayerData data = player.GetTagData();
                 this.PlayerDataList.Add(data);
             }
-            var rankedPlayers = PlayerDataList.OrderBy(p => p.balloonCount).ToList();
-            rankedPlayers.Reverse();
+            var rankedPlayers = PlayerDataList.OrderBy(p => p.team.ToString()).ToList();
+            if (greenScore.Value > blueScore.Value) rankedPlayers.Reverse();
             for (int i = 0; i < rankedPlayers.Count; i++)
             {
                 float score = i < scores.Length ? scores[i] : 0f;
