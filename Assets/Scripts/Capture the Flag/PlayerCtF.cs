@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System;
 using Unity.VisualScripting;
-using System.Collections.Generic;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
@@ -390,6 +389,13 @@ public class PlayerCtF : NetworkBehaviour
     public void TeleportClientRpc(Vector3 position)
     {
         rb.position = position;
+    }
+
+    [ClientRpc]
+    public void UpdateScoreTextClientRpc(Team team, int score)
+    {
+        if (team == Team.Green) CtFGameState.Instance.blueScoreText.text = score.ToString();
+        else CtFGameState.Instance.greenScoreText.text = score.ToString();
     }
 
     /// <summary>

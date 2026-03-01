@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using Unity.Collections;
 using Unity.Netcode;
 using Unity.VisualScripting;
@@ -25,7 +26,8 @@ public class CtFGameState : NetworkBehaviour
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Server
     );
-
+    public TMP_Text blueScoreText;
+    public TMP_Text greenScoreText;
     public readonly float[] scores = { 6f, 6f, 3f, 3f };
     private bool shouldChangeScene = false;
     public List<PlayerData> PlayerDataList = new List<PlayerData>();
