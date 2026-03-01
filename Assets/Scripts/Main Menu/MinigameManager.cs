@@ -23,6 +23,7 @@ public class MinigameManager : NetworkBehaviour
         BalloonTag,
         BalloonTagTutorial,
         CaptureTheFlag,
+        CaptureTheFlagTutorial,
     }
 
     public MinigameScene currentGameState = MinigameScene.MainMenu;
@@ -76,10 +77,18 @@ public class MinigameManager : NetworkBehaviour
                 NetworkManager.Singleton.SceneManager.LoadScene("Scoreboard", LoadSceneMode.Single);
                 currentGameState = MinigameScene.Scoreboard;
                 break;
+            case MinigameScene.CaptureTheFlagTutorial:
+                NetworkManager.Singleton.SceneManager.LoadScene("CaptureTheFlag", LoadSceneMode.Single);
+                currentGameState = MinigameScene.CaptureTheFlag;
+                break;
+            case MinigameScene.CaptureTheFlag:
+                NetworkManager.Singleton.SceneManager.LoadScene("Scoreboard", LoadSceneMode.Single);
+                currentGameState = MinigameScene.Scoreboard;
+                break;
             case MinigameScene.Scoreboard:
                 if (previousGameState == MinigameScene.Tag)
                 {
-                    NetworkManager.Singleton.SceneManager.LoadScene("CaptureTheFlag", LoadSceneMode.Single);
+                    NetworkManager.Singleton.SceneManager.LoadScene("CaptureTheFlag", LoadSceneMode.Single); // TODO : reset
                     currentGameState = MinigameScene.CaptureTheFlag;
                 }
                 else if (previousGameState == MinigameScene.FocusFlow)
@@ -88,6 +97,11 @@ public class MinigameManager : NetworkBehaviour
                     currentGameState = MinigameScene.BalloonTagTutorial;
                 }
                 else if (previousGameState == MinigameScene.BalloonTag)
+                {
+                    NetworkManager.Singleton.SceneManager.LoadScene("CaptureTheFlagTutorial", LoadSceneMode.Single);
+                    currentGameState = MinigameScene.CaptureTheFlagTutorial;
+                }
+                else if (previousGameState == MinigameScene.CaptureTheFlag)
                 {
                     NetworkManager.Singleton.SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
                     currentGameState = MinigameScene.MainMenu;
