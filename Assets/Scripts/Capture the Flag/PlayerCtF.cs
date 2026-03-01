@@ -156,6 +156,7 @@ public class PlayerCtF : NetworkBehaviour
     private System.Collections.IEnumerator WaitForPlayerConnect()
     {
         while (NetworkManager.Singleton.ConnectedClientsList.Count < 2 || CtFGameState.Instance == null) yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSeconds(8f);
         CtFGameState.Instance.SetGameStateServerRpc(GameState.Running);
     }
 
@@ -337,6 +338,12 @@ public class PlayerCtF : NetworkBehaviour
     private void UnfreezePlayerServerRpc()
     {
         isFrozen.Value = false;
+    }
+
+    [ClientRpc]
+    public void TeleportClientRpc(Vector3 position)
+    {
+        rb.MovePosition(position);
     }
 
     /// <summary>
