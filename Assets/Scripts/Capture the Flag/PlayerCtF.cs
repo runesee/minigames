@@ -150,19 +150,13 @@ public class PlayerCtF : NetworkBehaviour
             UpdateNicknameServerRpc(data.nickname);
             UpdateGuidServerRpc(data.guid);
         }
-        StartCoroutine(WaitForPlayerConnect());
+        if (IsHost) StartCoroutine(WaitForPlayerConnect());
     }
 
     private System.Collections.IEnumerator WaitForPlayerConnect()
     {
         while (NetworkManager.Singleton.ConnectedClientsList.Count < 2 || CtFGameState.Instance == null) yield return new WaitForSeconds(0.1f);
-        CtFGameState.Instance.SetGameStateServerRpc(GameState.Setup);
-        foreach (var obj in NetworkManager.SpawnManager.SpawnedObjects.Values)
-        {
-            PlayerCtF data = obj.GetComponent<PlayerCtF>();
-        }
-
-
+        CtFGameState.Instance.SetGameStateServerRpc(GameState.Running);
     }
 
     public override void OnNetworkDespawn()

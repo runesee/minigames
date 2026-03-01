@@ -32,17 +32,16 @@ public class CtFSetup : NetworkBehaviour
 
     private void UpdateCanvas(List<SetupData> data)
     {
+        data.Sort((a, b) => string.Compare(a.Guid.ToString(), b.Guid.ToString(), StringComparison.Ordinal));
         for (int i = 0; i < data.Count; i++)
         {
             if (i % 2 == 0)
             {
-                CtFGameState.Instance.greenPrefabs.Add(data[i].Guid); // Each client adds data to their local Instance
                 playerCards[i].teamText.text = "Green";
                 playerCards[i].teamText.color = Color.green;
             } 
             else
             {
-                CtFGameState.Instance.bluePrefabs.Add(data[i].Guid);
                 playerCards[i].teamText.text = "Blue";
                 playerCards[i].teamText.color = Color.blue;
             } 
@@ -51,6 +50,7 @@ public class CtFSetup : NetworkBehaviour
 
     private void InitializeCanvas(List<SetupData> data)
     {
+        data.Sort((a, b) => string.Compare(a.Guid.ToString(), b.Guid.ToString(), StringComparison.Ordinal));
         for (int i = 0; i < data.Count; i++)
         {
             playerCards[i].gameObject.SetActive(true);
@@ -63,7 +63,7 @@ public class CtFSetup : NetworkBehaviour
     private void SpawnPlayer(ulong clientId)
     {
         if (!IsServer) return;
-        GameObject playerInstance = Instantiate(playerPrefab, new Vector3(0f, 1f, 0f), Quaternion.identity);
+        GameObject playerInstance = Instantiate(playerPrefab, new Vector3(0f, -1f, 0f), Quaternion.identity);
         NetworkObject networkObject = playerInstance.GetComponent<NetworkObject>();
         networkObject.SpawnAsPlayerObject(clientId, true);
     }
