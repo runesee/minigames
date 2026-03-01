@@ -10,7 +10,7 @@ using System.Collections.Generic;
 [RequireComponent(typeof(NetworkObject))]
 public class PlayerCtF : NetworkBehaviour
 {
-    [SerializeField] private SkinnedMeshRenderer playerSkinRenderer;
+    [SerializeField] public SkinnedMeshRenderer playerSkinRenderer;
 
     [Header("Map Boundaries")]
     public float minX = -17f;
@@ -89,6 +89,19 @@ public class PlayerCtF : NetworkBehaviour
     private bool USING_PLAYPULSE = false; // Flag for dev/bike movement toggling.
     private readonly float sprintSpeedThreshold = 0.65f;
 
+    public enum Team
+    {
+        None,
+        Green,
+        Blue
+    }
+
+    public NetworkVariable<Team> teamNet = new NetworkVariable<Team>(
+        Team.None,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -123,6 +136,7 @@ public class PlayerCtF : NetworkBehaviour
         // Subscribe to color and sprint particle changes
         colorNet.OnValueChanged += OnSkinColorChanged;
         isShowingBoostParticlesNet.OnValueChanged += OnSprintParticlesChanged;
+        teamNet.OnValueChanged += OnTeamChanged;
 
         // Apply initial player-selected color
         var data = LocalPlayerStorage.Load();
@@ -136,13 +150,19 @@ public class PlayerCtF : NetworkBehaviour
             UpdateNicknameServerRpc(data.nickname);
             UpdateGuidServerRpc(data.guid);
         }
-        if (IsHost) StartCoroutine(WaitForPlayerConnect());
+        StartCoroutine(WaitForPlayerConnect());
     }
 
     private System.Collections.IEnumerator WaitForPlayerConnect()
     {
         while (NetworkManager.Singleton.ConnectedClientsList.Count < 2 || CtFGameState.Instance == null) yield return new WaitForSeconds(0.1f);
-        CtFGameState.Instance.SetGameStateServerRpc(GameState.Running);
+        CtFGameState.Instance.SetGameStateServerRpc(GameState.Setup);
+        foreach (var obj in NetworkManager.SpawnManager.SpawnedObjects.Values)
+        {
+            PlayerCtF data = obj.GetComponent<PlayerCtF>();
+        }
+
+
     }
 
     public override void OnNetworkDespawn()
@@ -161,6 +181,11 @@ public class PlayerCtF : NetworkBehaviour
         if (sprintParticleEffect == null) return;
         if (newValue && !sprintParticleEffect.isPlaying) sprintParticleEffect.Play();
         else if (sprintParticleEffect.isPlaying) sprintParticleEffect.Stop();
+    }
+
+    private void OnTeamChanged(Team previousValue, Team newValue)
+    {
+        playerSkinRenderer.material.color = newValue == Team.Green ? Color.green : Color.blue;
     }
 
     /// <summary>

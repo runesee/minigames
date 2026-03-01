@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +28,6 @@ public class CtFSetup : NetworkBehaviour
                 ));
         }
         ShowSetupClientRpc(this.setupData.ToArray());
-        CtFGameState.Instance.SetGameStateServerRpc(GameState.Setup);
     }
 
     private void UpdateCanvas(List<SetupData> data)
@@ -36,13 +36,13 @@ public class CtFSetup : NetworkBehaviour
         {
             if (i % 2 == 0)
             {
-                if (IsHost) CtFGameState.Instance.greenPrefabs.Add(data[i].Guid);
+                CtFGameState.Instance.greenPrefabs.Add(data[i].Guid); // Each client adds data to their local Instance
                 playerCards[i].teamText.text = "Green";
                 playerCards[i].teamText.color = Color.green;
             } 
             else
             {
-                if (IsHost) CtFGameState.Instance.bluePrefabs.Add(data[i].Guid);
+                CtFGameState.Instance.bluePrefabs.Add(data[i].Guid);
                 playerCards[i].teamText.text = "Blue";
                 playerCards[i].teamText.color = Color.blue;
             } 
@@ -70,11 +70,19 @@ public class CtFSetup : NetworkBehaviour
 
     private IEnumerator DisplaySetupPanel()
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(1.5f);
         setupPanel.SetActive(true);
+        if (IsServer) foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds) SpawnPlayer(clientId);
         yield return new WaitForSeconds(8f);
         setupPanel.SetActive(false);
-        if (IsServer) foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds) SpawnPlayer(clientId);
+        if (IsServer) AssignTeamsServer();
+    }
+
+    private void AssignTeamsServer()
+    {
+        var players = NetworkManager.Singleton.SpawnManager.SpawnedObjectsList.Select(obj => obj.GetComponent<PlayerCtF>()).Where(p => p != null).ToList();
+        players.Sort((a, b) => string.Compare(a.guidNet.Value.ToString(), b.guidNet.Value.ToString(), StringComparison.Ordinal));
+        for (int i = 0; i < players.Count; i++) players[i].teamNet.Value = (i % 2 == 0) ? PlayerCtF.Team.Green : PlayerCtF.Team.Blue;
     }
 
     private IEnumerator DelayedUpdateCanvas(List<SetupData> data)
