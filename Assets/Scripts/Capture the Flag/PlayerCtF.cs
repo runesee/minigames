@@ -43,6 +43,11 @@ public class PlayerCtF : NetworkBehaviour
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Server
     );
+    private NetworkVariable<bool> isRespawning = new NetworkVariable<bool>(
+    false,
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server
+    );
     private NetworkVariable<bool> isShowingBoostParticlesNet = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
@@ -57,6 +62,11 @@ public class PlayerCtF : NetworkBehaviour
         0,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
+    );
+    public NetworkVariable<double> lastRespawnTimeNet = new NetworkVariable<double>(
+    0,
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server
     );
     public NetworkVariable<FixedString64Bytes> colorNet = new NetworkVariable<FixedString64Bytes>(
     "#D6877F",
@@ -73,8 +83,14 @@ public class PlayerCtF : NetworkBehaviour
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Server
     );
+    public NetworkVariable<Team> teamNet = new NetworkVariable<Team>(
+    Team.None,
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server
+    );
 
     public ParticleSystem sprintParticleEffect;
+    public Team? currentZone;
     private InputAction attackAction;
     private InputAction moveAction;
     private InputAction sprintAction;
@@ -95,12 +111,6 @@ public class PlayerCtF : NetworkBehaviour
         Green,
         Blue
     }
-
-    public NetworkVariable<Team> teamNet = new NetworkVariable<Team>(
-        Team.None,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
 
     private void Awake()
     {
@@ -193,6 +203,13 @@ public class PlayerCtF : NetworkBehaviour
         playerSkinRenderer.material.color = skinColor;
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!IsServer) return;
+        var zone = other.GetComponent<TeamZone>();
+        currentZone = zone?.team;
+    }
+
     public CtFGameState.PlayerData GetTagData()
     {
         CtFGameState.PlayerData playerData = new CtFGameState.PlayerData(
@@ -209,6 +226,9 @@ public class PlayerCtF : NetworkBehaviour
     {
         if (CtFGameState.Instance != null && CtFGameState.Instance.gameState.Value != GameState.Running) return;
         if (!IsOwner) return;
+        double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
+        if (serverTime - lastRespawnTimeNet.Value >= 3f && isFrozen.Value && IsOwner) RespawnPlayerServerRpc();
+        else if (isFrozen.Value) return;
 
         // Parse InputInteractions
         Vector2 input = moveAction.ReadValue<Vector2>();
@@ -226,7 +246,6 @@ public class PlayerCtF : NetworkBehaviour
         }
         else if (isFrozen.Value)
         {
-            double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
             double timeSinceTagged = serverTime - lastTagTimeNet.Value;
             if (timeSinceTagged >= 0.7f) UnfreezePlayerServerRpc();
         }
@@ -245,7 +264,7 @@ public class PlayerCtF : NetworkBehaviour
             isSprintingNet.Value = pedalSpeed > sprintSpeedThreshold;
             isWalkingNet.Value = !isSprintingNet.Value;
             isShowingBoostParticlesNet.Value = isSprintingNet.Value;
-            float moveSpeed = 5f * pedalSpeed;
+            float moveSpeed = 25f * pedalSpeed;
 
             Quaternion lastRotation = Quaternion.LookRotation(joystickOffset);
             transform.rotation = Quaternion.Slerp(transform.rotation, lastRotation, 10f * Time.deltaTime);
@@ -325,6 +344,14 @@ public class PlayerCtF : NetworkBehaviour
         double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
         var victim = NetworkManager.Singleton.SpawnManager.SpawnedObjects[victimId].GetComponent<PlayerCtF>();
 
+        if (this.currentZone == this.teamNet.Value && victim.currentZone.Value == this.teamNet.Value)
+        {
+            victim.TeleportClientRpc(new Vector3(victim.teamNet.Value == Team.Blue ? -34.5f : 34.5f, victim.rb.position.y, victim.rb.position.z));
+            victim.isRespawning.Value = true;
+            victim.lastRespawnTimeNet.Value = serverTime;
+        }
+        if (IsOwner) StopAnimationsClientRpc();
+
         // Add timediff to current player and prevent tagging again for another .7 seconds
         this.isFrozen.Value = true;
         this.timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
@@ -340,10 +367,29 @@ public class PlayerCtF : NetworkBehaviour
         isFrozen.Value = false;
     }
 
+    /// <summary>
+    /// Re-enable user actions after freeze period.
+    /// </summary>
+    [ServerRpc]
+    private void RespawnPlayerServerRpc()
+    {
+        isRespawning.Value = false;
+    }
+
+    [ClientRpc]
+    void StopAnimationsClientRpc()
+    {
+        if (!IsOwner) return;
+        isWalkingNet.Value = false;
+        isSprintingNet.Value = false;
+        isTauntingNet.Value = false;
+        isPunchingNet.Value = false;
+    }
+
     [ClientRpc]
     public void TeleportClientRpc(Vector3 position)
     {
-        rb.MovePosition(position);
+        rb.position = position;
     }
 
     /// <summary>
