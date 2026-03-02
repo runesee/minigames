@@ -32,12 +32,13 @@ public class WarmupSpeedSlope : MonoBehaviour
     {
         public RectTransform rectTransform;
         public float pointsMultiplier;
+        public float minSpeed;
+        public float maxSpeed;
     }
 
     private readonly List<SegmentInstance> activeSegments = new();
     private int nextPatternIndex;
     private float containerWidth;
-    private float containerHeight;
 
     private void Awake()
     {
@@ -49,7 +50,6 @@ public class WarmupSpeedSlope : MonoBehaviour
     {
         Canvas.ForceUpdateCanvases();
         containerWidth = container.rect.width;
-        containerHeight = container.rect.height;
 
         float fillX = 0f;
         while (fillX < containerWidth + 500f)
@@ -63,12 +63,11 @@ public class WarmupSpeedSlope : MonoBehaviour
     private void Update()
     {
         containerWidth = container.rect.width;
-        containerHeight = container.rect.height;
 
         float delta = scrollSpeed * Time.deltaTime;
 
         foreach (var seg in activeSegments)
-            seg.rectTransform.anchoredPosition = new Vector2(seg.rectTransform.anchoredPosition.x - delta, seg.rectTransform.anchoredPosition.y);
+            seg.rectTransform.anchoredPosition = new Vector2(seg.rectTransform.anchoredPosition.x - delta, 0f);
 
         while (activeSegments.Count > 0 &&
                activeSegments[0].rectTransform.anchoredPosition.x + activeSegments[0].rectTransform.sizeDelta.x < 0f)
@@ -94,8 +93,8 @@ public class WarmupSpeedSlope : MonoBehaviour
             float right = left + seg.rectTransform.sizeDelta.x;
             if (left <= 0f && right > 0f)
             {
-                minSpeed = containerHeight > 0f ? seg.rectTransform.anchoredPosition.y / containerHeight : 0f;
-                maxSpeed = containerHeight > 0f ? minSpeed + seg.rectTransform.sizeDelta.y / containerHeight : 0f;
+                minSpeed         = seg.minSpeed;
+                maxSpeed         = seg.maxSpeed;
                 pointsMultiplier = seg.pointsMultiplier;
                 return true;
             }
@@ -123,17 +122,25 @@ public class WarmupSpeedSlope : MonoBehaviour
         go.transform.SetSiblingIndex(0);
 
         var rt = go.GetComponent<RectTransform>();
-        rt.anchorMin = Vector2.zero;
-        rt.anchorMax = Vector2.zero;
-        rt.pivot = Vector2.zero;
-        rt.sizeDelta = new Vector2(data.widthUnits, (data.maxSpeed - data.minSpeed) * containerHeight);
-        rt.anchoredPosition = new Vector2(x, data.minSpeed * containerHeight);
+        // Y is driven by anchors so the segment always sits at the correct proportional
+        // height regardless of when containerHeight was last sampled.
+        rt.anchorMin        = new Vector2(0f, data.minSpeed);
+        rt.anchorMax        = new Vector2(0f, data.maxSpeed);
+        rt.pivot            = Vector2.zero;
+        rt.sizeDelta        = new Vector2(data.widthUnits, 0f);
+        rt.anchoredPosition = new Vector2(x, 0f);
 
         var img = go.AddComponent<Image>();
-        img.color = data.color;
+        img.color         = data.color;
         img.raycastTarget = false;
 
-        activeSegments.Add(new SegmentInstance { rectTransform = rt, pointsMultiplier = data.pointsMultiplier });
+        activeSegments.Add(new SegmentInstance
+        {
+            rectTransform    = rt,
+            pointsMultiplier = data.pointsMultiplier,
+            minSpeed         = data.minSpeed,
+            maxSpeed         = data.maxSpeed,
+        });
     }
 
     private static SlopeSegmentData[] BuildDefaultPattern() => new SlopeSegmentData[]
