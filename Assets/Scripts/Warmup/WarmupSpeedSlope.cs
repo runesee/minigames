@@ -10,6 +10,7 @@ public struct SlopeSegmentData
     public float maxSpeed;
     public float widthUnits;
     public Color color;
+    public float pointsMultiplier;
 }
 
 public class WarmupSpeedSlope : MonoBehaviour
@@ -27,7 +28,13 @@ public class WarmupSpeedSlope : MonoBehaviour
     private static readonly Color ColorInterval = new(1.0f, 0.60f, 0.1f, 0.6f);
     private static readonly Color ColorSprint = new(1.0f, 0.25f, 0.25f, 0.6f);
 
-    private readonly List<RectTransform> activeSegments = new();
+    private struct SegmentInstance
+    {
+        public RectTransform rectTransform;
+        public float pointsMultiplier;
+    }
+
+    private readonly List<SegmentInstance> activeSegments = new();
     private int nextPatternIndex;
     private float containerWidth;
     private float containerHeight;
@@ -60,13 +67,13 @@ public class WarmupSpeedSlope : MonoBehaviour
 
         float delta = scrollSpeed * Time.deltaTime;
 
-        foreach (var rt in activeSegments)
-            rt.anchoredPosition = new Vector2(rt.anchoredPosition.x - delta, rt.anchoredPosition.y);
+        foreach (var seg in activeSegments)
+            seg.rectTransform.anchoredPosition = new Vector2(seg.rectTransform.anchoredPosition.x - delta, seg.rectTransform.anchoredPosition.y);
 
         while (activeSegments.Count > 0 &&
-               activeSegments[0].anchoredPosition.x + activeSegments[0].sizeDelta.x < 0f)
+               activeSegments[0].rectTransform.anchoredPosition.x + activeSegments[0].rectTransform.sizeDelta.x < 0f)
         {
-            Destroy(activeSegments[0].gameObject);
+            Destroy(activeSegments[0].rectTransform.gameObject);
             activeSegments.RemoveAt(0);
         }
 
@@ -79,11 +86,29 @@ public class WarmupSpeedSlope : MonoBehaviour
         }
     }
 
+    public bool TryGetCurrentTarget(out float minSpeed, out float maxSpeed, out float pointsMultiplier)
+    {
+        foreach (var seg in activeSegments)
+        {
+            float left = seg.rectTransform.anchoredPosition.x;
+            float right = left + seg.rectTransform.sizeDelta.x;
+            if (left <= 0f && right > 0f)
+            {
+                minSpeed = containerHeight > 0f ? seg.rectTransform.anchoredPosition.y / containerHeight : 0f;
+                maxSpeed = containerHeight > 0f ? minSpeed + seg.rectTransform.sizeDelta.y / containerHeight : 0f;
+                pointsMultiplier = seg.pointsMultiplier;
+                return true;
+            }
+        }
+        minSpeed = maxSpeed = pointsMultiplier = 0f;
+        return false;
+    }
+
     private float GetRightmostX()
     {
         if (activeSegments.Count == 0) return 0f;
         var last = activeSegments[activeSegments.Count - 1];
-        return last.anchoredPosition.x + last.sizeDelta.x;
+        return last.rectTransform.anchoredPosition.x + last.rectTransform.sizeDelta.x;
     }
 
     private void SpawnSegmentAt(float x)
@@ -95,7 +120,6 @@ public class WarmupSpeedSlope : MonoBehaviour
         go.layer = container.gameObject.layer;
         go.AddComponent<RectTransform>();
         go.transform.SetParent(container, false);
-
         go.transform.SetSiblingIndex(0);
 
         var rt = go.GetComponent<RectTransform>();
@@ -109,18 +133,18 @@ public class WarmupSpeedSlope : MonoBehaviour
         img.color = data.color;
         img.raycastTarget = false;
 
-        activeSegments.Add(rt);
+        activeSegments.Add(new SegmentInstance { rectTransform = rt, pointsMultiplier = data.pointsMultiplier });
     }
 
     private static SlopeSegmentData[] BuildDefaultPattern() => new SlopeSegmentData[]
     {
-        new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 480f, color = ColorNormal   },
-        new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 360f, color = ColorNormal   },
-        new() { minSpeed = 0.70f, maxSpeed = 0.80f, widthUnits = 220f, color = ColorInterval },
-        new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 440f, color = ColorNormal   },
-        new() { minSpeed = 0.80f, maxSpeed = 0.90f, widthUnits = 160f, color = ColorSprint   },
-        new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 500f, color = ColorNormal   },
-        new() { minSpeed = 0.72f, maxSpeed = 0.82f, widthUnits = 200f, color = ColorInterval },
-        new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 400f, color = ColorNormal   },
+        new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 480f, color = ColorNormal,   pointsMultiplier = 1f },
+        new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 360f, color = ColorNormal,   pointsMultiplier = 1f },
+        new() { minSpeed = 0.70f, maxSpeed = 0.80f, widthUnits = 220f, color = ColorInterval, pointsMultiplier = 2f },
+        new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 440f, color = ColorNormal,   pointsMultiplier = 1f },
+        new() { minSpeed = 0.80f, maxSpeed = 0.90f, widthUnits = 160f, color = ColorSprint,   pointsMultiplier = 3f },
+        new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 500f, color = ColorNormal,   pointsMultiplier = 1f },
+        new() { minSpeed = 0.72f, maxSpeed = 0.82f, widthUnits = 200f, color = ColorInterval, pointsMultiplier = 2f },
+        new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 400f, color = ColorNormal,   pointsMultiplier = 1f },
     };
 }
