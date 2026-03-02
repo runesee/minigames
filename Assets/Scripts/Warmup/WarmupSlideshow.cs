@@ -19,11 +19,11 @@ public class WarmupSlideshow : MonoBehaviour
     private const float ArrowActiveAlpha = 0.85f;
     private const float ArrowDimmedAlpha = 0.15f;
 
-    private int currentIndex = 0;
-    private bool isTransitioning = false;
+    private int currentIndex;
+    private bool isTransitioning;
 
-    private bool leftBikeWasPressed = false;
-    private bool rightBikeWasPressed = false;
+    private bool leftBikeWasPressed;
+    private bool rightBikeWasPressed;
 
     private void Start()
     {
@@ -79,15 +79,8 @@ public class WarmupSlideshow : MonoBehaviour
 
     private void ShowSlideImmediate(int index)
     {
-        if (slides == null || slides.Length == 0)
-        {
-            Debug.LogWarning("[WarmupSlideshow] No slides assigned.");
-            return;
-        }
-
         for (int i = 0; i < slides.Length; i++)
         {
-            if (slides[i] == null) continue;
             slides[i].SetActive(i == index);
             slides[i].GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
         }
@@ -135,18 +128,12 @@ public class WarmupSlideshow : MonoBehaviour
 
     private void UpdateArrows()
     {
-        if (leftArrow != null)
-        {
-            var c = leftArrow.color;
-            c.a = currentIndex > 0 ? ArrowActiveAlpha : ArrowDimmedAlpha;
-            leftArrow.color = c;
-        }
+        var lc = leftArrow.color;
+        lc.a = currentIndex > 0 ? ArrowActiveAlpha : ArrowDimmedAlpha;
+        leftArrow.color = lc;
 
-        if (rightArrow != null)
-        {
-            var c = rightArrow.color;
-            c.a = currentIndex < slides.Length - 1 ? ArrowActiveAlpha : ArrowDimmedAlpha;
-            rightArrow.color = c;
-        }
+        var rc = rightArrow.color;
+        rc.a = currentIndex < slides.Length - 1 ? ArrowActiveAlpha : ArrowDimmedAlpha;
+        rightArrow.color = rc;
     }
 }

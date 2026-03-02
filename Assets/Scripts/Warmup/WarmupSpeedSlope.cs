@@ -122,8 +122,6 @@ public class WarmupSpeedSlope : MonoBehaviour
         go.transform.SetSiblingIndex(0);
 
         var rt = go.GetComponent<RectTransform>();
-        // Y is driven by anchors so the segment always sits at the correct proportional
-        // height regardless of when containerHeight was last sampled.
         rt.anchorMin        = new Vector2(0f, data.minSpeed);
         rt.anchorMax        = new Vector2(0f, data.maxSpeed);
         rt.pivot            = Vector2.zero;
