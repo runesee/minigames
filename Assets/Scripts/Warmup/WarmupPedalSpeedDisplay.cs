@@ -3,11 +3,11 @@ using UnityEngine;
 public class WarmupPedalSpeedDisplay : MonoBehaviour
 {
     [SerializeField] private RectTransform container;
-    [SerializeField] private RectTransform speedLine;
+    [SerializeField] private RectTransform speedIndicator;
 
     private void Update()
     {
         float speed = Mathf.Clamp01(PlayPulse.Input.Input.Speed);
-        speedLine.anchoredPosition = new Vector2(0f, speed * container.rect.height);
+        speedIndicator.anchoredPosition = new Vector2(speedIndicator.anchoredPosition.x, speed * container.rect.height);
     }
 }
