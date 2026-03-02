@@ -10,6 +10,10 @@ using Unity.VisualScripting;
 public class PlayerCtF : NetworkBehaviour
 {
     [SerializeField] public SkinnedMeshRenderer playerSkinRenderer;
+    [SerializeField] public GameObject flag;
+    [SerializeField] public MeshRenderer flagColor;
+    [SerializeField] public Material blueColor;
+    [SerializeField] public Material greenColor;
 
     [Header("Map Boundaries")]
     public float minX = -17f;
@@ -87,9 +91,17 @@ public class PlayerCtF : NetworkBehaviour
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Server
     );
+    public NetworkVariable<bool> isFlagActive = new NetworkVariable<bool>(
+    false,
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server
+);
 
     public ParticleSystem sprintParticleEffect;
     public Team? currentZone;
+    public Team? currentStartZone;
+    private GameObject greenFlag;
+    private GameObject blueFlag;
     private InputAction attackAction;
     private InputAction moveAction;
     private InputAction sprintAction;
@@ -108,7 +120,7 @@ public class PlayerCtF : NetworkBehaviour
     {
         None,
         Green,
-        Blue
+        Blue,
     }
 
     private void Awake()
@@ -146,6 +158,11 @@ public class PlayerCtF : NetworkBehaviour
         colorNet.OnValueChanged += OnSkinColorChanged;
         isShowingBoostParticlesNet.OnValueChanged += OnSprintParticlesChanged;
         teamNet.OnValueChanged += OnTeamChanged;
+        isFlagActive.OnValueChanged += OnFlagChanged;
+        flag.SetActive(false);
+
+        greenFlag = GameObject.Find("GreenFlag");
+        blueFlag = GameObject.Find("BlueFlag");
 
         // Apply initial player-selected color
         var data = LocalPlayerStorage.Load();
@@ -173,11 +190,17 @@ public class PlayerCtF : NetworkBehaviour
     {
         colorNet.OnValueChanged -= OnSkinColorChanged;
         isShowingBoostParticlesNet.OnValueChanged -= OnSprintParticlesChanged;
+        isFlagActive.OnValueChanged -= OnFlagChanged;
     }
 
     private void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
     {
         SetSkinColor(newValue.Value.ToString());
+    }
+
+    private void OnFlagChanged(bool previousValue, bool newValue)
+    {
+        flag.SetActive(newValue);
     }
 
     private void OnSprintParticlesChanged(bool previousValue, bool newValue)
@@ -204,9 +227,18 @@ public class PlayerCtF : NetworkBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!IsServer) return;
         var zone = other.GetComponent<TeamZone>();
-        currentZone = zone?.team;
+        var startZone = other.GetComponent<StartZone>();
+        if (zone != null) currentZone = zone.team;
+        if (startZone != null)
+        {
+            currentStartZone = startZone.zone;
+            if (teamNet.Value == currentZone && teamNet.Value == currentStartZone && isFlagActive.Value)
+            {
+                string enemyFlag = teamNet.Value == Team.Blue ? "GreenFlag" : "BlueFlag";
+                ScoreFlagServerRpc(teamNet.Value, enemyFlag);
+            }
+        } 
     }
 
     public CtFGameState.PlayerData GetTagData()
@@ -240,8 +272,20 @@ public class PlayerCtF : NetworkBehaviour
 
         if (isPunching && !isFrozen.Value)
         {
-            PlayerCtF target = FindClosestPlayerInRange(2.5f);
-            if (target != null) TagPlayerServerRpc(target.NetworkObjectId);
+            if (teamNet.Value == currentZone)
+            {
+                PlayerCtF target = FindClosestPlayerInRange(2.5f);
+                if (target != null) TagPlayerServerRpc(target.NetworkObjectId);
+            }
+            else if(teamNet.Value != currentStartZone)
+            {
+                string enemyFlag = teamNet.Value == Team.Blue ? "GreenFlag" : "BlueFlag";
+                float distance = Vector3.Distance(transform.position, (enemyFlag == "GreenFlag" ? greenFlag : blueFlag).transform.position);
+                if (distance < 3f)
+                {
+                    TakeFlagServerRpc(teamNet.Value, enemyFlag);
+                } 
+            }
         }
         else if (isFrozen.Value)
         {
@@ -389,6 +433,40 @@ public class PlayerCtF : NetworkBehaviour
     public void TeleportClientRpc(Vector3 position)
     {
         rb.position = position;
+    }
+
+    [ClientRpc]
+    public void TogglePlacedFlagClientRpc(string flagName, bool active)
+    {
+        if (flagName == "GreenFlag") greenFlag.SetActive(active);
+        else blueFlag.SetActive(active);
+        flagColor.material = flagName == "BlueFlag" ? blueColor : greenColor;
+    }
+
+    [ServerRpc]
+    public void TakeFlagServerRpc(Team team, string flagName)
+    {
+        isFlagActive.Value = true;
+        TogglePlacedFlagClientRpc(flagName, false);
+    }
+
+    [ServerRpc]
+    public void ScoreFlagServerRpc(Team team, string flagName)
+    {
+        int score;
+        if (team == Team.Green)
+        {
+            CtFGameState.Instance.greenScore.Value++;
+            score = CtFGameState.Instance.greenScore.Value;
+        }
+        else
+        {
+            CtFGameState.Instance.blueScore.Value++;
+            score = CtFGameState.Instance.blueScore.Value;
+        }
+        isFlagActive.Value = false;
+        TogglePlacedFlagClientRpc(flagName, true);
+        UpdateScoreTextClientRpc(team, score);
     }
 
     [ClientRpc]
