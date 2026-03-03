@@ -10,6 +10,8 @@ using Unity.VisualScripting;
 public class PlayerCtF : NetworkBehaviour
 {
     [SerializeField] public SkinnedMeshRenderer playerSkinRenderer;
+    [SerializeField] public GameObject playerShadow;
+    [SerializeField] public Material playerShadowColor;
     [SerializeField] public GameObject flag;
     [SerializeField] public MeshRenderer flagColor;
     [SerializeField] public Material blueColor;
@@ -163,6 +165,11 @@ public class PlayerCtF : NetworkBehaviour
 
         greenFlag = GameObject.Find("GreenFlag");
         blueFlag = GameObject.Find("BlueFlag");
+        if (IsOwner)
+        {
+            playerShadow.SetActive(true);
+            playerShadow.GetComponentInChildren<MeshRenderer>().material.color = playerShadowColor.color;
+        } 
 
         // Apply initial player-selected color
         var data = LocalPlayerStorage.Load();
@@ -212,10 +219,10 @@ public class PlayerCtF : NetworkBehaviour
 
     private void OnTeamChanged(Team previousValue, Team newValue)
     {
-        playerSkinRenderer.material.color = newValue == Team.Green ? Color.green : Color.blue;
+        playerSkinRenderer.material.color = newValue == Team.Green ? greenColor.color : blueColor.color;
         if (IsOwner)
         {
-            playerSkinRenderer.material.color = playerSkinRenderer.material.color * 10f;
+            playerSkinRenderer.material.color = playerSkinRenderer.material.color * 2f;
             playerSkinRenderer.material.EnableKeyword("_EMISSION");
             playerSkinRenderer.material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
         }
@@ -444,6 +451,7 @@ public class PlayerCtF : NetworkBehaviour
     public void TeleportClientRpc(Vector3 position)
     {
         rb.position = position;
+        rb.rotation = UnityEngine.Quaternion.Euler(0f, teamNet.Value == Team.Green ? -90f : 90f, 0f);
     }
 
     [ClientRpc]
