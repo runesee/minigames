@@ -14,6 +14,7 @@ public class ScoreMultiplierManager : MonoBehaviour
     private bool isTracking = false;
 
     public bool IsTracking => isTracking;
+    public bool IsIntervalPhase => intervalTimer != null && intervalTimer.IsIntervalPhase;
 
     private void Update()
     {

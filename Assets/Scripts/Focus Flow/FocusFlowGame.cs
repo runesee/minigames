@@ -175,10 +175,7 @@ public class FocusFlowGame : NetworkBehaviour
         totalScore += pointsEarned;
         FocusFlowData.LocalInstance.UpdateScoreServerRpc(totalScore);
 
-        if (bonusScoreDisplay != null)
-        {
-            bonusScoreDisplay.ShowBonus(pointsEarned);
-        }
+        bonusScoreDisplay.ShowBonus(pointsEarned);
 
         currentSequencePoints *= 2f;
         UpdateScoreDisplay();
@@ -229,7 +226,7 @@ public class FocusFlowGame : NetworkBehaviour
         }
         else
         {
-            scoreObject.transform.position = new Vector3(-5f, -2f, -1f);
+            scoreObject.transform.position = new Vector3(-10f, -3.5f, -1f);
         }
 
         scoreTextMesh = scoreObject.AddComponent<TextMesh>();
@@ -239,8 +236,6 @@ public class FocusFlowGame : NetworkBehaviour
         scoreTextMesh.alignment = TextAlignment.Left;
         scoreTextMesh.color = Color.white;
         scoreTextMesh.text = "Score: 0";
-
-        AddTextOutline(scoreObject, scoreTextMesh, Color.white);
 
         GameObject bonusObject = new GameObject("BonusScoreDisplay");
         bonusObject.transform.SetParent(scoreObject.transform);
@@ -257,45 +252,7 @@ public class FocusFlowGame : NetworkBehaviour
         bonusTextMesh.color = new Color(0.3f, 1f, 0.3f, 1f);
         bonusTextMesh.text = "";
 
-        AddTextOutline(bonusObject, bonusTextMesh, new Color(0.3f, 1f, 0.3f, 1f));
-
         bonusScoreDisplay = bonusObject.AddComponent<BonusScoreDisplay>();
-    }
-
-    private void AddTextOutline(GameObject parentObject, TextMesh mainTextMesh, Color textColor)
-    {
-        Vector2[] outlineOffsets = new Vector2[]
-        {
-            new Vector2(-1, 1), new Vector2(0, 1), new Vector2(1, 1),
-            new Vector2(-1, 0),                     new Vector2(1, 0),
-            new Vector2(-1, -1), new Vector2(0, -1), new Vector2(1, -1)
-        };
-
-        float outlineDistance = 0.01f;
-
-        for (int i = 0; i < outlineOffsets.Length; i++)
-        {
-            GameObject outlineObject = new GameObject($"Outline{i}");
-            outlineObject.transform.SetParent(parentObject.transform);
-            outlineObject.transform.localPosition = new Vector3(
-                outlineOffsets[i].x * outlineDistance,
-                outlineOffsets[i].y * outlineDistance,
-                0.01f
-            );
-            outlineObject.transform.localRotation = Quaternion.identity;
-            outlineObject.transform.localScale = Vector3.one;
-
-            TextMesh outlineTextMesh = outlineObject.AddComponent<TextMesh>();
-            outlineTextMesh.fontSize = mainTextMesh.fontSize;
-            outlineTextMesh.characterSize = mainTextMesh.characterSize;
-            outlineTextMesh.anchor = mainTextMesh.anchor;
-            outlineTextMesh.alignment = mainTextMesh.alignment;
-            outlineTextMesh.color = Color.black;
-            outlineTextMesh.text = mainTextMesh.text;
-
-            TextMeshOutlineSyncer syncer = outlineObject.AddComponent<TextMeshOutlineSyncer>();
-            syncer.Initialize(mainTextMesh, outlineTextMesh);
-        }
     }
 
     private void UpdateScoreDisplay()
@@ -306,14 +263,11 @@ public class FocusFlowGame : NetworkBehaviour
 
     private void UpdateBonusPosition()
     {
-        if (bonusScoreTransform != null && scoreTextMesh != null)
+        MeshRenderer renderer = scoreTextMesh.GetComponent<MeshRenderer>();
+        if (renderer != null)
         {
-            MeshRenderer renderer = scoreTextMesh.GetComponent<MeshRenderer>();
-            if (renderer != null)
-            {
-                float textWidth = renderer.bounds.size.x;
-                bonusScoreTransform.localPosition = new Vector3(textWidth + 0.3f, 0f, 0f);
-            }
+            float textWidth = renderer.bounds.size.x;
+            bonusScoreTransform.localPosition = new Vector3(textWidth + 0.3f, 0f, 0f);
         }
     }
 }

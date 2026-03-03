@@ -14,15 +14,24 @@ public class RedLightManager : NetworkBehaviour
     [SerializeField] private float redLightMinDuration = 2f;
     [SerializeField] private float redLightMaxDuration = 5f;
 
+    private const float YellowWarningDuration = 1f;
+
     [Header("Debug")]
     [SerializeField] private bool autoStartInEditor = true;
 
     private bool isRunning = false;
     private bool isInStandaloneMode = false;
     private bool currentLightIsRed = false;
+    private bool currentLightIsYellow = false;
     private double nextSwitchTime = 0.0;
 
     private NetworkVariable<bool> isRedLight = new NetworkVariable<bool>(
+        false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
+    private NetworkVariable<bool> isYellowLight = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
@@ -45,6 +54,7 @@ public class RedLightManager : NetworkBehaviour
     {
         base.OnNetworkSpawn();
         isRedLight.OnValueChanged += OnLightStateChanged;
+        isYellowLight.OnValueChanged += OnLightStateChanged;
         OnLightStateChanged(false, isRedLight.Value);
     }
 
@@ -52,6 +62,7 @@ public class RedLightManager : NetworkBehaviour
     {
         base.OnNetworkDespawn();
         isRedLight.OnValueChanged -= OnLightStateChanged;
+        isYellowLight.OnValueChanged -= OnLightStateChanged;
     }
 
     private void Start()
@@ -68,14 +79,29 @@ public class RedLightManager : NetworkBehaviour
 
         if (isInStandaloneMode)
         {
-            if (Time.timeAsDouble >= nextSwitchTime)
+            double currentTime = Time.timeAsDouble;
+
+            if (!currentLightIsRed && !currentLightIsYellow && currentTime >= nextSwitchTime - YellowWarningDuration)
+            {
+                currentLightIsYellow = true;
+                UpdateAllLights();
+            }
+
+            if (currentTime >= nextSwitchTime)
             {
                 SwitchLightStandalone();
             }
         }
         else if (IsServer)
         {
-            if (NetworkManager.ServerTime.Time >= nextSwitchTimeNet.Value)
+            double currentTime = NetworkManager.ServerTime.Time;
+
+            if (!isRedLight.Value && !isYellowLight.Value && currentTime >= nextSwitchTimeNet.Value - YellowWarningDuration)
+            {
+                isYellowLight.Value = true;
+            }
+
+            if (currentTime >= nextSwitchTimeNet.Value)
             {
                 SwitchLight();
             }
@@ -87,6 +113,7 @@ public class RedLightManager : NetworkBehaviour
         isInStandaloneMode = true;
         isRunning = true;
         currentLightIsRed = false;
+        currentLightIsYellow = false;
         ScheduleNextSwitchStandalone();
         UpdateAllLights();
     }
@@ -98,6 +125,7 @@ public class RedLightManager : NetworkBehaviour
         isInStandaloneMode = false;
         isRunning = true;
         isRedLight.Value = false;
+        isYellowLight.Value = false;
         ScheduleNextSwitch();
     }
 
@@ -109,12 +137,14 @@ public class RedLightManager : NetworkBehaviour
     private void SwitchLight()
     {
         isRedLight.Value = !isRedLight.Value;
+        isYellowLight.Value = false;
         ScheduleNextSwitch();
     }
 
     private void SwitchLightStandalone()
     {
         currentLightIsRed = !currentLightIsRed;
+        currentLightIsYellow = false;
         ScheduleNextSwitchStandalone();
         UpdateAllLights();
     }
@@ -145,10 +175,14 @@ public class RedLightManager : NetworkBehaviour
     private void UpdateAllLights()
     {
         bool showRed = isInStandaloneMode ? currentLightIsRed : isRedLight.Value;
+        bool showYellow = isInStandaloneMode ? currentLightIsYellow : isYellowLight.Value;
 
         foreach (var trafficLight in trafficLights)
         {
-            trafficLight.SetLightState(showRed);
+            if (showYellow)
+                trafficLight.SetYellowWarning(true);
+            else
+                trafficLight.SetLightState(showRed);
         }
     }
 }
