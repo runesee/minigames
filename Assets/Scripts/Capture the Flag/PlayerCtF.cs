@@ -389,9 +389,14 @@ public class PlayerCtF : NetworkBehaviour
 
         if (this.currentZone == this.teamNet.Value && victim.currentZone.Value == this.teamNet.Value)
         {
-            victim.TeleportClientRpc(new Vector3(victim.teamNet.Value == Team.Blue ? -34.5f : 34.5f, victim.rb.position.y, victim.rb.position.z));
             victim.isRespawning.Value = true;
             victim.lastRespawnTimeNet.Value = serverTime;
+            if (victim.isFlagActive.Value)
+            {
+                victim.isFlagActive.Value = false;
+                TogglePlacedFlagClientRpc(this.teamNet.Value.ToString() + "Flag", true);
+            } 
+            victim.TeleportClientRpc(new Vector3(victim.teamNet.Value == Team.Blue ? -34.5f : 34.5f, victim.rb.position.y, victim.rb.position.z));
         }
         if (IsOwner) StopAnimationsClientRpc();
 
