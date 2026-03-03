@@ -64,7 +64,7 @@ public class SpeedIndicator : MonoBehaviour
         if (multiplierManager != null && multiplierManager.IsTracking)
             return multiplierManager.GetAverageNormalizedSpeed();
 
-        return Mathf.Clamp(PlayPulse.Input.Input.Speed, 0f, 1f) + 0.3f;
+        return Mathf.Clamp(PlayPulse.Input.Input.Speed, 0f, 1f);
     }
 
     private void UpdateAnimator(float normalizedSpeed)
