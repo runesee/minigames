@@ -13,11 +13,8 @@ public class BonusScoreDisplay : MonoBehaviour
     private void Awake()
     {
         textMesh = GetComponent<TextMesh>();
-        if (textMesh != null)
-        {
-            originalColor = textMesh.color;
-            textMesh.text = "";
-        }
+        originalColor = textMesh.color;
+        textMesh.text = "";
     }
 
     public void ShowBonus(int bonusPoints)
