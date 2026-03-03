@@ -31,6 +31,9 @@ public class MusicManager : NetworkBehaviour
             case MinigameManager.MinigameScene.Scoreboard:
                 PlayScoreboardMusicClientRpc();
                 break;
+            case MinigameManager.MinigameScene.EndScreen:
+                PlayScoreboardMusicClientRpc();
+                break;
             case MinigameManager.MinigameScene.Tag:
                 PlayTagMusicClientRpc();
                 break;
