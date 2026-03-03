@@ -1326,7 +1326,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 18
+  m_fontSize: 68.1
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -2396,8 +2396,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 466.6221, y: -406.65454}
-  m_SizeDelta: {x: 217.5112, y: 165.4658}
+  m_AnchoredPosition: {x: 470, y: -355}
+  m_SizeDelta: {x: 180, y: 131}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!328 &334370059
 VideoPlayer:
@@ -5904,8 +5904,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 466.6221, y: -406.65454}
-  m_SizeDelta: {x: 217.5112, y: 165.4658}
+  m_AnchoredPosition: {x: 470, y: -355}
+  m_SizeDelta: {x: 180, y: 131}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!328 &1114544963
 VideoPlayer:
@@ -8719,8 +8719,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 466.62213, y: -406.65448}
-  m_SizeDelta: {x: 217.5112, y: 165.4658}
+  m_AnchoredPosition: {x: 470, y: -355}
+  m_SizeDelta: {x: 180, y: 131}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!328 &1681169312
 VideoPlayer:
@@ -9340,8 +9340,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 466.6221, y: -406.65445}
-  m_SizeDelta: {x: 217.5112, y: 165.4658}
+  m_AnchoredPosition: {x: 470, y: -355}
+  m_SizeDelta: {x: 180, y: 131}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!328 &1764476662
 VideoPlayer:
@@ -10982,11 +10982,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 941479186489303443, guid: 9d422ddc72142cc4f9399c840a4128e1, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 322
+      value: 997
       objectReference: {fileID: 0}
     - target: {fileID: 941479186489303443, guid: 9d422ddc72142cc4f9399c840a4128e1, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 254
+      value: 99
       objectReference: {fileID: 0}
     - target: {fileID: 941479186489303443, guid: 9d422ddc72142cc4f9399c840a4128e1, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -11491,8 +11491,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 466.6221, y: -406.65445}
-  m_SizeDelta: {x: 217.5112, y: 165.4658}
+  m_AnchoredPosition: {x: 470, y: -355}
+  m_SizeDelta: {x: 180, y: 131}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!328 &2115377630
 VideoPlayer:
