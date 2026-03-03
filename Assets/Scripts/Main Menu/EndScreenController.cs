@@ -1,18 +1,29 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EndScreenController : MonoBehaviour
+public class EndScreenController : NetworkBehaviour
 {
     private const string NoPlayerName = "-";
     private const string ScoreFormat = "{0} pts";
 
     [SerializeField] private GameObject[] playerSlots;
 
-    private void Start()
+    public override void OnNetworkSpawn()
     {
-        List<SessionManager.PlayerData> sortedPlayers = SessionManager.Instance.PlayerDataList
+        if (IsHost)
+        {
+            SessionManager.PlayerData[] allPlayers = SessionManager.Instance.PlayerDataList.ToArray();
+            PopulatePlayerSlotsClientRpc(allPlayers);
+        }
+    }
+
+    [ClientRpc]
+    private void PopulatePlayerSlotsClientRpc(SessionManager.PlayerData[] players)
+    {
+        List<SessionManager.PlayerData> sortedPlayers = players
             .OrderByDescending(p => p.Score)
             .ToList();
 
