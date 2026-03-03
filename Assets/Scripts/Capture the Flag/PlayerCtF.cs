@@ -213,6 +213,12 @@ public class PlayerCtF : NetworkBehaviour
     private void OnTeamChanged(Team previousValue, Team newValue)
     {
         playerSkinRenderer.material.color = newValue == Team.Green ? Color.green : Color.blue;
+        if (IsOwner)
+        {
+            playerSkinRenderer.material.color = playerSkinRenderer.material.color * 10f;
+            playerSkinRenderer.material.EnableKeyword("_EMISSION");
+            playerSkinRenderer.material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+        }
     }
 
     /// <summary>
