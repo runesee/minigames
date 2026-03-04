@@ -218,10 +218,7 @@ public class GameResultsUI : NetworkBehaviour
 
             if (player.NetworkObjectId == TagGameState.Instance.taggedPlayerIdNet.Value)
             {
-                var gameTimer = FindAnyObjectByType<GameTimer>();
-                double serverTime = gameTimer != null
-                    ? gameTimer.GameEndServerTime
-                    : NetworkManager.Singleton.ServerTime.FixedTime;
+                double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
                 totalTime += serverTime - player.lastTagTimeNet.Value;
             }
 
@@ -336,15 +333,16 @@ public class GameResultsUI : NetworkBehaviour
             
             string playerName = results[i].nickname.Value;
             double score = results[i].score;
-            var currentState = MinigameManager.Instance.currentGameState;
-
-            string time;
-            if (currentState == MinigameManager.MinigameScene.Tag)
-                time = score.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "s";
-            else if (currentState == MinigameManager.MinigameScene.RedLight)
-                time = score.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "m";
-            else
-                time = score.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+            string time = MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag ? score.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "s" : score.ToString();
+            
+            if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag)
+            {
+                time = time + "s";
+            }
+            else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.RedLight)
+            {
+                time = time + "m";
+            }
 
             var card = playerCards[i];
             card.nicknameText.text = playerName;

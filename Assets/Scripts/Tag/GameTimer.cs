@@ -22,8 +22,6 @@ public class GameTimer : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
-    public double GameEndServerTime => timerEndTime.Value;
-
     private NetworkVariable<double> timerEndTime = new NetworkVariable<double>(
         0.0,
         NetworkVariableReadPermission.Everyone,
