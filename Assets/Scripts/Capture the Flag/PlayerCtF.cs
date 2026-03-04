@@ -44,14 +44,14 @@ public class PlayerCtF : NetworkBehaviour
         NetworkVariableWritePermission.Owner
     );
     private NetworkVariable<bool> isFrozen = new NetworkVariable<bool>(
-    false,
-    NetworkVariableReadPermission.Everyone,
-    NetworkVariableWritePermission.Server
+        false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
     );
     private NetworkVariable<bool> isRespawning = new NetworkVariable<bool>(
-    false,
-    NetworkVariableReadPermission.Everyone,
-    NetworkVariableWritePermission.Server
+        false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
     );
     private NetworkVariable<bool> isShowingBoostParticlesNet = new NetworkVariable<bool>(
         false,
@@ -69,39 +69,39 @@ public class PlayerCtF : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
     public NetworkVariable<double> lastRespawnTimeNet = new NetworkVariable<double>(
-    0,
-    NetworkVariableReadPermission.Everyone,
-    NetworkVariableWritePermission.Server
+        0,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
     );
     public NetworkVariable<FixedString64Bytes> colorNet = new NetworkVariable<FixedString64Bytes>(
-    "#D6877F",
-    NetworkVariableReadPermission.Everyone,
-    NetworkVariableWritePermission.Server
+        "#D6877F",
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
     );
     public NetworkVariable<FixedString64Bytes> nicknameNet = new NetworkVariable<FixedString64Bytes>(
-    "Player",
-    NetworkVariableReadPermission.Everyone,
-    NetworkVariableWritePermission.Server
+        "Player",
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
     );
     public NetworkVariable<FixedString64Bytes> guidNet = new NetworkVariable<FixedString64Bytes>(
-    "",
-    NetworkVariableReadPermission.Everyone,
-    NetworkVariableWritePermission.Server
+        "",
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
     );
     public NetworkVariable<Team> teamNet = new NetworkVariable<Team>(
-    Team.None,
-    NetworkVariableReadPermission.Everyone,
-    NetworkVariableWritePermission.Server
+        Team.None,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
     );
     public NetworkVariable<bool> isFlagActiveNet = new NetworkVariable<bool>(
-    false,
-    NetworkVariableReadPermission.Everyone,
-    NetworkVariableWritePermission.Server
+        false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
     );
     public NetworkVariable<Team> currentZoneNet = new NetworkVariable<Team>(
-    Team.None,
-    NetworkVariableReadPermission.Everyone,
-    NetworkVariableWritePermission.Server
+        Team.None,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
     );
 
     public ParticleSystem sprintParticleEffect;
