@@ -22,6 +22,8 @@ public class GameTimer : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
+    public double GameEndServerTime => timerEndTime.Value;
+
     private NetworkVariable<double> timerEndTime = new NetworkVariable<double>(
         0.0,
         NetworkVariableReadPermission.Everyone,
@@ -135,7 +137,7 @@ public class GameTimer : NetworkBehaviour
     private IEnumerator Handover()
     {
         yield return new WaitForSeconds(8f);
-        if(IsHost && isTag) TagGameState.Instance.SetGameStateServerRpc(GameState.Handover);
+        if (IsHost && isTag) TagGameState.Instance.SetGameStateServerRpc(GameState.Handover);
         else if (IsHost) BalloonTagGameState.Instance.SetGameStateServerRpc(GameState.Handover);
     }
 }

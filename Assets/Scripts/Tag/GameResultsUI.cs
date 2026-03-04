@@ -21,8 +21,8 @@ public class GameResultsUI : NetworkBehaviour
 
     public CanvasGroup panelCanvasGroup;
     private List<PlayerCard> playerCards;
-    private readonly List<string> medalColors = new List<string>{"#FFD700", "#C0C0C0", "#CD7F32", "#7e7d74"};
-    private readonly List<float> cardYPositions = new List<float>{100, 0, -100, -200};
+    private readonly List<string> medalColors = new List<string> { "#FFD700", "#C0C0C0", "#CD7F32", "#7e7d74" };
+    private readonly List<float> cardYPositions = new List<float> { 100, 0, -100, -200 };
     private List<PlayerResult> results = new List<PlayerResult>();
 
     private void Awake()
@@ -33,7 +33,7 @@ public class GameResultsUI : NetworkBehaviour
     private void Start()
     {
         resultsPanel?.SetActive(false);
-        
+
         if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag)
         {
             if (TagGameState.Instance != null)
@@ -88,7 +88,7 @@ public class GameResultsUI : NetworkBehaviour
 
     private System.Collections.IEnumerator WaitForFocusFlowGameState()
     {
-        while (FocusFlowGameState.Instance == null)  yield return new WaitForSeconds(0.1f);
+        while (FocusFlowGameState.Instance == null) yield return new WaitForSeconds(0.1f);
         FocusFlowGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
     }
 
@@ -100,7 +100,7 @@ public class GameResultsUI : NetworkBehaviour
 
     private System.Collections.IEnumerator WaitForBalloonTagGameState()
     {
-        while (BalloonTagGameState.Instance == null)  yield return new WaitForSeconds(0.1f);
+        while (BalloonTagGameState.Instance == null) yield return new WaitForSeconds(0.1f);
         BalloonTagGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
     }
 
@@ -142,7 +142,7 @@ public class GameResultsUI : NetworkBehaviour
     private void HideResults()
     {
         resultsPanel?.SetActive(false);
-        
+
         if (fireworksLeft != null) fireworksLeft.Stop();
         if (fireworksRight != null) fireworksRight.Stop();
     }
@@ -218,7 +218,10 @@ public class GameResultsUI : NetworkBehaviour
 
             if (player.NetworkObjectId == TagGameState.Instance.taggedPlayerIdNet.Value)
             {
-                double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
+                var gameTimer = FindAnyObjectByType<GameTimer>();
+                double serverTime = gameTimer != null
+                    ? gameTimer.GameEndServerTime
+                    : NetworkManager.Singleton.ServerTime.FixedTime;
                 totalTime += serverTime - player.lastTagTimeNet.Value;
             }
 
@@ -304,19 +307,19 @@ public class GameResultsUI : NetworkBehaviour
         {
             results = AddRedLightResults(results);
         }
-        
+
         else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.BalloonTag)
         {
             results = AddBalloonTagResults(results);
         }
         results = results.OrderBy(r => r.score).ToList();
-        
+
         if (MinigameManager.Instance.currentGameState != MinigameManager.MinigameScene.Tag ||
             MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.RedLight)
         {
             results.Reverse();
         }
-        
+
         UpdateCanvas(results);
     }
 
@@ -330,19 +333,18 @@ public class GameResultsUI : NetworkBehaviour
         for (int i = 0; i < results.Count; i++)
         {
             if (i >= playerCards.Count) break;
-            
+
             string playerName = results[i].nickname.Value;
             double score = results[i].score;
-            string time = MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag ? score.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "s" : score.ToString();
-            
-            if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag)
-            {
-                time = time + "s";
-            }
-            else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.RedLight)
-            {
-                time = time + "m";
-            }
+            var currentState = MinigameManager.Instance.currentGameState;
+
+            string time;
+            if (currentState == MinigameManager.MinigameScene.Tag)
+                time = score.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "s";
+            else if (currentState == MinigameManager.MinigameScene.RedLight)
+                time = score.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "m";
+            else
+                time = ((int)score).ToString(System.Globalization.CultureInfo.InvariantCulture);
 
             var card = playerCards[i];
             card.nicknameText.text = playerName;
@@ -354,7 +356,7 @@ public class GameResultsUI : NetworkBehaviour
             UnityEngine.ColorUtility.TryParseHtmlString(results[i].color.Value, out var playerColor);
             card.bonusText.color = medalColor;
             card.nicknameText.color = playerColor;
-            card.bonusText.text = "#" + (1+i).ToString();
+            card.bonusText.text = "#" + (1 + i).ToString();
             rectTransform.anchoredPosition = new Vector2(0, cardYPositions[i]);
         }
     }
