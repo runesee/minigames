@@ -5487,7 +5487,9 @@ MonoBehaviour:
         byte0061: 0
   teamNet:
     m_InternalValue: 0
-  isFlagActive:
+  isFlagActiveNet:
+    m_InternalValue: 0
+  currentZoneNet:
     m_InternalValue: 0
   sprintParticleEffect: {fileID: 6789903846567414674}
 --- !u!1001 &2472634209218968432

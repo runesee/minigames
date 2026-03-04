@@ -93,14 +93,18 @@ public class PlayerCtF : NetworkBehaviour
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Server
     );
-    public NetworkVariable<bool> isFlagActive = new NetworkVariable<bool>(
+    public NetworkVariable<bool> isFlagActiveNet = new NetworkVariable<bool>(
     false,
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Server
-);
+    );
+    public NetworkVariable<Team> currentZoneNet = new NetworkVariable<Team>(
+    Team.None,
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server
+    );
 
     public ParticleSystem sprintParticleEffect;
-    public Team? currentZone;
     public Team? currentStartZone;
     public Team? currentFlagZone;
     private GameObject greenFlag;
@@ -163,13 +167,14 @@ public class PlayerCtF : NetworkBehaviour
         colorNet.OnValueChanged += OnSkinColorChanged;
         isShowingBoostParticlesNet.OnValueChanged += OnSprintParticlesChanged;
         teamNet.OnValueChanged += OnTeamChanged;
-        isFlagActive.OnValueChanged += OnFlagChanged;
+        isFlagActiveNet.OnValueChanged += OnFlagChanged;
         flag.SetActive(false);
 
         greenFlag = GameObject.Find("GreenFlag");
         blueFlag = GameObject.Find("BlueFlag");
         greenFlagFabric = GameObject.Find("GreenFabric");
         blueFlagFabric = GameObject.Find("BlueFabric");
+        currentFlagZone = Team.None;
 
         if (IsOwner)
         {
@@ -203,7 +208,7 @@ public class PlayerCtF : NetworkBehaviour
     {
         colorNet.OnValueChanged -= OnSkinColorChanged;
         isShowingBoostParticlesNet.OnValueChanged -= OnSprintParticlesChanged;
-        isFlagActive.OnValueChanged -= OnFlagChanged;
+        isFlagActiveNet.OnValueChanged -= OnFlagChanged;
     }
 
     private void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
@@ -246,15 +251,20 @@ public class PlayerCtF : NetworkBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!IsOwner) return;
+        if (!IsOwner || NetworkManager.Singleton == null) return;
         var zone = other.GetComponent<TeamZone>();
         var startZone = other.GetComponent<StartZone>();
         var flagZone = other.GetComponent<FlagZone>();
-        if (zone != null) currentZone = zone.team;
+        var currentZone = Team.None; 
+        if (zone != null)
+        {
+            currentZone = zone.team;
+            SetCurrentZoneServerRpc(currentZone);
+        }
         if (startZone != null)
         {
             currentStartZone = startZone.zone;
-            if (teamNet.Value == currentZone && teamNet.Value == currentStartZone && isFlagActive.Value)
+            if (teamNet.Value == currentZone && teamNet.Value == currentStartZone && isFlagActiveNet.Value)
             {
                 string enemyFlag = teamNet.Value == Team.Blue ? "GreenFlag" : "BlueFlag";
                 ScoreFlagServerRpc(teamNet.Value, enemyFlag);
@@ -319,18 +329,15 @@ public class PlayerCtF : NetworkBehaviour
 
         if (isPunching && !isFrozen.Value)
         {
-            if (teamNet.Value == currentZone)
+            if (currentFlagZone != Team.None && currentFlagZone != teamNet.Value && currentZoneNet.Value != teamNet.Value)
+            {
+                string enemyFlag = teamNet.Value == Team.Blue ? "GreenFlag" : "BlueFlag";
+                TakeFlagServerRpc(teamNet.Value, enemyFlag);
+            }
+            else
             {
                 PlayerCtF target = FindClosestPlayerInRange(2.5f);
                 if (target != null) TagPlayerServerRpc(target.NetworkObjectId);
-            }
-            else if(teamNet.Value != currentStartZone)
-            {
-                if (currentFlagZone != Team.None && currentFlagZone != teamNet.Value)
-                {
-                    string enemyFlag = teamNet.Value == Team.Blue ? "GreenFlag" : "BlueFlag";
-                    TakeFlagServerRpc(teamNet.Value, enemyFlag);
-                } 
             }
         }
         else if (isFrozen.Value)
@@ -417,6 +424,12 @@ public class PlayerCtF : NetworkBehaviour
     }
 
     [ServerRpc]
+    public void SetCurrentZoneServerRpc(Team zone)
+    {
+        currentZoneNet.Value = zone;
+    }
+
+    [ServerRpc]
     public void UpdateGuidServerRpc(string guid)
     {
         guidNet.Value = guid;
@@ -433,15 +446,15 @@ public class PlayerCtF : NetworkBehaviour
         double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
         var victim = NetworkManager.Singleton.SpawnManager.SpawnedObjects[victimId].GetComponent<PlayerCtF>();
 
-        if (this.currentZone == this.teamNet.Value && victim.currentZone.Value == this.teamNet.Value)
+        if ((this.currentZoneNet.Value == this.teamNet.Value && victim.currentZoneNet.Value == this.teamNet.Value) || victim.isFlagActiveNet.Value)
         {
             victim.isRespawning.Value = true;
             victim.lastRespawnTimeNet.Value = serverTime;
-            if (victim.isFlagActive.Value)
+            if (victim.isFlagActiveNet.Value)
             {
-                victim.isFlagActive.Value = false;
+                victim.isFlagActiveNet.Value = false;
                 TogglePlacedFlagClientRpc(this.teamNet.Value.ToString() + "Flag", true);
-            } 
+            }
             victim.TeleportClientRpc(new Vector3(victim.teamNet.Value == Team.Blue ? -34.5f : 34.5f, victim.rb.position.y, victim.rb.position.z));
         }
         if (IsOwner) StopAnimationsClientRpc();
@@ -503,15 +516,15 @@ public class PlayerCtF : NetworkBehaviour
     [ServerRpc]
     public void TakeFlagServerRpc(Team team, string flagName)
     {
-        isFlagActive.Value = true;
+        isFlagActiveNet.Value = true;
         TogglePlacedFlagClientRpc(flagName, false);
     }
 
     [ServerRpc]
     public void ScoreFlagServerRpc(Team team, string flagName)
     {
-        if (!isFlagActive.Value) return;
-        isFlagActive.Value = false;
+        if (!isFlagActiveNet.Value) return;
+        isFlagActiveNet.Value = false;
         
         int score;
         if (team == Team.Green)
@@ -542,7 +555,8 @@ public class PlayerCtF : NetworkBehaviour
         PlayerCtF taggedPlayer = this;
         foreach (var player in FindObjectsByType(typeof(PlayerCtF), FindObjectsSortMode.None))
         {
-            if (player == this) continue;
+            PlayerCtF playerCtf = (PlayerCtF) player;
+            if (player == this || playerCtf.teamNet.Value == this.teamNet.Value) continue;
 
             float distance = Vector3.Distance(transform.position, ((PlayerCtF)player).transform.position);
 
