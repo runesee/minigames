@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -28,9 +29,14 @@ public class CtFGameState : NetworkBehaviour
     );
     public TMP_Text blueScoreText;
     public TMP_Text greenScoreText;
+    public TMP_Text toastText;
+    public Material blueColor;
+    public Material greenColor;
+    
     public readonly float[] scores = { 6f, 6f, 3f, 3f };
     private bool shouldChangeScene = false;
     public List<PlayerData> PlayerDataList = new List<PlayerData>();
+    private int tally = 0;
 
     public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
     {
@@ -151,5 +157,20 @@ public class CtFGameState : NetworkBehaviour
     {
         if (team == PlayerCtF.Team.Green) blueScoreText.text = score.ToString();
         else greenScoreText.text = score.ToString();
+    }
+
+    [ClientRpc]
+    public void ToastMessageClientRpc(PlayerCtF.Team team, string message)
+    {
+        tally++;
+        toastText.text = message;
+        toastText.color = team == PlayerCtF.Team.Green ? greenColor.color : blueColor.color;
+        StartCoroutine(DisplayToastMessage(tally));
+    }
+
+    private IEnumerator DisplayToastMessage(int count)
+    {
+        yield return new WaitForSeconds(3f);
+        if (count == tally) toastText.text = "";
     }
 }

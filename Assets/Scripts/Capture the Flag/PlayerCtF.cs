@@ -236,6 +236,7 @@ public class PlayerCtF : NetworkBehaviour
             playerSkinRenderer.material.color = playerSkinRenderer.material.color * 2f;
             playerSkinRenderer.material.EnableKeyword("_EMISSION");
             playerSkinRenderer.material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+            SetCurrentZoneServerRpc(newValue);
         }
     }
 
@@ -264,7 +265,7 @@ public class PlayerCtF : NetworkBehaviour
         if (startZone != null)
         {
             currentStartZone = startZone.zone;
-            if (teamNet.Value == currentZone && teamNet.Value == currentStartZone && isFlagActiveNet.Value)
+            if (teamNet.Value == currentZoneNet.Value && teamNet.Value == currentStartZone && isFlagActiveNet.Value)
             {
                 string enemyFlag = teamNet.Value == Team.Blue ? "GreenFlag" : "BlueFlag";
                 ScoreFlagServerRpc(teamNet.Value, enemyFlag);
@@ -332,7 +333,7 @@ public class PlayerCtF : NetworkBehaviour
             if (currentFlagZone != Team.None && currentFlagZone != teamNet.Value && currentZoneNet.Value != teamNet.Value)
             {
                 string enemyFlag = teamNet.Value == Team.Blue ? "GreenFlag" : "BlueFlag";
-                TakeFlagServerRpc(teamNet.Value, enemyFlag);
+                TakeFlagServerRpc(enemyFlag);
             }
             else
             {
@@ -454,6 +455,7 @@ public class PlayerCtF : NetworkBehaviour
             {
                 victim.isFlagActiveNet.Value = false;
                 TogglePlacedFlagClientRpc(this.teamNet.Value.ToString() + "Flag", true);
+                if (IsServer) CtFGameState.Instance.ToastMessageClientRpc(teamNet.Value, teamNet.Value.ToString() + " flag was returned!");
             }
             victim.TeleportClientRpc(new Vector3(victim.teamNet.Value == Team.Blue ? -34.5f : 34.5f, victim.rb.position.y, victim.rb.position.z));
         }
@@ -514,10 +516,12 @@ public class PlayerCtF : NetworkBehaviour
     }
 
     [ServerRpc]
-    public void TakeFlagServerRpc(Team team, string flagName)
+    public void TakeFlagServerRpc(string flagName)
     {
         isFlagActiveNet.Value = true;
         TogglePlacedFlagClientRpc(flagName, false);
+        Team _team = teamNet.Value == Team.Green ? Team.Blue : Team.Green;
+        if (IsServer) CtFGameState.Instance.ToastMessageClientRpc(_team, _team.ToString() + " flag was taken!");
     }
 
     [ServerRpc]
@@ -538,7 +542,11 @@ public class PlayerCtF : NetworkBehaviour
             score = CtFGameState.Instance.blueScore.Value;
         }
         TogglePlacedFlagClientRpc(flagName, true);
-        if (IsServer) CtFGameState.Instance.UpdateScoreTextClientRpc(team, score);
+        if (IsServer)
+        {
+            CtFGameState.Instance.UpdateScoreTextClientRpc(team, score);
+            CtFGameState.Instance.ToastMessageClientRpc(team, team.ToString() + " scored a point!");
+        } 
     }
 
     /// <summary>
