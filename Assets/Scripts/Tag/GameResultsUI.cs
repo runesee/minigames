@@ -277,7 +277,7 @@ public class GameResultsUI : NetworkBehaviour
         {
             var player = obj.GetComponent<PlayerCtF>();
             if (player == null) continue;
-            float score = player.teamNet.Value == PlayerCtF.Team.Green ? CtFGameState.Instance.greenScore.Value : CtFGameState.Instance.blueScore.Value;
+            float score = player.collectedFlagsNet.Value;
             results.Add(new PlayerResult
             {
                 clientId = player.OwnerClientId,

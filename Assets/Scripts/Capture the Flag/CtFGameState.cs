@@ -44,14 +44,16 @@ public class CtFGameState : NetworkBehaviour
         public FixedString64Bytes nickname;
         public FixedString64Bytes color;
         public PlayerCtF.Team team;
+        public int personalScore;
         public double LastTagTime;
 
-        public PlayerData(FixedString64Bytes Guid, FixedString64Bytes nickname, FixedString64Bytes color, PlayerCtF.Team team, double LastTagTime)
+        public PlayerData(FixedString64Bytes Guid, FixedString64Bytes nickname, FixedString64Bytes color, PlayerCtF.Team team, int personalScore, double LastTagTime)
         {
             this.Guid = Guid;
             this.nickname = nickname;
             this.color = color;
             this.team = team;
+            this.personalScore = personalScore;
             this.LastTagTime = LastTagTime;
         }
 
@@ -61,6 +63,7 @@ public class CtFGameState : NetworkBehaviour
             this.nickname = "";
             this.color = "";
             this.team = PlayerCtF.Team.None;
+            this.personalScore = 0;
             this.LastTagTime = 0d;
         }
 
@@ -72,6 +75,7 @@ public class CtFGameState : NetworkBehaviour
                 nickname.Equals(other.nickname) &&
                 color.Equals(other.color) &&
                 team.Equals(other.team) &&
+                personalScore.Equals(other.personalScore) &&
                 LastTagTime.Equals(other.LastTagTime)
             );    
         }
@@ -82,6 +86,7 @@ public class CtFGameState : NetworkBehaviour
             serializer.SerializeValue(ref nickname);
             serializer.SerializeValue(ref color);
             serializer.SerializeValue(ref team);
+            serializer.SerializeValue(ref personalScore);
             serializer.SerializeValue(ref LastTagTime);
         }
     }

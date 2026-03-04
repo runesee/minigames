@@ -103,6 +103,11 @@ public class PlayerCtF : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
+    public NetworkVariable<int> collectedFlagsNet = new NetworkVariable<int>(
+        0,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
 
     public ParticleSystem sprintParticleEffect;
     public Team? currentStartZone;
@@ -306,6 +311,7 @@ public class PlayerCtF : NetworkBehaviour
             nicknameNet.Value,
             colorNet.Value,
             teamNet.Value,
+            collectedFlagsNet.Value,
             lastTagTimeNet.Value
         );
         return playerData;
@@ -529,6 +535,7 @@ public class PlayerCtF : NetworkBehaviour
     {
         if (!isFlagActiveNet.Value) return;
         isFlagActiveNet.Value = false;
+        this.collectedFlagsNet.Value++;
         
         int score;
         if (team == Team.Green)
