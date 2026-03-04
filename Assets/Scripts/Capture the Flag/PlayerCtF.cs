@@ -102,8 +102,11 @@ public class PlayerCtF : NetworkBehaviour
     public ParticleSystem sprintParticleEffect;
     public Team? currentZone;
     public Team? currentStartZone;
+    public Team? currentFlagZone;
     private GameObject greenFlag;
     private GameObject blueFlag;
+    private GameObject greenFlagFabric;
+    private GameObject blueFlagFabric;
     private InputAction attackAction;
     private InputAction moveAction;
     private InputAction sprintAction;
@@ -165,6 +168,9 @@ public class PlayerCtF : NetworkBehaviour
 
         greenFlag = GameObject.Find("GreenFlag");
         blueFlag = GameObject.Find("BlueFlag");
+        greenFlagFabric = GameObject.Find("GreenFabric");
+        blueFlagFabric = GameObject.Find("BlueFabric");
+
         if (IsOwner)
         {
             playerShadow.SetActive(true);
@@ -240,8 +246,10 @@ public class PlayerCtF : NetworkBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (!IsOwner) return;
         var zone = other.GetComponent<TeamZone>();
         var startZone = other.GetComponent<StartZone>();
+        var flagZone = other.GetComponent<FlagZone>();
         if (zone != null) currentZone = zone.team;
         if (startZone != null)
         {
@@ -252,6 +260,32 @@ public class PlayerCtF : NetworkBehaviour
                 ScoreFlagServerRpc(teamNet.Value, enemyFlag);
             }
         } 
+        else if (flagZone != null)
+        {
+            currentFlagZone = flagZone.zone;
+            GameObject currentFlag = teamNet.Value == Team.Green ? blueFlag : greenFlag;
+            MeshRenderer currentFlagFabric = teamNet.Value == Team.Green ? blueFlagFabric.GetComponentInChildren<MeshRenderer>() : greenFlagFabric.GetComponentInChildren<MeshRenderer>();
+            if (teamNet.Value != flagZone.zone && currentFlag.activeSelf)
+            {
+                Color baseColor = teamNet.Value == Team.Green ? blueColor.color : greenColor.color;
+                currentFlagFabric.material.EnableKeyword("_EMISSION");
+                currentFlagFabric.material.SetColor("_EmissionColor", baseColor * 2f);
+                currentFlagFabric.material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+            }
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        var flagZone = other.GetComponent<FlagZone>();
+        if (flagZone != null)
+        {
+            currentFlagZone = Team.None;
+            GameObject currentFlagFabric = teamNet.Value == Team.Green ? blueFlagFabric : greenFlagFabric;
+            Material currentFlagFabricMaterial = currentFlagFabric.GetComponentInChildren<MeshRenderer>().material;
+            currentFlagFabricMaterial.DisableKeyword("_EMISSION");
+            currentFlagFabricMaterial.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+        }
     }
 
     public CtFGameState.PlayerData GetTagData()
@@ -292,10 +326,9 @@ public class PlayerCtF : NetworkBehaviour
             }
             else if(teamNet.Value != currentStartZone)
             {
-                string enemyFlag = teamNet.Value == Team.Blue ? "GreenFlag" : "BlueFlag";
-                float distance = Vector3.Distance(transform.position, (enemyFlag == "GreenFlag" ? greenFlag : blueFlag).transform.position);
-                if (distance < 3f)
+                if (currentFlagZone != Team.None && currentFlagZone != teamNet.Value)
                 {
+                    string enemyFlag = teamNet.Value == Team.Blue ? "GreenFlag" : "BlueFlag";
                     TakeFlagServerRpc(teamNet.Value, enemyFlag);
                 } 
             }
@@ -459,7 +492,12 @@ public class PlayerCtF : NetworkBehaviour
     {
         if (flagName == "GreenFlag") greenFlag.SetActive(active);
         else blueFlag.SetActive(active);
-        flagColor.material = flagName == "BlueFlag" ? blueColor : greenColor;
+        if (!active)
+        {
+            flagColor.material.EnableKeyword("_EMISSION");
+            flagColor.material.SetColor("_EmissionColor", teamNet.Value == Team.Green ? blueColor.color * 1.25f : greenColor.color * 1.25f);
+            flagColor.material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+        }
     }
 
     [ServerRpc]
@@ -472,6 +510,9 @@ public class PlayerCtF : NetworkBehaviour
     [ServerRpc]
     public void ScoreFlagServerRpc(Team team, string flagName)
     {
+        if (!isFlagActive.Value) return;
+        isFlagActive.Value = false;
+        
         int score;
         if (team == Team.Green)
         {
@@ -483,16 +524,8 @@ public class PlayerCtF : NetworkBehaviour
             CtFGameState.Instance.blueScore.Value++;
             score = CtFGameState.Instance.blueScore.Value;
         }
-        isFlagActive.Value = false;
         TogglePlacedFlagClientRpc(flagName, true);
-        UpdateScoreTextClientRpc(team, score);
-    }
-
-    [ClientRpc]
-    public void UpdateScoreTextClientRpc(Team team, int score)
-    {
-        if (team == Team.Green) CtFGameState.Instance.blueScoreText.text = score.ToString();
-        else CtFGameState.Instance.greenScoreText.text = score.ToString();
+        if (IsServer) CtFGameState.Instance.UpdateScoreTextClientRpc(team, score);
     }
 
     /// <summary>

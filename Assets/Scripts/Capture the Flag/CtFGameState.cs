@@ -145,4 +145,11 @@ public class CtFGameState : NetworkBehaviour
             shouldChangeScene = true;
         }
     }
+
+    [ClientRpc]
+    public void UpdateScoreTextClientRpc(PlayerCtF.Team team, int score)
+    {
+        if (team == PlayerCtF.Team.Green) blueScoreText.text = score.ToString();
+        else greenScoreText.text = score.ToString();
+    }
 }
