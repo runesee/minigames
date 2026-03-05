@@ -36,6 +36,12 @@ EditorBuildSettings:
     path: Assets/Scenes/Tutorial/BalloonTagTutorial.unity
     guid: 24cb941f0215dbc4fae773731ff6509a
   - enabled: 1
+    path: Assets/Scenes/CaptureTheFlag.unity
+    guid: 44398848f71e67b4f873a5a297320626
+  - enabled: 1
+    path: Assets/Scenes/Tutorial/CaptureTheFlagTutorial.unity
+    guid: dc5d7c73419eb0c4583a744424827db8
+  - enabled: 1
     path: Assets/Scenes/Tutorial/RedLightTutorial.unity
     guid: 1a5df0bebb9d241b0a75dfd19cbc1b76
   m_configObjects:

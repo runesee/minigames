@@ -12,6 +12,7 @@ public class GameResultsUI : NetworkBehaviour
     [Header("UI References")]
     [SerializeField] private GameObject resultsPanel;
     [SerializeField] private TextMeshProUGUI resultsText;
+    [SerializeField] private TextMeshProUGUI winnerText;
     [SerializeField] private ParticleSystem fireworksLeft;
     [SerializeField] private ParticleSystem fireworksRight;
 
@@ -78,6 +79,17 @@ public class GameResultsUI : NetworkBehaviour
                 StartCoroutine(WaitForBalloonTagGameState());
             }
         }
+        else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.CaptureTheFlag)
+        {
+            if (CtFGameState.Instance != null)
+            {
+                CtFGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
+            }
+            else
+            {
+                StartCoroutine(WaitForCtFGameState());
+            }
+        }
     }
 
     private System.Collections.IEnumerator WaitForTagGameState()
@@ -104,6 +116,12 @@ public class GameResultsUI : NetworkBehaviour
         BalloonTagGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
     }
 
+    private System.Collections.IEnumerator WaitForCtFGameState()
+    {
+        while (CtFGameState.Instance == null)  yield return new WaitForSeconds(0.1f);
+        CtFGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
+    }
+
     public override void OnNetworkDespawn()
     {
         if (TagGameState.Instance != null)
@@ -122,6 +140,10 @@ public class GameResultsUI : NetworkBehaviour
         {
             BalloonTagGameState.Instance.gameState.OnValueChanged -= OnGameStateChanged;
         }
+        else if (CtFGameState.Instance != null)
+        {
+            CtFGameState.Instance.gameState.OnValueChanged -= OnGameStateChanged;
+        }
     }
 
     private void OnGameStateChanged(GameState previousState, GameState newState)
@@ -132,6 +154,14 @@ public class GameResultsUI : NetworkBehaviour
             BuildResultsText();
             StartCoroutine(ShowResultsWithAnimation());
             ShowResultsClientRpc(results.ToArray());
+            if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.CaptureTheFlag)
+            {
+                if (CtFGameState.Instance.blueScore.Value > CtFGameState.Instance.greenScore.Value)
+                {
+                    DisplayWinnerTextClientRpc(CtFGameState.Instance.blueColor.color, PlayerCtF.Team.Blue);
+                }
+                else DisplayWinnerTextClientRpc(CtFGameState.Instance.greenColor.color, PlayerCtF.Team.Green);
+            } 
         }
         else
         {
@@ -290,6 +320,27 @@ public class GameResultsUI : NetworkBehaviour
         return results;
     }
 
+    private List<PlayerResult> AddCtFResults(List<PlayerResult> results)
+    {
+        foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
+        {
+            var player = obj.GetComponent<PlayerCtF>();
+            if (player == null) continue;
+            float score = player.collectedFlagsNet.Value;
+            Color color = player.teamNet.Value == PlayerCtF.Team.Green ? player.greenColor.color : player.blueColor.color;
+            FixedString64Bytes _color = new FixedString64Bytes("#" + color.ToHexString());
+
+            results.Add(new PlayerResult
+            {
+                clientId = player.OwnerClientId,
+                score = score,
+                nickname = player.nicknameNet.Value.ToSafeString(),
+                color = _color,
+            });
+        }
+        return results;
+    }
+
     private void BuildResultsText()
     {
         if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag)
@@ -308,6 +359,10 @@ public class GameResultsUI : NetworkBehaviour
         else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.BalloonTag)
         {
             results = AddBalloonTagResults(results);
+        }
+        else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.CaptureTheFlag)
+        {
+            results = AddCtFResults(results);
         }
         results = results.OrderBy(r => r.score).ToList();
         
@@ -354,7 +409,11 @@ public class GameResultsUI : NetworkBehaviour
             UnityEngine.ColorUtility.TryParseHtmlString(results[i].color.Value, out var playerColor);
             card.bonusText.color = medalColor;
             card.nicknameText.color = playerColor;
-            card.bonusText.text = "#" + (1+i).ToString();
+
+            int firstIndexOfScore = i;
+            while (firstIndexOfScore > 0 && results[firstIndexOfScore - 1].score == results[i].score) firstIndexOfScore--;
+            int rank = firstIndexOfScore + 1;
+            card.bonusText.text = "#" + rank.ToString();
             rectTransform.anchoredPosition = new Vector2(0, cardYPositions[i]);
         }
     }
@@ -365,6 +424,18 @@ public class GameResultsUI : NetworkBehaviour
         this.results = playerResults.ToList();
         UpdateCanvas(this.results);
         StartCoroutine(ShowResultsWithAnimation());
+    }
+
+    [ClientRpc]
+    private void DisplayWinnerTextClientRpc(Color color, PlayerCtF.Team team)
+    {
+        UpdateWinnerText(color, team);
+    }
+
+    private void UpdateWinnerText(Color color, PlayerCtF.Team team)
+    {
+        winnerText.text = team.ToString() + " team wins!";
+        winnerText.color = color;
     }
 
     private struct PlayerResult : INetworkSerializable
