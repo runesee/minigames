@@ -457,6 +457,7 @@ public class PlayerCtF : NetworkBehaviour
         {
             victim.isRespawning.Value = true;
             victim.lastRespawnTimeNet.Value = serverTime;
+            victim.currentZoneNet.Value = victim.teamNet.Value;
             if (victim.isFlagActiveNet.Value)
             {
                 victim.isFlagActiveNet.Value = false;

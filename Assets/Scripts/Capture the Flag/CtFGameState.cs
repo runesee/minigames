@@ -33,7 +33,7 @@ public class CtFGameState : NetworkBehaviour
     public Material blueColor;
     public Material greenColor;
     
-    public readonly float[] scores = { 6f, 6f, 3f, 3f };
+    public float[] scores = { 6f, 6f, 3f, 3f };
     private bool shouldChangeScene = false;
     public List<PlayerData> PlayerDataList = new List<PlayerData>();
     private int tally = 0;
@@ -169,7 +169,9 @@ public class CtFGameState : NetworkBehaviour
     {
         tally++;
         toastText.text = message;
-        toastText.color = team == PlayerCtF.Team.Green ? greenColor.color : blueColor.color;
+        Color color = team == PlayerCtF.Team.Green ? greenColor.color : blueColor.color;
+        if (team == PlayerCtF.Team.None) color = Color.white;
+        toastText.color = color;
         StartCoroutine(DisplayToastMessage(tally));
     }
 

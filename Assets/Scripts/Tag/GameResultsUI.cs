@@ -12,6 +12,7 @@ public class GameResultsUI : NetworkBehaviour
     [Header("UI References")]
     [SerializeField] private GameObject resultsPanel;
     [SerializeField] private TextMeshProUGUI resultsText;
+    [SerializeField] private TextMeshProUGUI winnerText;
     [SerializeField] private ParticleSystem fireworksLeft;
     [SerializeField] private ParticleSystem fireworksRight;
 
@@ -131,6 +132,14 @@ public class GameResultsUI : NetworkBehaviour
             BuildResultsText();
             StartCoroutine(ShowResultsWithAnimation());
             ShowResultsClientRpc(results.ToArray());
+            if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.CaptureTheFlag)
+            {
+                if (CtFGameState.Instance.blueScore.Value > CtFGameState.Instance.greenScore.Value)
+                {
+                    DisplayWinnerTextClientRpc(CtFGameState.Instance.blueColor.color, PlayerCtF.Team.Blue);
+                }
+                else DisplayWinnerTextClientRpc(CtFGameState.Instance.greenColor.color, PlayerCtF.Team.Green);
+            } 
         }
         else
         {
@@ -278,12 +287,15 @@ public class GameResultsUI : NetworkBehaviour
             var player = obj.GetComponent<PlayerCtF>();
             if (player == null) continue;
             float score = player.collectedFlagsNet.Value;
+            Color color = player.teamNet.Value == PlayerCtF.Team.Green ? player.greenColor.color : player.blueColor.color;
+            FixedString64Bytes _color = new FixedString64Bytes("#" + color.ToHexString());
+
             results.Add(new PlayerResult
             {
                 clientId = player.OwnerClientId,
                 score = score,
                 nickname = player.nicknameNet.Value.ToSafeString(),
-                color = player.colorNet.Value
+                color = _color,
             });
         }
         return results;
@@ -336,7 +348,11 @@ public class GameResultsUI : NetworkBehaviour
             UnityEngine.ColorUtility.TryParseHtmlString(results[i].color.Value, out var playerColor);
             card.bonusText.color = medalColor;
             card.nicknameText.color = playerColor;
-            card.bonusText.text = "#" + (1+i).ToString();
+
+            int firstIndexOfScore = i;
+            while (firstIndexOfScore > 0 && results[firstIndexOfScore - 1].score == results[i].score) firstIndexOfScore--;
+            int rank = firstIndexOfScore + 1;
+            card.bonusText.text = "#" + rank.ToString();
             rectTransform.anchoredPosition = new Vector2(0, cardYPositions[i]);
         }
     }
@@ -347,6 +363,18 @@ public class GameResultsUI : NetworkBehaviour
         this.results = playerResults.ToList();
         UpdateCanvas(this.results);
         StartCoroutine(ShowResultsWithAnimation());
+    }
+
+    [ClientRpc]
+    private void DisplayWinnerTextClientRpc(Color color, PlayerCtF.Team team)
+    {
+        UpdateWinnerText(color, team);
+    }
+
+    private void UpdateWinnerText(Color color, PlayerCtF.Team team)
+    {
+        winnerText.text = team.ToString() + " team wins!";
+        winnerText.color = color;
     }
 
     private struct PlayerResult : INetworkSerializable

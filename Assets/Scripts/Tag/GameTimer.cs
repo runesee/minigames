@@ -27,6 +27,7 @@ public class GameTimer : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
+    private int overtimeCount = 0;
 
     public override void OnNetworkSpawn()
     {
@@ -138,9 +139,34 @@ public class GameTimer : NetworkBehaviour
         }
         else if (CtFGameState.Instance != null && IsServer)
         {
-            CtFGameState.Instance.SetGameStateServerRpc(GameState.Stopped);
+            if (CtFGameState.Instance.blueScore.Value == CtFGameState.Instance.greenScore.Value && overtimeCount < 2)
+            {
+                overtimeCount++;
+                if (overtimeCount >= 2)
+                {
+                    CtFGameState.Instance.ToastMessageClientRpc(PlayerCtF.Team.None, "2nd Overtime! Last chance to avoid a tie!");
+                    float[] scores = { 5f, 5f, 5f, 5f };
+                    CtFGameState.Instance.scores = scores;
+                    OvertimeServerRpc(31f);
+                } 
+                else
+                {
+                    CtFGameState.Instance.ToastMessageClientRpc(PlayerCtF.Team.None, "Overtime! First team to capture a flag wins!");
+                    OvertimeServerRpc(46f);
+                } 
+                return;
+            }
+            else CtFGameState.Instance.SetGameStateServerRpc(GameState.Stopped);
         }
         StartCoroutine(Handover());
+    }
+
+    [ServerRpc]
+    private void OvertimeServerRpc(float overTime)
+    {
+        remainingTime.Value = overTime;
+        timerRunning.Value = true;
+        timerEndTime.Value = NetworkManager.ServerTime.Time + overTime;
     }
 
     private IEnumerator Handover()
