@@ -37,6 +37,9 @@ public class MusicManager : NetworkBehaviour
             case MinigameManager.MinigameScene.FocusFlow:
                 PlayFocusFlowMusicClientRpc();
                 break;
+            case MinigameManager.MinigameScene.CaptureTheFlag:
+                PlayFocusFlowMusicClientRpc();
+                break;
             default:
                 PlayLobbyMusicClientRpc();
                 break;
