@@ -88,8 +88,8 @@ public class MinigameManager : NetworkBehaviour
             case MinigameScene.Scoreboard:
                 if (previousGameState == MinigameScene.Tag)
                 {
-                    NetworkManager.Singleton.SceneManager.LoadScene("CaptureTheFlag", LoadSceneMode.Single); // TODO : reset
-                    currentGameState = MinigameScene.CaptureTheFlag;
+                    NetworkManager.Singleton.SceneManager.LoadScene("FocusFlowTutorial", LoadSceneMode.Single);
+                    currentGameState = MinigameScene.FocusFlowTutorial;
                 }
                 else if (previousGameState == MinigameScene.FocusFlow)
                 {

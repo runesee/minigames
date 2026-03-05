@@ -523,10 +523,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u2022 All players start with three balloons\n\n\u2022 Steal others' balloons
-    with the A button\n\n\u2022 End the game with the most balloons to win\n\n\u2022
-    Move around the map by pedaling\n\n\u2022 Pay attention to the orange and red
-    walls!"
+  m_text: "\u2022 Teams face each other 2 vs 2\n\n\u2022 Capture the most flags to
+    win\n\n\u2022 Navigate to the opposing team's flag\n\n\u2022 Grab the flag, and
+    bring it to your \n   starting zone to capture it\n\n\u2022 Move around the map
+    by pedaling"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -679,7 +679,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 941479186489303443, guid: 9d422ddc72142cc4f9399c840a4128e1, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 325
+      value: 539
       objectReference: {fileID: 0}
     - target: {fileID: 941479186489303443, guid: 9d422ddc72142cc4f9399c840a4128e1, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -719,7 +719,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8769222093807572334, guid: 9d422ddc72142cc4f9399c840a4128e1, type: 3}
       propertyPath: m_text
-      value: Tag
+      value: Tag / Grab flag
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1261,7 +1261,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   slider: {fileID: 827905795}
   sliderText: {fileID: 1794516782}
-  relativeVideoPath: minigames_balloon_tag.webm
+  relativeVideoPath: minigames_ctf.webm
   videoPlayer: {fileID: 1549113482}
 --- !u!114 &1053332722
 MonoBehaviour:
@@ -2487,7 +2487,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 941479186489303443, guid: 9d422ddc72142cc4f9399c840a4128e1, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 525
+      value: 322
       objectReference: {fileID: 0}
     - target: {fileID: 941479186489303443, guid: 9d422ddc72142cc4f9399c840a4128e1, type: 3}
       propertyPath: m_AnchoredPosition.y

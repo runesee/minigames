@@ -7044,7 +7044,6 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   gameDurationInSeconds: 150
   timerText: {fileID: 443790207}
-  isTag: 1
 --- !u!1 &927912698
 GameObject:
   m_ObjectHideFlags: 0
@@ -8495,6 +8494,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   resultsPanel: {fileID: 7098285998355619465}
   resultsText: {fileID: 506349655679140863}
+  winnerText: {fileID: 0}
   fireworksLeft: {fileID: 2141181359}
   fireworksRight: {fileID: 481447404}
   panelAnimationDuration: 0.8
