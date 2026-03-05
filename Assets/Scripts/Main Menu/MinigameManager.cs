@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using PlayPulse.Core.Api.Dtos;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
@@ -30,6 +31,9 @@ public class MinigameManager : NetworkBehaviour
 
     public MinigameScene currentGameState = MinigameScene.MainMenu;
     public MinigameScene previousGameState = MinigameScene.MainMenu;
+
+    private readonly HashSet<string> _takenColors = new HashSet<string>(System.StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<ulong, string> _clientColorMap = new Dictionary<ulong, string>();
 
     private void Awake()
     {
@@ -137,9 +141,14 @@ public class MinigameManager : NetworkBehaviour
         if (transport == null) return;
         transport.SetConnectionData(ipAddress, portNumber);
 
+        NetworkManager.Singleton.NetworkConfig.ConnectionApproval = true;
+        NetworkManager.Singleton.ConnectionApprovalCallback = HandleConnectionApproval;
+
         if (isUserHost)
         {
-
+            _takenColors.Clear();
+            _clientColorMap.Clear();
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnectedFromServer;
             NetworkManager.Singleton.StartHost();
             NetworkManager.Singleton.SceneManager.LoadScene("Lobby", LoadSceneMode.Single);
         }
@@ -149,8 +158,39 @@ public class MinigameManager : NetworkBehaviour
         }
     }
 
+    private void HandleConnectionApproval(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
+    {
+        string colorHex = Encoding.UTF8.GetString(request.Payload);
+
+        if (_takenColors.Contains(colorHex))
+        {
+            response.Approved = false;
+            response.Reason = "That color is already taken. Please choose a different one.";
+        }
+        else
+        {
+            response.Approved = true;
+            response.CreatePlayerObject = false;
+            _takenColors.Add(colorHex);
+            _clientColorMap[request.ClientNetworkId] = colorHex;
+        }
+    }
+
+    private void OnClientDisconnectedFromServer(ulong clientId)
+    {
+        if (_clientColorMap.TryGetValue(clientId, out string colorHex))
+        {
+            _takenColors.Remove(colorHex);
+            _clientColorMap.Remove(clientId);
+        }
+    }
+
     public void TerminateConnection()
     {
+        _takenColors.Clear();
+        _clientColorMap.Clear();
+        NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnectedFromServer;
+        NetworkManager.Singleton.ConnectionApprovalCallback = null;
         NetworkManager.Singleton.Shutdown();
         SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
     }

@@ -6,6 +6,7 @@ using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using static MinigameManager;
 
 public class MenuManager : MonoBehaviour
@@ -31,6 +32,7 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private GameObject ipLabel;
     [SerializeField] private UnityEngine.UI.InputField ipInputField;
     [SerializeField] private UnityEngine.UI.Button backButton;
+    [SerializeField] private UnityEngine.UI.Text feedbackText;
 
     [Header("Joystick Navigation")]
     [SerializeField] private float joystickDeadzone = 0.5f;
@@ -122,6 +124,8 @@ public class MenuManager : MonoBehaviour
         {
             characterPreview.SetColor(selectedColor);
         }
+
+        ClearFeedback();
     }
 
     private void CreateWhiteSprite()
@@ -213,8 +217,45 @@ public class MenuManager : MonoBehaviour
 
         if (ipInputField != null && string.IsNullOrWhiteSpace(ipInputField.text)) return;
 
+        string colorHex = ColorUtility.ToHtmlStringRGB(PlayerColorManager.GetColor(colorDropdown.value));
+        NetworkManager.Singleton.NetworkConfig.ConnectionData = Encoding.UTF8.GetBytes(colorHex);
+
+        if (!isHostMode)
+        {
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientConnectionDenied;
+        }
+
         string ipAddress = isHostMode ? GetLocalIPAddress() : ipInputField != null ? ipInputField.text : "127.0.0.1";
         MinigameManager.Instance.StartConnection(ipAddress, PORT, isHostMode);
+    }
+
+    private void OnClientConnectionDenied(ulong clientId)
+    {
+        NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientConnectionDenied;
+
+        string reason = NetworkManager.Singleton.DisconnectReason;
+        if (!string.IsNullOrEmpty(reason))
+        {
+            ShowFeedback(reason);
+        }
+    }
+
+    private void ShowFeedback(string message)
+    {
+        if (feedbackText != null)
+        {
+            feedbackText.text = message;
+            feedbackText.gameObject.SetActive(true);
+        }
+    }
+
+    private void ClearFeedback()
+    {
+        if (feedbackText != null)
+        {
+            feedbackText.text = string.Empty;
+            feedbackText.gameObject.SetActive(false);
+        }
     }
 
     public void OnBackButtonClicked()
@@ -239,6 +280,7 @@ public class MenuManager : MonoBehaviour
         ipLabel?.SetActive(false);
         ipInputField?.gameObject.SetActive(false);
         joystickTimer = 0f;
+        ClearFeedback();
         SelectSelectable(nicknameInputField);
     }
 
