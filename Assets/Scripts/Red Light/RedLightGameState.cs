@@ -8,13 +8,12 @@ using UnityEngine;
 public class RedLightGameState : NetworkBehaviour
 {
     public static RedLightGameState Instance { get; private set; }
-
+    public List<PlayerData> PlayerDataList = new List<PlayerData>();
     public NetworkVariable<GameState> gameState = new NetworkVariable<GameState>(
         GameState.Initializing,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
-
     private float[] scores = { 10, 6, 3, 1 };
 
     public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
@@ -59,13 +58,11 @@ public class RedLightGameState : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        base.OnNetworkSpawn();
         gameState.OnValueChanged += OnGameStateChanged;
     }
 
     public override void OnNetworkDespawn()
     {
-        base.OnNetworkDespawn();
         gameState.OnValueChanged -= OnGameStateChanged;
     }
 
@@ -82,8 +79,14 @@ public class RedLightGameState : NetworkBehaviour
     {
         if (!IsServer) return;
 
-        List<PlayerData> rankedPlayers = GetPlayerDataSortedByDistance();
-
+        foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
+        {
+            var player = obj.GetComponent<RedLightPlayerMovement>();
+            if (!player) continue;
+            PlayerData data = player.GetPlayerData();
+            this.PlayerDataList.Add(data);
+        }
+        List<PlayerData> rankedPlayers = this.PlayerDataList.OrderByDescending(p => p.Distance).ToList();
         for (int i = 0; i < rankedPlayers.Count; i++)
         {
             float score = i < scores.Length ? scores[i] : 0f;
@@ -92,12 +95,7 @@ public class RedLightGameState : NetworkBehaviour
             FixedString64Bytes color = rankedPlayers[i].color;
             
             SessionManager.PlayerData globalSessionData = SessionManager.Instance.GetDataByGuid(guid);
-            SessionManager.PlayerData scoredPlayerData = new SessionManager.PlayerData(
-                guid, 
-                nickname, 
-                color, 
-                score + globalSessionData.Score
-            );
+            SessionManager.PlayerData scoredPlayerData = new SessionManager.PlayerData(guid, nickname, color, score + globalSessionData.Score);
             SessionManager.Instance.SaveData(scoredPlayerData);
         }
 
@@ -121,33 +119,10 @@ public class RedLightGameState : NetworkBehaviour
         }
     }
 
-    [ServerRpc(RequireOwnership = false)]
+    [ServerRpc]
     public void SetGameStateServerRpc(GameState newState)
     {
         gameState.Value = newState;
-    }
-
-    public List<PlayerData> GetAllPlayerData()
-    {
-        List<PlayerData> playerDataList = new List<PlayerData>();
-
-        RedLightPlayerMovement[] allPlayers = FindObjectsByType<RedLightPlayerMovement>(FindObjectsSortMode.None);
-        
-        foreach (RedLightPlayerMovement player in allPlayers)
-        {
-            if (player != null)
-            {
-                playerDataList.Add(player.GetPlayerData());
-            }
-        }
-
-        return playerDataList;
-    }
-
-    public List<PlayerData> GetPlayerDataSortedByDistance()
-    {
-        List<PlayerData> playerDataList = GetAllPlayerData();
-        return playerDataList.OrderByDescending(p => p.Distance).ToList();
     }
 }
 

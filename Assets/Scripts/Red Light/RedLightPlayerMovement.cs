@@ -82,8 +82,6 @@ public class RedLightPlayerMovement : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        base.OnNetworkSpawn();
-
         startPositionZ = transform.position.z;
 
         animator = GetComponentInChildren<Animator>();
@@ -110,16 +108,15 @@ public class RedLightPlayerMovement : NetworkBehaviour
         colorNet.OnValueChanged += OnSkinColorChanged;
         isPenalizedNet.OnValueChanged += OnPenaltyStateChanged;
 
-        string color = IsOwner ? PlayerPrefs.GetString("Color") : colorNet.Value.ToString();
+        var data = LocalPlayerStorage.Load();
+        string color = IsOwner ? data.color : colorNet.Value.ToString();
         SetSkinColor(color);
 
         if (IsOwner)
         {
-            string nickname = PlayerPrefs.GetString("Username", "Player");
-            string guid = PlayerPrefs.GetString("Guid");
             UpdateColorServerRpc(color);
-            UpdateNicknameServerRpc(nickname);
-            UpdateGuidServerRpc(guid);
+            UpdateNicknameServerRpc(data.nickname);
+            UpdateGuidServerRpc(data.guid);
 
             RedLightCameraFollow cameraFollow = Camera.main?.GetComponent<RedLightCameraFollow>();
             if (cameraFollow != null)
@@ -131,7 +128,6 @@ public class RedLightPlayerMovement : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
-        base.OnNetworkDespawn();
         colorNet.OnValueChanged -= OnSkinColorChanged;
         isPenalizedNet.OnValueChanged -= OnPenaltyStateChanged;
     }
