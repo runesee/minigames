@@ -114,7 +114,7 @@ public class PlayerCtF : NetworkBehaviour
     public Team? currentFlagZone;
     public AudioSource tagAudioSource;
     public AudioClip tagClip;
-    private Camera camera;
+    public Camera camera;
     private GameObject greenFlag;
     private GameObject blueFlag;
     private GameObject greenFlagFabric;
@@ -381,7 +381,7 @@ public class PlayerCtF : NetworkBehaviour
             isSprintingNet.Value = pedalSpeed > sprintSpeedThreshold;
             isWalkingNet.Value = !isSprintingNet.Value;
             isShowingBoostParticlesNet.Value = isSprintingNet.Value;
-            float moveSpeed = 25f * pedalSpeed;
+            float moveSpeed = 5f * pedalSpeed;
 
             Quaternion lastRotation = Quaternion.LookRotation(joystickOffset);
             transform.rotation = Quaternion.Slerp(transform.rotation, lastRotation, 10f * Time.deltaTime);
@@ -535,6 +535,7 @@ public class PlayerCtF : NetworkBehaviour
     {
         rb.position = position;
         rb.rotation = UnityEngine.Quaternion.Euler(0f, teamNet.Value == Team.Green ? -90f : 90f, 0f);
+        if (IsOwner) camera.transform.position = new Vector3(Math.Clamp(position.x, -18f, 18f), 20f, -20f);
     }
 
     [ClientRpc]
