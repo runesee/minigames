@@ -112,6 +112,8 @@ public class PlayerCtF : NetworkBehaviour
     public ParticleSystem sprintParticleEffect;
     public Team? currentStartZone;
     public Team? currentFlagZone;
+    public AudioSource tagAudioSource;
+    public AudioClip tagClip;
     private Camera camera;
     private GameObject greenFlag;
     private GameObject blueFlag;
@@ -349,11 +351,13 @@ public class PlayerCtF : NetworkBehaviour
             if (currentFlagZone != Team.None && currentFlagZone != teamNet.Value && currentZoneNet.Value != teamNet.Value)
             {
                 string enemyFlag = teamNet.Value == Team.Blue ? "GreenFlag" : "BlueFlag";
+                tagAudioSource?.PlayOneShot(tagClip);
                 TakeFlagServerRpc(enemyFlag);
             }
             else
             {
                 PlayerCtF target = FindClosestPlayerInRange(2.5f);
+                tagAudioSource?.PlayOneShot(tagClip);
                 if (target != null) TagPlayerServerRpc(target.NetworkObjectId);
             }
         }
@@ -459,6 +463,12 @@ public class PlayerCtF : NetworkBehaviour
         guidNet.Value = guid;
     }
 
+    [ClientRpc]
+    private void PlayTagSoundClientRpc()
+    {
+        if (!tagAudioSource.isPlaying) tagAudioSource?.PlayOneShot(tagClip);
+    }
+
     /// <summary>
     /// Set targeted player as tagged on server, and disable their movement.
     /// Also update time tagging player has been tagged.
@@ -482,6 +492,7 @@ public class PlayerCtF : NetworkBehaviour
                 if (IsServer) CtFGameState.Instance.ToastMessageClientRpc(teamNet.Value, teamNet.Value.ToString() + " flag was returned!");
             }
             victim.TeleportClientRpc(new Vector3(victim.teamNet.Value == Team.Blue ? -34.5f : 34.5f, victim.rb.position.y, victim.rb.position.z));
+            PlayTagSoundClientRpc();
         }
         if (IsOwner) StopAnimationsClientRpc();
 
@@ -544,6 +555,7 @@ public class PlayerCtF : NetworkBehaviour
     {
         isFlagActiveNet.Value = true;
         TogglePlacedFlagClientRpc(flagName, false);
+        PlayTagSoundClientRpc();
         Team _team = teamNet.Value == Team.Green ? Team.Blue : Team.Green;
         if (IsServer) CtFGameState.Instance.ToastMessageClientRpc(_team, _team.ToString() + " flag was taken!");
     }
