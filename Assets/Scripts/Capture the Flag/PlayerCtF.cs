@@ -130,7 +130,7 @@ public class PlayerCtF : NetworkBehaviour
     private bool isTaunting;
     private bool canTaunt;
     private float smoothedPedalSpeed = 0f;
-    private bool USING_PLAYPULSE = false; // Flag for dev/bike movement toggling.
+    private bool USING_PLAYPULSE = true; // Flag for dev/bike movement toggling.
     private readonly float sprintSpeedThreshold = 0.65f;
 
     public enum Team
@@ -381,7 +381,7 @@ public class PlayerCtF : NetworkBehaviour
             isSprintingNet.Value = pedalSpeed > sprintSpeedThreshold;
             isWalkingNet.Value = !isSprintingNet.Value;
             isShowingBoostParticlesNet.Value = isSprintingNet.Value;
-            float moveSpeed = 5f * pedalSpeed;
+            float moveSpeed = 10f * pedalSpeed;
 
             Quaternion lastRotation = Quaternion.LookRotation(joystickOffset);
             transform.rotation = Quaternion.Slerp(transform.rotation, lastRotation, 10f * Time.deltaTime);
