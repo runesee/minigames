@@ -112,6 +112,7 @@ public class PlayerCtF : NetworkBehaviour
     public ParticleSystem sprintParticleEffect;
     public Team? currentStartZone;
     public Team? currentFlagZone;
+    private Camera camera;
     private GameObject greenFlag;
     private GameObject blueFlag;
     private GameObject greenFlagFabric;
@@ -146,6 +147,7 @@ public class PlayerCtF : NetworkBehaviour
     {
         animator = GetComponentInChildren<Animator>();
         animator.applyRootMotion = false;
+        camera = FindFirstObjectByType<Camera>();
 
         // Configure sprint particle effect
         if (sprintParticleEffect != null)
@@ -198,6 +200,7 @@ public class PlayerCtF : NetworkBehaviour
             UpdateColorServerRpc(color);
             UpdateNicknameServerRpc(data.nickname);
             UpdateGuidServerRpc(data.guid);
+            StartCoroutine(ZoomCamera());
         }
         if (IsHost) StartCoroutine(WaitForPlayerConnect());
     }
@@ -207,6 +210,13 @@ public class PlayerCtF : NetworkBehaviour
         while (NetworkManager.Singleton.ConnectedClientsList.Count < 2 || CtFGameState.Instance == null) yield return new WaitForSeconds(0.1f);
         yield return new WaitForSeconds(8f);
         CtFGameState.Instance.SetGameStateServerRpc(GameState.Running);
+    }
+
+    private System.Collections.IEnumerator ZoomCamera()
+    {
+        yield return new WaitForSeconds(8f);
+        camera.orthographicSize = 10;
+        camera.transform.position = new Vector3(Math.Clamp(rb.position.x, -18f, 18f), 20f, -20f);
     }
 
     public override void OnNetworkDespawn()
@@ -377,6 +387,13 @@ public class PlayerCtF : NetworkBehaviour
             newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
             newPosition.z = Mathf.Clamp(newPosition.z, minZ, maxZ);
             rb.MovePosition(newPosition);
+
+            if (IsOwner)
+            {
+                Vector3 desiredPosition =  new Vector3(Math.Clamp(rb.position.x, -18f, 18f), 20f, -20f);
+                Vector3 smoothedPosition = Vector3.Lerp(camera.transform.position, desiredPosition, Time.deltaTime * moveSpeed);
+                camera.transform.position = smoothedPosition;
+            } 
         }
         else
         {
