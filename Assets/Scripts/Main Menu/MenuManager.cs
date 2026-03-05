@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using System.Net;
@@ -19,6 +20,7 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button hostButton;
     [SerializeField] private UnityEngine.UI.Button joinButton;
     [SerializeField] private UnityEngine.UI.Button settingsButton;
+    [SerializeField] private UnityEngine.UI.Button warmupButton;
     [SerializeField] private UnityEngine.UI.Button quitButton;
 
     [Header("Setup Menu")]
@@ -184,6 +186,11 @@ public class MenuManager : MonoBehaviour
 
     public void OnSettingsButtonClicked()
     {
+    }
+
+    public void OnWarmupButtonClicked()
+    {
+        SceneManager.LoadScene("Warmup", LoadSceneMode.Single);
     }
 
     public void OnQuitButtonClicked()
