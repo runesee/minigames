@@ -18,6 +18,10 @@ public class PlayerBalloonTag : NetworkBehaviour
     public float minZ = -13f;
     public float maxZ = 12f;
 
+    [Header("Audio settings")]
+    public AudioSource tagAudioSource;
+    public AudioClip tagClip;
+
     private NetworkVariable<bool> isWalkingNet = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
@@ -220,22 +224,19 @@ public class PlayerBalloonTag : NetworkBehaviour
         isPunching = attackAction.WasPerformedThisFrame() || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A);
         isPunchingNet.Value = isPunching;
 
-        if (isPunching && !isFrozen.Value)
+        if (isPunching && NetworkManager.Singleton.ServerTime.FixedTime - lastTagTimeNet.Value > 0.7)
         {
             PlayerBalloonTag target = FindClosestPlayerInRange(2.5f);
+            tagAudioSource?.PlayOneShot(tagClip);
             if (target != null) TagPlayerServerRpc(target.NetworkObjectId);
-        }
-        else if (isFrozen.Value)
-        {
-            double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
-            double timeSinceTagged = serverTime - lastTagTimeNet.Value;
-            if (timeSinceTagged >= 0.7f) UnfreezePlayerServerRpc();
+            else TagServerRpc();
         }
 
         // Handle animations and update position based on input actions
         float smoothing = 1f - Mathf.Exp(-10f * Time.deltaTime);
-        smoothedPedalSpeed = Mathf.Lerp(smoothedPedalSpeed, PlayPulse.Input.Input.Speed, smoothing);
-        float pedalSpeed = USING_PLAYPULSE ? smoothedPedalSpeed : 0.4f;
+        float inputSpeed = Math.Clamp(PlayPulse.Input.Input.Speed, 0f, 1f);
+        smoothedPedalSpeed = Mathf.Lerp(smoothedPedalSpeed, inputSpeed, smoothing);
+        float pedalSpeed = USING_PLAYPULSE ? smoothedPedalSpeed : 0.5f;
         float pedalAnimationSpeed = USING_PLAYPULSE ? 1.6f * pedalSpeed : 1f;
         joystickOffset = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ?
         new Vector3((-1) * PlayPulse.Input.Input.JoystickX, 0, (-1) * PlayPulse.Input.Input.JoystickY) : joystickOffset;
@@ -246,7 +247,7 @@ public class PlayerBalloonTag : NetworkBehaviour
             isSprintingNet.Value = pedalSpeed > sprintSpeedThreshold;
             isWalkingNet.Value = !isSprintingNet.Value;
             isShowingBoostParticlesNet.Value = isSprintingNet.Value;
-            float moveSpeed = 5f * pedalSpeed;
+            float moveSpeed = 6f * pedalSpeed;
 
             Quaternion lastRotation = Quaternion.LookRotation(joystickOffset);
             transform.rotation = Quaternion.Slerp(transform.rotation, lastRotation, 10f * Time.deltaTime);
@@ -321,6 +322,13 @@ public class PlayerBalloonTag : NetworkBehaviour
         balloonsNet.Value = new BalloonState(2, color);
     }
 
+    [ClientRpc]
+    private void PlayTagSoundClientRpc()
+    {
+        if (!tagAudioSource.isPlaying) tagAudioSource?.PlayOneShot(tagClip);
+    }
+
+
     /// <summary>
     /// Set targeted player as tagged on server, and disable their movement.
     /// Also update time tagging player has been tagged.
@@ -342,8 +350,18 @@ public class PlayerBalloonTag : NetworkBehaviour
         victim.balloonsNet.Value = victimBalloons;
 
         // Add timediff to current player and prevent tagging again for another .7 seconds
-        this.isFrozen.Value = true;
         this.timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
+        this.lastTagTimeNet.Value = serverTime;
+        PlayTagSoundClientRpc();
+    }
+
+    /// <summary>
+    /// RPC that prevents spamming of tag when NOT hitting a target.
+    /// </summary>
+    [ServerRpc]
+    private void TagServerRpc()
+    {
+        double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
         this.lastTagTimeNet.Value = serverTime;
     }
 

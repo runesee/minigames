@@ -33,7 +33,6 @@ public class FocusFlowData : NetworkBehaviour
         {
             var data = LocalPlayerStorage.Load();
             LocalInstance = this;
-            // Save player data for scoreboard handover
             UpdateColorServerRpc(data.color);
             UpdateNicknameServerRpc(data.nickname);
             UpdateGuidServerRpc(data.guid);

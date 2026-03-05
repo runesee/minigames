@@ -21,6 +21,9 @@ EditorBuildSettings:
     path: Assets/Scenes/Tutorial/TagTutorial.unity
     guid: ccbc21f0bac5bad40ae33d46b35485db
   - enabled: 1
+    path: Assets/Scenes/RedLight.unity
+    guid: ba2f022fc60dd400b90a1da8bd5e6098
+  - enabled: 1
     path: Assets/Scenes/FocusFlow.unity
     guid: b6b5051570986457d9b3b41f3830a9c8
   - enabled: 1
@@ -38,6 +41,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Tutorial/CaptureTheFlagTutorial.unity
     guid: dc5d7c73419eb0c4583a744424827db8
+  - enabled: 1
+    path: Assets/Scenes/Tutorial/RedLightTutorial.unity
+    guid: 1a5df0bebb9d241b0a75dfd19cbc1b76
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 289c1b55c9541489481df5cc06664110, type: 3}
   m_UseUCBPForAssetBundles: 0

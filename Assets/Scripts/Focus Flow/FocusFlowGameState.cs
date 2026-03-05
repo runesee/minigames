@@ -79,11 +79,6 @@ public class FocusFlowGameState : NetworkBehaviour
         SetGameStateServerRpc(GameState.Idling);
     }
 
-    /// <summary>
-    /// Update the current GameState (Initializing, Idling, Running or Stopped).
-    /// Updates SessionManager scores based on each player's timeSpentTagged.
-    /// </summary>
-    /// <param name="state">New GameState.</param>
     [ServerRpc]
     public void SetGameStateServerRpc(GameState state)
     {

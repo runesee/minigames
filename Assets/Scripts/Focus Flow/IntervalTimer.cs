@@ -13,10 +13,17 @@ public class IntervalTimer : NetworkBehaviour
     [Header("UI Reference")]
     [SerializeField] private Text timerText;
 
+    [Header("Phase Shift Animation")]
+    [SerializeField] private float normalLabelSize = 110f;
+    [SerializeField] private float shiftLabelSize = 180f;
+    [SerializeField] private float shiftAnimationDuration = 1f;
+
     private float currentTime;
     private int completedCycles;
     private bool isIntervalPhase = true;
     private bool isRunning = true;
+    private float currentLabelSize;
+    private Coroutine phaseShiftCoroutine;
 
     public bool IsIntervalPhase => isIntervalPhase;
 
@@ -24,6 +31,7 @@ public class IntervalTimer : NetworkBehaviour
     {
         currentTime = intervalDuration;
         completedCycles = 0;
+        currentLabelSize = normalLabelSize;
         UpdateTimerDisplay();
     }
 
@@ -47,6 +55,7 @@ public class IntervalTimer : NetworkBehaviour
         {
             isIntervalPhase = false;
             currentTime = restDuration;
+            TriggerPhaseShiftAnimation();
         }
         else
         {
@@ -59,14 +68,38 @@ public class IntervalTimer : NetworkBehaviour
                 if (IsHost) FocusFlowGameState.Instance.SetGameStateServerRpc(GameState.Stopped);
                 timerText.gameObject.SetActive(false);
                 StartCoroutine(Handover());
-
             }
             else
             {
                 isIntervalPhase = true;
                 currentTime = intervalDuration;
+                TriggerPhaseShiftAnimation();
             }
         }
+    }
+
+    private void TriggerPhaseShiftAnimation()
+    {
+        if (phaseShiftCoroutine != null)
+            StopCoroutine(phaseShiftCoroutine);
+
+        phaseShiftCoroutine = StartCoroutine(PhaseShiftAnimation());
+    }
+
+    private IEnumerator PhaseShiftAnimation()
+    {
+        currentLabelSize = shiftLabelSize;
+
+        float elapsed = 0f;
+        while (elapsed < shiftAnimationDuration)
+        {
+            elapsed += Time.deltaTime;
+            currentLabelSize = Mathf.Lerp(shiftLabelSize, normalLabelSize, elapsed / shiftAnimationDuration);
+            yield return null;
+        }
+
+        currentLabelSize = normalLabelSize;
+        phaseShiftCoroutine = null;
     }
 
     private IEnumerator Handover()
@@ -83,7 +116,8 @@ public class IntervalTimer : NetworkBehaviour
         string phaseLabel = isIntervalPhase ? "INTERVAL" : "REST";
         int currentCycle = Mathf.Min(completedCycles + 1, totalCycles);
         string cycleInfo = $"Cycle {currentCycle}/{totalCycles}";
+        int labelSize = Mathf.RoundToInt(currentLabelSize);
 
-        timerText.text = $"{phaseLabel}\n{minutes:00}:{seconds:00}\n{cycleInfo}";
+        timerText.text = $"<size={labelSize}>{phaseLabel}</size>\n{minutes:00}:{seconds:00}\n{cycleInfo}";
     }
 }
