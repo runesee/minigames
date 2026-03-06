@@ -27,6 +27,7 @@ public class MinigameManager : NetworkBehaviour
         BalloonTagTutorial,
         CaptureTheFlag,
         CaptureTheFlagTutorial,
+        ColorFlood,
     }
 
     public MinigameScene currentGameState = MinigameScene.MainMenu;
@@ -46,8 +47,8 @@ public class MinigameManager : NetworkBehaviour
     public void StartGameSession()
     {
         if (!IsHost) return;
-        NetworkManager.Singleton.SceneManager.LoadScene("TagTutorial", LoadSceneMode.Single);
-        currentGameState = MinigameScene.TagTutorial;
+        NetworkManager.Singleton.SceneManager.LoadScene("ColorFlood", LoadSceneMode.Single);
+        currentGameState = MinigameScene.ColorFlood;
         MusicManager.Instance?.PlaySong(currentGameState);
     }
 

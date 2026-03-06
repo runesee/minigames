@@ -103,8 +103,6 @@ public class PlayerColorFlood : NetworkBehaviour
             UpdateNicknameServerRpc(data.nickname);
             UpdateGuidServerRpc(data.guid);
         }
-
-        if (IsHost && IsOwner) StartCoroutine(WaitForPlayerConnect());
     }
 
     public override void OnNetworkDespawn()
@@ -112,16 +110,6 @@ public class PlayerColorFlood : NetworkBehaviour
         colorNet.OnValueChanged -= OnSkinColorChanged;
         isShowingBoostParticlesNet.OnValueChanged -= OnSprintParticlesChanged;
         teamNet.OnValueChanged -= OnTeamChanged;
-    }
-
-    private IEnumerator WaitForPlayerConnect()
-    {
-        while (NetworkManager.Singleton.ConnectedClientsList.Count < 4 ||
-               ColorFloodGameState.Instance == null)
-        {
-            yield return new WaitForSeconds(0.1f);
-        }
-        ColorFloodGameState.Instance.SetGameStateServerRpc(GameState.Running);
     }
 
     private void Update()

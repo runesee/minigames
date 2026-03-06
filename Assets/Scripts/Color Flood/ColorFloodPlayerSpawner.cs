@@ -15,6 +15,9 @@ public class ColorFloodPlayerSpawner : NetworkBehaviour
     private int greenSpawnTally = 0;
     private int blueSpawnTally = 0;
 
+    private const int RequiredPlayerCount = 2;
+    private readonly HashSet<ulong> spawnedClients = new HashSet<ulong>();
+
     private void Awake()
     {
         Instance = this;
@@ -23,34 +26,45 @@ public class ColorFloodPlayerSpawner : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         if (!IsServer) return;
-        NetworkManager.Singleton.OnClientConnectedCallback += SpawnPlayer;
+        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
         StartCoroutine(SpawnAllPlayersAfterDelay());
     }
 
     public override void OnNetworkDespawn()
     {
         if (!IsServer) return;
-        NetworkManager.Singleton.OnClientConnectedCallback -= SpawnPlayer;
+        NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
+    }
+
+    private void OnClientConnected(ulong clientId)
+    {
+        SpawnPlayer(clientId);
     }
 
     private IEnumerator SpawnAllPlayersAfterDelay()
     {
+        // Spawn any clients already connected before this object's OnNetworkSpawn ran.
         yield return new WaitForSeconds(0.5f);
         foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
             SpawnPlayer(clientId);
 
-        yield return new WaitUntil(() =>
-        {
-            var players = GetAllPlayers();
-            return players.Count == 4 && players.All(p => p.guidNet.Value.Length > 0);
-        });
+        // Wait until all expected player objects are spawned — no GUID check so
+        // empty LocalPlayerStorage never deadlocks the game.
+        yield return new WaitUntil(() => GetAllPlayers().Count == RequiredPlayerCount);
 
         AssignTeams();
+
+        while (ColorFloodGameState.Instance == null)
+            yield return new WaitForSeconds(0.1f);
+
+        ColorFloodGameState.Instance.SetGameStateServerRpc(GameState.Running);
     }
 
     private void SpawnPlayer(ulong clientId)
     {
         if (!IsServer) return;
+        // Guard: each client must only ever receive one player object.
+        if (!spawnedClients.Add(clientId)) return;
 
         GameObject playerInstance = Instantiate(playerPrefab, new Vector3(0f, 1f, 0f), Quaternion.identity);
         NetworkObject networkObject = playerInstance.GetComponent<NetworkObject>();
@@ -60,10 +74,9 @@ public class ColorFloodPlayerSpawner : NetworkBehaviour
     private void AssignTeams()
     {
         List<PlayerColorFlood> players = GetAllPlayers();
-        players.Sort((a, b) => string.Compare(
-            a.guidNet.Value.ToString(),
-            b.guidNet.Value.ToString(),
-            System.StringComparison.Ordinal));
+        // Sort by OwnerClientId — always available on the server and deterministic,
+        // unlike GUIDs which may be empty during testing.
+        players.Sort((a, b) => a.OwnerClientId.CompareTo(b.OwnerClientId));
 
         for (int i = 0; i < players.Count; i++)
         {
