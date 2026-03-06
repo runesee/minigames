@@ -14,6 +14,9 @@ public class FocusFlowBackground : MonoBehaviour
     private static readonly Color GradientTop    = new Color(0.04f, 0.05f, 0.18f);
     private static readonly Color GradientBottom = new Color(0.01f, 0.01f, 0.06f);
 
+    [SerializeField] private Shader backgroundShader;
+    [SerializeField] private Shader particleShader;
+
     private Material backgroundMaterial;
     private Material particleMaterial;
     private Texture2D gradientTexture;
@@ -48,7 +51,7 @@ public class FocusFlowBackground : MonoBehaviour
 
         mf.sharedMesh = BuildQuadMesh();
 
-        backgroundMaterial             = new Material(Shader.Find("Unlit/Texture"));
+        backgroundMaterial             = new Material(backgroundShader);
         backgroundMaterial.mainTexture = gradientTexture;
         mr.sharedMaterial              = backgroundMaterial;
     }
@@ -120,8 +123,7 @@ public class FocusFlowBackground : MonoBehaviour
         renderer.renderMode   = ParticleSystemRenderMode.Billboard;
         renderer.sortingOrder = -5;
 
-        Shader particleShader = Shader.Find("Legacy Shaders/Particles/Additive")
-                             ?? Shader.Find("Particles/Additive");
+        Shader particleShader = this.particleShader;
 
         particleMaterial             = new Material(particleShader);
         particleMaterial.mainTexture = circleTexture;
