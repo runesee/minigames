@@ -104,6 +104,11 @@ public class GameTimer : NetworkBehaviour
 
         if (newState == GameState.Running)
         {
+            if (CtFGameState.Instance != null)
+            {
+                CTFToggleStartTextClientRpc();
+                return;
+            }
             timerEndTime.Value = NetworkManager.ServerTime.Time + gameDurationInSeconds;
             remainingTime.Value = gameDurationInSeconds;
             timerRunning.Value = true;
@@ -114,11 +119,28 @@ public class GameTimer : NetworkBehaviour
         }
     }
 
+    private IEnumerator DisplayStartText()
+    {
+        stateText.text = "GET READY!"; 
+        yield return new WaitForSeconds(3f);
+        timerEndTime.Value = NetworkManager.ServerTime.Time + gameDurationInSeconds;
+        stateText.text = "";
+        remainingTime.Value = gameDurationInSeconds;
+        timerRunning.Value = true;
+    }
+
+    [ClientRpc]
+    private void CTFToggleStartTextClientRpc()
+    {
+        StartCoroutine(DisplayStartText());
+    }
+
     [ClientRpc]
     private void ToggleStartTextClientRpc(GameState state)
     {
-       if (state == GameState.Idling) stateText.text = "GET READY!"; 
-       else stateText.text = "";
+        if (CtFGameState.Instance != null) return;
+        if (state == GameState.Idling) stateText.text = "GET READY!"; 
+        else stateText.text = "";
     }
 
     private void OnRemainingTimeChanged(float previousTime, float newTime)
