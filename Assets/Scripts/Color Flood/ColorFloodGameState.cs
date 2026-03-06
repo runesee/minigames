@@ -129,11 +129,6 @@ public class ColorFloodGameState : NetworkBehaviour
         if (blueTileCountText != null) blueTileCountText.text = newValue.ToString();
     }
 
-    /// <summary>
-    /// Updates the current GameState. On Handover, ranks players by team tile count,
-    /// applies scores to SessionManager, and triggers scene transition.
-    /// </summary>
-    /// <param name="state">New GameState.</param>
     [ServerRpc]
     public void SetGameStateServerRpc(GameState state)
     {
