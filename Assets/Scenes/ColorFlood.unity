@@ -1795,6 +1795,14 @@ PrefabInstance:
       propertyPath: InScenePlacedSourceGlobalObjectIdHash
       value: 1024286742
       objectReference: {fileID: 0}
+    - target: {fileID: 3806223565569217424, guid: 0e46f64d90a0e45b29e4d92bcfa5e64d, type: 3}
+      propertyPath: blueTileCountText
+      value: 
+      objectReference: {fileID: 303847244}
+    - target: {fileID: 3806223565569217424, guid: 0e46f64d90a0e45b29e4d92bcfa5e64d, type: 3}
+      propertyPath: greenTileCountText
+      value: 
+      objectReference: {fileID: 1337295833}
     - target: {fileID: 5964137525279846383, guid: 0e46f64d90a0e45b29e4d92bcfa5e64d, type: 3}
       propertyPath: m_Name
       value: ColorFloodGameState
