@@ -1469,7 +1469,7 @@ MonoBehaviour:
   gridWidth: 20
   gridHeight: 20
   tileSize: 1
-  tilePrefab: {fileID: 0}
+  tilePrefab: {fileID: 5614624629739718826, guid: 45be114b6c4f64db2b776b31fd30689f, type: 3}
   greenMaterial: {fileID: 2100000, guid: 52e89a0e2b47f4cb69803d794f9863e7, type: 2}
   blueMaterial: {fileID: 2100000, guid: d0f13afce2a6445fe97698a313c241fd, type: 2}
   neutralMaterial: {fileID: 2100000, guid: 84d8c6d74433140af8b851b5123b9a6d, type: 2}
