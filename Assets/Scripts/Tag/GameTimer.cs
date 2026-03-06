@@ -63,7 +63,7 @@ public class GameTimer : NetworkBehaviour
             CtFGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
             if (IsServer) OnGameStateChanged(GameState.Initializing, CtFGameState.Instance.gameState.Value);
         }
-        else if (SceneManager.GetActiveScene().name == "Color Flood")
+        else if (SceneManager.GetActiveScene().name == "ColorFlood")
         {
             while (ColorFloodGameState.Instance == null) yield return new WaitForSeconds(0.1f);
             ColorFloodGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
@@ -157,12 +157,12 @@ public class GameTimer : NetworkBehaviour
                     float[] scores = { 5f, 5f, 5f, 5f };
                     CtFGameState.Instance.scores = scores;
                     OvertimeServerRpc(31f);
-                } 
+                }
                 else
                 {
                     CtFGameState.Instance.ToastMessageClientRpc(PlayerCtF.Team.None, "Overtime! First team to capture a flag wins!");
                     OvertimeServerRpc(46f);
-                } 
+                }
                 return;
             }
             else CtFGameState.Instance.SetGameStateServerRpc(GameState.Stopped);
@@ -185,9 +185,9 @@ public class GameTimer : NetworkBehaviour
     private IEnumerator Handover()
     {
         yield return new WaitForSeconds(8f);
-        if(IsHost && SceneManager.GetActiveScene().name == "TagScene") TagGameState.Instance.SetGameStateServerRpc(GameState.Handover);
+        if (IsHost && SceneManager.GetActiveScene().name == "TagScene") TagGameState.Instance.SetGameStateServerRpc(GameState.Handover);
         else if (IsHost && SceneManager.GetActiveScene().name == "BalloonTag") BalloonTagGameState.Instance.SetGameStateServerRpc(GameState.Handover);
         else if (IsHost && SceneManager.GetActiveScene().name == "CaptureTheFlag") CtFGameState.Instance.SetGameStateServerRpc(GameState.Handover);
-        else if (IsHost && SceneManager.GetActiveScene().name == "Color Flood") ColorFloodGameState.Instance.SetGameStateServerRpc(GameState.Handover);
+        else if (IsHost && SceneManager.GetActiveScene().name == "ColorFlood") ColorFloodGameState.Instance.SetGameStateServerRpc(GameState.Handover);
     }
 }
