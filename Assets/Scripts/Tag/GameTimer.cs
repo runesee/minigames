@@ -8,6 +8,7 @@ public class GameTimer : NetworkBehaviour
     [Header("Timer Settings")]
     [SerializeField] private float gameDurationInSeconds = 60f;
     [SerializeField] private TextMeshProUGUI timerText;
+    [SerializeField] private TextMeshProUGUI stateText;
     public bool isTag;
 
     private NetworkVariable<float> remainingTime = new NetworkVariable<float>(
@@ -89,6 +90,7 @@ public class GameTimer : NetworkBehaviour
     private void OnGameStateChanged(GameState previousState, GameState newState)
     {
         if (!IsServer) return;
+        ToggleStartTextClientRpc(newState);
 
         if (newState == GameState.Running)
         {
@@ -100,6 +102,13 @@ public class GameTimer : NetworkBehaviour
         {
             timerRunning.Value = false;
         }
+    }
+
+    [ClientRpc]
+    private void ToggleStartTextClientRpc(GameState state)
+    {
+       if (state == GameState.Idling) stateText.text = "GET READY!"; 
+       else stateText.text = "";
     }
 
     private void OnRemainingTimeChanged(float previousTime, float newTime)
