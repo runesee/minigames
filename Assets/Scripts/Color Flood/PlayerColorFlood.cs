@@ -245,6 +245,13 @@ public class PlayerColorFlood : NetworkBehaviour
         guidNet.Value = new FixedString64Bytes(guid);
     }
 
+    [ClientRpc]
+    public void TeleportClientRpc(Vector3 position, ColorFloodGameState.Team team)
+    {
+        rb.position = position;
+        rb.rotation = Quaternion.Euler(0f, team == ColorFloodGameState.Team.Green ? 90f : -90f, 0f);
+    }
+
     public ColorFloodGameState.PlayerData GetPlayerData()
     {
         int tilesOwned = teamNet.Value == ColorFloodGameState.Team.Green
