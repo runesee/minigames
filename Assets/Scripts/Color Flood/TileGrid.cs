@@ -59,7 +59,7 @@ public class TileGrid : NetworkBehaviour
         }
     }
 
-    [ServerRpc(RequireOwnership = false)]
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void PaintTileServerRpc(int tileIndex, ColorFloodGameState.Team team)
     {
         if (tileIndex < 0 || tileIndex >= tileOwnership.Length) return;
