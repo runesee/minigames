@@ -5148,10 +5148,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerColorFlood
   ShowTopMostFoldoutHeaderGroup: 1
   playerSkinRenderer: {fileID: 8576045237320093323}
-  minX: -9.5
-  maxX: 9.5
-  minZ: -9.5
-  maxZ: 9.5
+  minX: -19.5
+  maxX: 19.5
+  minZ: -19.5
+  maxZ: 19.5
   colorNet:
     m_InternalValue:
       utf8LengthInBytes: 7
