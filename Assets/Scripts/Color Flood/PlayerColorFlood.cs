@@ -11,8 +11,8 @@ public class PlayerColorFlood : NetworkBehaviour
     [SerializeField] private SkinnedMeshRenderer playerSkinRenderer;
 
     [Header("Map Boundaries")]
-    public float minX = -19.5f;
-    public float maxX = 19.5f;
+    public float minX = -39.5f;
+    public float maxX = 39.5f;
     public float minZ = -19.5f;
     public float maxZ = 19.5f;
 
