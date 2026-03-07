@@ -22,6 +22,10 @@ public class LobbyManager : NetworkBehaviour
     [SerializeField] private TextMeshProUGUI waitingText;
     [SerializeField] private TextMeshProUGUI startButtonStatusText;
 
+    [Header("Audio Setup")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip plinkAudio;
+
     private const int MAX_PLAYERS = 4;
     private const int MIN_PLAYERS_TO_START = 2;
     private Dictionary<ulong, LobbyPlayerData> connectedPlayers = new Dictionary<ulong, LobbyPlayerData>();
@@ -354,6 +358,7 @@ public class LobbyManager : NetworkBehaviour
             Debug.LogWarning($"[Lobby] Cannot start game - need at least {MIN_PLAYERS_TO_START} players");
             return;
         }
+        audioSource?.PlayOneShot(plinkAudio);
         MinigameManager.Instance.StartGameSession();
     }
 }

@@ -43,8 +43,6 @@ public class MenuManager : MonoBehaviour
     [Header("Audio Setup")]
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip plinkAudio;
-    [SerializeField] private AudioClip plonkAudio;
-
 
     private bool isHostMode;
     private const ushort PORT = 7777;
