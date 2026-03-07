@@ -850,7 +850,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   slider: {fileID: 1526419595}
   sliderText: {fileID: 1996609971}
-  relativeVideoPath: minigames_focusflow 1.webm
+  relativeVideoPath: minigames_focus.webm
   videoPlayer: {fileID: 662640622}
 --- !u!114 &1053332722
 MonoBehaviour:
@@ -911,7 +911,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 99.999985, y: 97.500015}
+  m_AnchoredPosition: {x: 120.00002, y: 111}
   m_SizeDelta: {x: 240, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1345164938
@@ -934,7 +934,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Multiplier
+  m_text: Pedal speed multiplier
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1291,7 +1291,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: -90.09985, y: 100.000015}
+  m_AnchoredPosition: {x: -90.09985, y: 113.5}
   m_SizeDelta: {x: 125, y: 125}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1627428946
@@ -2089,9 +2089,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u2022 Press buttons in the displayed sequence\n\n\u2022 Red rings show
-    which order to press\n\n\u2022 Boost points by pedaling fast in HIGH intervals\n 
-    and slow during REST \n\n\u2022 Longer sequences give more points\n\n\u2022 Most
-    points wins"
+    which order to press\n\n\u2022 Longer sequences give more points\n\n\u2022 Multiply
+    points by matching the desired\n  pedal speed zones\n\n\u2022 Most points wins"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
