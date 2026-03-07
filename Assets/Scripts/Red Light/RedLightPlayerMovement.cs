@@ -18,6 +18,8 @@ public class RedLightPlayerMovement : NetworkBehaviour
     [SerializeField] private Transform trafficLight;
     [SerializeField] private float trafficLightOffset = 5f;
     [SerializeField] private SkinnedMeshRenderer playerSkinRenderer;
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip errorClip;
 
     private Rigidbody rb;
     private Animator animator;
@@ -229,6 +231,7 @@ public class RedLightPlayerMovement : NetworkBehaviour
     {
         isPenalized = true;
         penaltyTimer = penaltyFreezeDuration;
+        audioSource?.PlayOneShot(errorClip);
 
         Vector3 newPosition = transform.position;
         newPosition.z -= penaltyPushBackDistance;

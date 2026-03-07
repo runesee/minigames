@@ -14,6 +14,9 @@ public class RedLightManager : NetworkBehaviour
     [SerializeField] private float redLightMinDuration = 2f;
     [SerializeField] private float redLightMaxDuration = 5f;
 
+    [Header("Audio Settings")]
+    [SerializeField] public AudioSource audioSource;
+    [SerializeField] public AudioClip audioClip;
     private const float YellowWarningDuration = 1f;
 
     [Header("Debug")]
@@ -141,10 +144,20 @@ public class RedLightManager : NetworkBehaviour
         ScheduleNextSwitch();
     }
 
+    private void PlayLightSound()
+    {
+        if (isYellowLight.Value) audioSource.pitch = 1f;
+        else if (isRedLight.Value) audioSource.pitch = 2f;
+        else audioSource.pitch = 0.5f;
+        audioSource.PlayOneShot(audioClip);
+    }
+
     private void SwitchLightStandalone()
     {
         currentLightIsRed = !currentLightIsRed;
         currentLightIsYellow = false;
+        audioSource.pitch = currentLightIsRed ? 2f : 0.5f;
+        audioSource.PlayOneShot(audioClip);
         ScheduleNextSwitchStandalone();
         UpdateAllLights();
     }
@@ -169,6 +182,7 @@ public class RedLightManager : NetworkBehaviour
 
     private void OnLightStateChanged(bool previousState, bool newState)
     {
+        PlayLightSound();
         UpdateAllLights();
     }
 
@@ -180,9 +194,15 @@ public class RedLightManager : NetworkBehaviour
         foreach (var trafficLight in trafficLights)
         {
             if (showYellow)
+            {
                 trafficLight.SetYellowWarning(true);
-            else
-                trafficLight.SetLightState(showRed);
+                if (isInStandaloneMode)
+                {
+                    audioSource.pitch = 1f;
+                    audioSource.PlayOneShot(audioClip);
+                }
+            }
+            else trafficLight.SetLightState(showRed);
         }
     }
 }
