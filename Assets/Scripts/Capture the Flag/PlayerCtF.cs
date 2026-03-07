@@ -9,6 +9,7 @@ using Unity.VisualScripting;
 [RequireComponent(typeof(NetworkObject))]
 public class PlayerCtF : NetworkBehaviour
 {
+    public static PlayerCtF Local;
     [SerializeField] public SkinnedMeshRenderer playerSkinRenderer;
     [SerializeField] public GameObject playerShadow;
     [SerializeField] public Material playerShadowColor;
@@ -112,8 +113,14 @@ public class PlayerCtF : NetworkBehaviour
     public ParticleSystem sprintParticleEffect;
     public Team? currentStartZone;
     public Team? currentFlagZone;
-    public AudioSource tagAudioSource;
+    public AudioSource audioSource;
     public AudioClip tagClip;
+    public AudioClip plopClip;
+    public AudioClip scoreClip;
+    public AudioClip enemyScoreClip;
+    public AudioClip flagTakenClip;
+    public AudioClip taggedClip;
+    public AudioClip flagReturnedClip;
     public Camera camera;
     private GameObject greenFlag;
     private GameObject blueFlag;
@@ -140,6 +147,16 @@ public class PlayerCtF : NetworkBehaviour
         Blue,
     }
 
+    public enum CtfClips
+    {
+        Tag,
+        Plop,
+        Score,
+        Taken,
+        Tagged,
+        Returned,
+    }
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -147,6 +164,7 @@ public class PlayerCtF : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        if (IsOwner) Local = this;
         animator = GetComponentInChildren<Animator>();
         animator.applyRootMotion = false;
         camera = FindFirstObjectByType<Camera>();
@@ -351,13 +369,13 @@ public class PlayerCtF : NetworkBehaviour
             if (currentFlagZone != Team.None && currentFlagZone != teamNet.Value && currentZoneNet.Value != teamNet.Value)
             {
                 string enemyFlag = teamNet.Value == Team.Blue ? "GreenFlag" : "BlueFlag";
-                tagAudioSource?.PlayOneShot(tagClip);
+                audioSource?.PlayOneShot(plopClip);
                 TakeFlagServerRpc(enemyFlag);
             }
             else
             {
                 PlayerCtF target = FindClosestPlayerInRange(2.5f);
-                tagAudioSource?.PlayOneShot(tagClip);
+                audioSource?.PlayOneShot(tagClip);
                 if (target != null) TagPlayerServerRpc(target.NetworkObjectId);
             }
         }
@@ -463,10 +481,14 @@ public class PlayerCtF : NetworkBehaviour
         guidNet.Value = guid;
     }
 
+    /// <summary>
+    /// Plays the tagged sound only for the individual player that was tagged.
+    /// </summary>
+    /// <param name="clientRpcParams"></param>()
     [ClientRpc]
-    private void PlayTagSoundClientRpc()
+    private void PlayTaggedSoundClientRpc(ClientRpcParams clientRpcParams = default)
     {
-        if (!tagAudioSource.isPlaying) tagAudioSource?.PlayOneShot(tagClip);
+        if (!audioSource.isPlaying) audioSource?.PlayOneShot(taggedClip);
     }
 
     /// <summary>
@@ -479,6 +501,7 @@ public class PlayerCtF : NetworkBehaviour
     {
         double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
         var victim = NetworkManager.Singleton.SpawnManager.SpawnedObjects[victimId].GetComponent<PlayerCtF>();
+        ulong victimClientId = victim.OwnerClientId;
 
         if ((this.currentZoneNet.Value == this.teamNet.Value && victim.currentZoneNet.Value == this.teamNet.Value) || victim.isFlagActiveNet.Value)
         {
@@ -489,10 +512,15 @@ public class PlayerCtF : NetworkBehaviour
             {
                 victim.isFlagActiveNet.Value = false;
                 TogglePlacedFlagClientRpc(this.teamNet.Value.ToString() + "Flag", true);
-                if (IsServer) CtFGameState.Instance.ToastMessageClientRpc(teamNet.Value, teamNet.Value.ToString() + " flag was returned!");
+                if (IsServer)
+                {
+                    CtFGameState.Instance.ToastMessageClientRpc(teamNet.Value, teamNet.Value.ToString() + " flag was returned!");
+                    CtFGameState.Instance.PlaySoundClientRpc(teamNet.Value, CtfClips.Returned);
+                }
             }
             victim.TeleportClientRpc(new Vector3(victim.teamNet.Value == Team.Blue ? -34.5f : 34.5f, victim.rb.position.y, victim.rb.position.z));
-            PlayTagSoundClientRpc();
+            PlayTaggedSoundClientRpc(new ClientRpcParams {Send = new ClientRpcSendParams {TargetClientIds = new ulong[] {victimClientId}}});
+            PlaySoundClientRpc(CtfClips.Tag, Team.None);
         }
         if (IsOwner) StopAnimationsClientRpc();
 
@@ -500,6 +528,26 @@ public class PlayerCtF : NetworkBehaviour
         this.isFrozen.Value = true;
         this.timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
         this.lastTagTimeNet.Value = serverTime;
+    }
+
+    [ClientRpc]
+    private void PlaySoundClientRpc(CtfClips clip, Team team)
+    {
+        if (!audioSource.isPlaying)
+        {
+            switch(clip)
+            {
+                case CtfClips.Tag:
+                    audioSource?.PlayOneShot(tagClip);
+                    break;
+                case CtfClips.Plop:
+                    audioSource?.PlayOneShot(plopClip);
+                    break;
+                case CtfClips.Taken:
+                    if (teamNet.Value != team) audioSource?.PlayOneShot(flagTakenClip);
+                    break;
+            }
+        } 
     }
 
     /// <summary>
@@ -556,8 +604,8 @@ public class PlayerCtF : NetworkBehaviour
     {
         isFlagActiveNet.Value = true;
         TogglePlacedFlagClientRpc(flagName, false);
-        PlayTagSoundClientRpc();
         Team _team = teamNet.Value == Team.Green ? Team.Blue : Team.Green;
+        PlaySoundClientRpc(CtfClips.Taken, _team);
         if (IsServer) CtFGameState.Instance.ToastMessageClientRpc(_team, _team.ToString() + " flag was taken!");
     }
 
@@ -573,11 +621,13 @@ public class PlayerCtF : NetworkBehaviour
         {
             CtFGameState.Instance.greenScore.Value++;
             score = CtFGameState.Instance.greenScore.Value;
+            CtFGameState.Instance.PlaySoundClientRpc(Team.Green, CtfClips.Score);
         }
         else
         {
             CtFGameState.Instance.blueScore.Value++;
             score = CtFGameState.Instance.blueScore.Value;
+            CtFGameState.Instance.PlaySoundClientRpc(Team.Blue, CtfClips.Score);
         }
         TogglePlacedFlagClientRpc(flagName, true);
         if (IsServer)
