@@ -40,6 +40,12 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private float joystickDeadzone = 0.5f;
     [SerializeField] private float joystickRepeatDelay = 0.25f;
 
+    [Header("Audio Setup")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip plinkAudio;
+    [SerializeField] private AudioClip plonkAudio;
+
+
     private bool isHostMode;
     private const ushort PORT = 7777;
     private static Sprite whiteSprite;
@@ -155,6 +161,7 @@ public class MenuManager : MonoBehaviour
 
     public void OnHostButtonClicked()
     {
+        audioSource?.PlayOneShot(plinkAudio);
         isHostMode = true;
         ShowSetupMenu();
         confirmButtonText.text = "Host";
@@ -169,6 +176,7 @@ public class MenuManager : MonoBehaviour
 
     public void OnJoinButtonClicked()
     {
+        audioSource?.PlayOneShot(plinkAudio);
         isHostMode = false;
         ShowSetupMenu();
         confirmButtonText.text = "Join";
@@ -186,15 +194,18 @@ public class MenuManager : MonoBehaviour
 
     public void OnSettingsButtonClicked()
     {
+        audioSource?.PlayOneShot(plinkAudio);
     }
 
     public void OnWarmupButtonClicked()
     {
+        audioSource?.PlayOneShot(plinkAudio);
         SceneManager.LoadScene("Warmup", LoadSceneMode.Single);
     }
 
     public void OnQuitButtonClicked()
     {
+        audioSource?.PlayOneShot(plinkAudio);
         #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
         #else
@@ -204,12 +215,14 @@ public class MenuManager : MonoBehaviour
 
     public void OnGenerateNicknameButtonClicked()
     {
+        audioSource?.PlayOneShot(plinkAudio);
         string randomNickname = randomNicknames[Random.Range(0, randomNicknames.Length)];
         nicknameInputField.text = randomNickname;
     }
 
     public void OnConfirmButtonClicked()
     {
+        audioSource?.PlayOneShot(plinkAudio);
         string nickname = nicknameInputField.text;
         if (string.IsNullOrWhiteSpace(nickname)) return;
 
@@ -267,6 +280,7 @@ public class MenuManager : MonoBehaviour
 
     public void OnBackButtonClicked()
     {
+        audioSource?.PlayOneShot(plinkAudio);
         ShowMainMenu();
     }
 
