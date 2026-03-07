@@ -84,7 +84,8 @@ public class MusicManager : NetworkBehaviour
     private void PlayMusic(AudioClip audioClip)
     {
         audioSource.Stop();
-        audioSource?.PlayOneShot(audioClip);
+        audioSource.clip = audioClip;
+        audioSource.Play();
     }
 
     private IEnumerator PlayScoreboardSoundbyte()
