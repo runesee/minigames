@@ -1107,9 +1107,9 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u2022 Pedal forwards when the light is green\n\n\u2022 Hold A to stop
-    when the light is red\n\n\u2022 If movement is detected when the light \n  is
-    red, the player gets moved backwards\n\n\u2022 The player who has come the farthest
-    \n  when the timer reaches 0 wins"
+    when the light is red\n\n\u2022 If you keep moving when the light \n  is red,
+    you get moved backwards\n\n\u2022 The player who has come the farthest \n  when
+    the timer reaches 0, wins"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
