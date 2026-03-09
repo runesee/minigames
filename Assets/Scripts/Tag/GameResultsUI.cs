@@ -317,7 +317,8 @@ public class GameResultsUI : NetworkBehaviour
             {
                 clientId = player.OwnerClientId,
                 score = player.distanceTraveledNet.Value,
-                nickname = player.nicknameNet.Value
+                nickname = player.nicknameNet.Value,
+                color = player.colorNet.Value
             });
         }
         return results;
