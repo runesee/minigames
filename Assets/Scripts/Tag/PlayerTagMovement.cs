@@ -247,43 +247,6 @@ public class PlayerTagMovement : NetworkBehaviour
         return playerData;
     }
 
-    // There is arguably a lot of logic in onGUI, which runs often.
-    // TODO : Move this logic when a better UI solution is in place.
-    void OnGUI()
-    {
-        if (!TagGameState.Instance || !NetworkManager.Singleton) return;
-
-        // Draw scoreboard
-        GUILayout.BeginArea(new Rect(Screen.width - 210, 10, 200, 300));
-        if (TagGameState.Instance.gameState.Value == GameState.Running)
-        {
-            GUILayout.TextArea("Scoreboard");
-            foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
-            {
-                var player = obj.GetComponent<PlayerTagMovement>();
-                if (!player) continue;
-
-                double displayTime = player.timeSpentTaggedNet.Value;
-
-                if (player.NetworkObjectId == TagGameState.Instance.taggedPlayerIdNet.Value)
-                {
-                    double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
-                    displayTime += serverTime - player.lastTagTimeNet.Value;
-                }
-                
-                string playerName = player.nicknameNet.Value.ToString();
-                if (string.IsNullOrEmpty(playerName))
-                {
-                    playerName = $"Player{player.OwnerClientId}";
-                }
-                GUILayout.TextArea($"{playerName}: {displayTime:F1}s");
-            }
-        }
-        GUILayout.EndArea();
-
-        if (IsOwner) DrawStaminaBar();
-    }
-
     private void Update()
     {
         if (TagGameState.Instance != null && TagGameState.Instance.gameState.Value != GameState.Running) return;
