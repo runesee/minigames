@@ -37,8 +37,12 @@ public class MinigameManager : NetworkBehaviour
 
     private void Awake()
     {
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else Destroy(gameObject);
     }
 
     // Boilerplate function that will be called by the Lobby once the host presses start (after enough players have connected.)

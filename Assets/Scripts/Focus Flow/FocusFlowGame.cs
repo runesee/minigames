@@ -23,6 +23,11 @@ public class FocusFlowGame : NetworkBehaviour
     [SerializeField] private float delayBetweenButtons = 0.1f;
     [SerializeField] private float delayAfterSequence = 1.0f;
 
+    [Header("Audio Settings")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip errorSound;
+    [SerializeField] private AudioClip correctSound;
+
     private List<ButtonCircle.ButtonType> currentSequence = new List<ButtonCircle.ButtonType>();
     private int playerInputIndex = 0;
     private bool waitingForInput = false;
@@ -181,6 +186,7 @@ public class FocusFlowGame : NetworkBehaviour
         UpdateScoreDisplay();
 
         ShowFeedback("Great!", Color.green);
+        audioSource?.PlayOneShot(correctSound);
         StartCoroutine(StartNextRound());
     }
 
@@ -190,6 +196,7 @@ public class FocusFlowGame : NetworkBehaviour
         multiplierManager.StopTracking();
         currentSequencePoints = 100f;
         ShowFeedback("Failed", Color.red);
+        audioSource?.PlayOneShot(errorSound);
         StartCoroutine(RestartSequenceAfterDelay());
     }
 

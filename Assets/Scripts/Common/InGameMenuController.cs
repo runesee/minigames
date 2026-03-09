@@ -18,6 +18,10 @@ public class InGameMenuController : MonoBehaviour
     [SerializeField] private float joystickDeadzone = 0.5f;
     [SerializeField] private float joystickRepeatDelay = 0.25f;
 
+    [Header("Audio Setup")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip plinkAudio;
+
     private bool isMenuOpen = false;
     private float joystickTimer = 0f;
 
@@ -161,14 +165,17 @@ public class InGameMenuController : MonoBehaviour
    
     public void ContinueGame()
     {
+        audioSource?.PlayOneShot(plinkAudio);
         ToggleMenu();
     }
 
     public void DisconnectGame()
     {
+        audioSource?.PlayOneShot(plinkAudio);
     }
 
     public void OpenSettings()
     {
+        audioSource?.PlayOneShot(plinkAudio);
     }
 }

@@ -21,6 +21,10 @@ public class IntervalTimer : NetworkBehaviour
     [SerializeField] private float shiftLabelSize = 180f;
     [SerializeField] private float shiftAnimationDuration = 1f;
 
+    [Header("Audio Settings")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip intervalChangeSound;
+
     private float currentTime;
     private int completedCycles;
     private bool isIntervalPhase = true;
@@ -91,9 +95,8 @@ public class IntervalTimer : NetworkBehaviour
 
     private void TriggerPhaseShiftAnimation()
     {
-        if (phaseShiftCoroutine != null)
-            StopCoroutine(phaseShiftCoroutine);
-
+        if (phaseShiftCoroutine != null) StopCoroutine(phaseShiftCoroutine);
+        audioSource?.PlayOneShot(intervalChangeSound);
         phaseShiftCoroutine = StartCoroutine(PhaseShiftAnimation());
     }
 
