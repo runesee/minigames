@@ -143,13 +143,30 @@ public class WarmupSpeedSlope : MonoBehaviour
 
     private static SlopeSegmentData[] BuildDefaultPattern() => new SlopeSegmentData[]
     {
-        new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 480f, color = ColorNormal,   pointsMultiplier = 1f },
-        new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 360f, color = ColorNormal,   pointsMultiplier = 1f },
-        new() { minSpeed = 0.70f, maxSpeed = 0.80f, widthUnits = 220f, color = ColorInterval, pointsMultiplier = 2f },
-        new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 440f, color = ColorNormal,   pointsMultiplier = 1f },
-        new() { minSpeed = 0.80f, maxSpeed = 0.90f, widthUnits = 160f, color = ColorSprint,   pointsMultiplier = 3f },
-        new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 500f, color = ColorNormal,   pointsMultiplier = 1f },
-        new() { minSpeed = 0.72f, maxSpeed = 0.82f, widthUnits = 200f, color = ColorInterval, pointsMultiplier = 2f },
+        // Intro
+        new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 3000f, color = ColorNormal,   pointsMultiplier = 1f },
+        new() { minSpeed = 0.70f, maxSpeed = 0.80f, widthUnits = 1200f, color = ColorInterval, pointsMultiplier = 2f },
+        new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 2400f, color = ColorNormal,   pointsMultiplier = 1f },
+        new() { minSpeed = 0.70f, maxSpeed = 0.80f, widthUnits = 1200f, color = ColorInterval, pointsMultiplier = 2f },
+        new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 1800f, color = ColorNormal,   pointsMultiplier = 1f },
+        new() { minSpeed = 0.70f, maxSpeed = 0.80f, widthUnits = 1400f, color = ColorInterval, pointsMultiplier = 2f },
+        new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 1600f, color = ColorNormal,   pointsMultiplier = 1f },
+        new() { minSpeed = 0.70f, maxSpeed = 0.80f, widthUnits = 1600f, color = ColorInterval, pointsMultiplier = 2f },
+
+        // 'Intervals'
+        new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 1200f, color = ColorNormal,   pointsMultiplier = 1f },
+        new() { minSpeed = 0.70f, maxSpeed = 0.80f, widthUnits = 1200f, color = ColorInterval, pointsMultiplier = 2f },
+        new() { minSpeed = 0.80f, maxSpeed = 0.90f, widthUnits = 600f, color = ColorSprint,   pointsMultiplier = 3f },
+        new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 1000f, color = ColorNormal,   pointsMultiplier = 1f },
+        new() { minSpeed = 0.70f, maxSpeed = 0.80f, widthUnits = 1200f, color = ColorInterval, pointsMultiplier = 2f },
+        new() { minSpeed = 0.80f, maxSpeed = 0.90f, widthUnits = 600f, color = ColorSprint,   pointsMultiplier = 3f },
+        new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 1000f, color = ColorNormal,   pointsMultiplier = 1f },
+        new() { minSpeed = 0.70f, maxSpeed = 0.80f, widthUnits = 1200f, color = ColorInterval, pointsMultiplier = 2f },
+        new() { minSpeed = 0.80f, maxSpeed = 0.90f, widthUnits = 800f, color = ColorSprint,   pointsMultiplier = 3f },
+
+        // End
         new() { minSpeed = 0.50f, maxSpeed = 0.60f, widthUnits = 400f, color = ColorNormal,   pointsMultiplier = 1f },
+        new() { minSpeed = 0.70f, maxSpeed = 0.80f, widthUnits = 400f, color = ColorInterval, pointsMultiplier = 2f },
+        new() { minSpeed = 0.80f, maxSpeed = 0.90f, widthUnits = 800f, color = ColorSprint,   pointsMultiplier = 3f },
     };
 }
