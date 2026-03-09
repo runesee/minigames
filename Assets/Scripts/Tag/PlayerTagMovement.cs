@@ -247,6 +247,30 @@ public class PlayerTagMovement : NetworkBehaviour
         return playerData;
     }
 
+    void OnGUI()
+    {
+        if (!IsOwner) return;
+
+        float barWidth = 200f;
+        float barHeight = 20f;
+        float padding = 20f;
+        float xPos = Screen.width - barWidth - padding;
+        float yPos = Screen.height - barHeight - padding;
+
+        Rect backgroundRect = new Rect(xPos, yPos, barWidth, barHeight);
+        GUI.color = new Color(0.2f, 0.2f, 0.2f, 0.8f);
+        GUI.DrawTexture(backgroundRect, Texture2D.whiteTexture);
+
+        float currentMaxStamina = GetCurrentMaxStamina();
+        float staminaPercent = staminaNet.Value / currentMaxStamina;
+        Rect fillRect = new Rect(xPos, yPos, barWidth * staminaPercent, barHeight);
+
+        Color fillColor = Color.Lerp(Color.red, Color.green, staminaPercent);
+        GUI.color = fillColor;
+        GUI.DrawTexture(fillRect, Texture2D.whiteTexture);
+        GUI.color = Color.white;
+    }
+
     private void Update()
     {
         if (TagGameState.Instance != null && TagGameState.Instance.gameState.Value != GameState.Running) return;
@@ -366,31 +390,6 @@ public class PlayerTagMovement : NetworkBehaviour
         var random = UnityEngine.Random.Range(0, players.Count);
         var selectedPlayer = players[random];
         SetInitialTaggedPlayerServerRpc(selectedPlayer.NetworkObjectId);
-    }
-
-    /// <summary>
-    /// Helper function for rendering the stamina bar in OnGui.
-    /// </summary>
-    private void DrawStaminaBar()
-    {
-        float barWidth = 200f;
-        float barHeight = 20f;
-        float padding = 20f;
-        float xPos = Screen.width - barWidth - padding;
-        float yPos = Screen.height - barHeight - padding;
-
-        Rect backgroundRect = new Rect(xPos, yPos, barWidth, barHeight);
-        GUI.color = new Color(0.2f, 0.2f, 0.2f, 0.8f);
-        GUI.DrawTexture(backgroundRect, Texture2D.whiteTexture);
-
-        float currentMaxStamina = GetCurrentMaxStamina();
-        float staminaPercent = staminaNet.Value / currentMaxStamina;
-        Rect fillRect = new Rect(xPos, yPos, barWidth * staminaPercent, barHeight);
-
-        Color fillColor = Color.Lerp(Color.red, Color.green, staminaPercent);
-        GUI.color = fillColor;
-        GUI.DrawTexture(fillRect, Texture2D.whiteTexture);
-        GUI.color = Color.white;
     }
 
     /// <summary>
