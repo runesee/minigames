@@ -11,8 +11,6 @@ public class PlayerCtF : NetworkBehaviour
 {
     public static PlayerCtF Local;
     [SerializeField] public SkinnedMeshRenderer playerSkinRenderer;
-    [SerializeField] public GameObject playerShadow;
-    [SerializeField] public Material playerShadowColor;
     [SerializeField] public GameObject flag;
     [SerializeField] public MeshRenderer flagColor;
     [SerializeField] public Material blueColor;
@@ -202,12 +200,6 @@ public class PlayerCtF : NetworkBehaviour
         greenFlagFabric = GameObject.Find("GreenFabric");
         blueFlagFabric = GameObject.Find("BlueFabric");
         currentFlagZone = Team.None;
-
-        if (IsOwner)
-        {
-            playerShadow.SetActive(true);
-            playerShadow.GetComponentInChildren<MeshRenderer>().material.color = playerShadowColor.color;
-        } 
 
         // Apply initial player-selected color
         var data = LocalPlayerStorage.Load();
