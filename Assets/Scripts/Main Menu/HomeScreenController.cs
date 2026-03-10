@@ -32,13 +32,9 @@ public class HomeScreenController : MonoBehaviour
     private const float BackRowY = 1.0f;
     private const float BackRowZ = 0.5f;
 
-    // Front row (6): evenly spaced at 1.4 apart
-    // Positions: -3.5, -2.1, -0.7, 0.7, 2.1, 3.5
     private static readonly float[] FrontRowPositionsX = { -3.5f, -2.1f, -0.7f, 0.7f, 2.1f, 3.5f };
     private static readonly int[] FrontRowColors = { 0, 2, 4, 6, 8, 9 };
 
-    // Back row (4): placed at midpoints between front chars, skipping center for title framing
-    // Midpoints: -2.8, -1.4, [0 skipped], 1.4, 2.8
     private static readonly float[] BackRowPositionsX = { -2.8f, -1.4f, 1.4f, 2.8f };
     private static readonly int[] BackRowColors = { 1, 3, 5, 7 };
 
@@ -48,11 +44,16 @@ public class HomeScreenController : MonoBehaviour
 
     private void Start()
     {
-        SetupFadeOverlay();
+        fadeOverlay.alpha = 1f;
+        fadeOverlay.blocksRaycasts = true;
+
         SetupTitleAnimation();
         SetupPromptAnimation();
         SpawnCharacterShowcase();
-        FadeIn();
+
+        fadeOverlay.DOFade(0f, sceneTransitionDuration)
+            .SetEase(Ease.OutQuad)
+            .OnComplete(() => fadeOverlay.blocksRaycasts = false);
     }
 
     private void Update()
@@ -60,9 +61,7 @@ public class HomeScreenController : MonoBehaviour
         if (isTransitioning) return;
 
         if (AnyInputDetected())
-        {
             TransitionToMainMenu();
-        }
     }
 
     private void OnDestroy()
@@ -71,29 +70,8 @@ public class HomeScreenController : MonoBehaviour
         titleSequence?.Kill();
     }
 
-    private void SetupFadeOverlay()
-    {
-        if (fadeOverlay != null)
-        {
-            fadeOverlay.alpha = 1f;
-            fadeOverlay.blocksRaycasts = true;
-        }
-    }
-
-    private void FadeIn()
-    {
-        if (fadeOverlay != null)
-        {
-            fadeOverlay.DOFade(0f, sceneTransitionDuration)
-                .SetEase(Ease.OutQuad)
-                .OnComplete(() => fadeOverlay.blocksRaycasts = false);
-        }
-    }
-
     private void SetupTitleAnimation()
     {
-        if (titleText == null) return;
-
         RectTransform titleRect = titleText.GetComponent<RectTransform>();
         Vector2 originalPos = titleRect.anchoredPosition;
 
@@ -111,8 +89,6 @@ public class HomeScreenController : MonoBehaviour
 
     private void SetupPromptAnimation()
     {
-        if (promptText == null) return;
-
         promptSequence = DOTween.Sequence();
         promptSequence.Append(
             promptText.DOFade(0.2f, promptFadeDuration).SetEase(Ease.InOutSine)
@@ -125,8 +101,6 @@ public class HomeScreenController : MonoBehaviour
 
     private void SpawnCharacterShowcase()
     {
-        if (characterPrefab == null || characterParent == null) return;
-
         SpawnRow(FrontRowColors, FrontRowPositionsX, 0f, 0f, FrontRowScale);
         SpawnRow(BackRowColors, BackRowPositionsX, BackRowZ, BackRowY, BackRowScale);
     }
@@ -141,10 +115,7 @@ public class HomeScreenController : MonoBehaviour
             character.transform.localScale = Vector3.one * scale;
 
             CharacterPreview preview = character.GetComponent<CharacterPreview>();
-            if (preview != null)
-            {
-                preview.SetColor(PlayerColorManager.GetColor(colorIndices[i]));
-            }
+            preview.SetColor(PlayerColorManager.GetColor(colorIndices[i]));
         }
     }
 
@@ -152,9 +123,7 @@ public class HomeScreenController : MonoBehaviour
     {
         Keyboard keyboard = Keyboard.current;
         if (keyboard != null && keyboard.anyKey.wasPressedThisFrame)
-        {
             return true;
-        }
 
         Gamepad gamepad = Gamepad.current;
         if (gamepad != null)
@@ -164,9 +133,7 @@ public class HomeScreenController : MonoBehaviour
                 gamepad.buttonEast.wasPressedThisFrame ||
                 gamepad.buttonWest.wasPressedThisFrame ||
                 gamepad.startButton.wasPressedThisFrame)
-            {
                 return true;
-            }
         }
 
         try
@@ -175,14 +142,9 @@ public class HomeScreenController : MonoBehaviour
                 PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.B) ||
                 PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.X) ||
                 PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.Y))
-            {
                 return true;
-            }
         }
-        catch (System.Exception)
-        {
-            // PlayPulse not available
-        }
+        catch (System.Exception) { }
 
         return false;
     }
@@ -191,32 +153,14 @@ public class HomeScreenController : MonoBehaviour
     {
         isTransitioning = true;
 
-        if (transitionClip != null && audioSource != null)
-        {
-            audioSource.PlayOneShot(transitionClip);
-        }
+        audioSource.PlayOneShot(transitionClip);
 
         promptSequence?.Kill();
-        if (promptText != null)
-        {
-            promptText.alpha = 1f;
-        }
+        promptText.alpha = 1f;
 
-        if (fadeOverlay != null)
-        {
-            fadeOverlay.blocksRaycasts = true;
-            fadeOverlay.DOFade(1f, sceneTransitionDuration)
-                .SetEase(Ease.InQuad)
-                .OnComplete(LoadMainMenu);
-        }
-        else
-        {
-            LoadMainMenu();
-        }
-    }
-
-    private void LoadMainMenu()
-    {
-        SceneManager.LoadScene(MainMenuSceneName);
+        fadeOverlay.blocksRaycasts = true;
+        fadeOverlay.DOFade(1f, sceneTransitionDuration)
+            .SetEase(Ease.InQuad)
+            .OnComplete(() => SceneManager.LoadScene(MainMenuSceneName));
     }
 }
