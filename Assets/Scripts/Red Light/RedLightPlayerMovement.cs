@@ -230,7 +230,8 @@ public class RedLightPlayerMovement : NetworkBehaviour
         audioSource?.PlayOneShot(errorClip);
 
         Vector3 newPosition = transform.position;
-        newPosition.z -= penaltyPushBackDistance;
+        if (newPosition.z - penaltyPushBackDistance > -13f) newPosition.z -= penaltyPushBackDistance;
+        else newPosition.z -= newPosition.z + 13f;
         transform.position = newPosition;
 
         rb.linearVelocity = Vector3.zero;
