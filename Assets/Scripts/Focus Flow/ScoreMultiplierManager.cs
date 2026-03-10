@@ -10,7 +10,7 @@ public class ScoreMultiplierManager : MonoBehaviour
     private readonly float[] restMultipliers = { 0.5f, 1.0f, 1.5f, 2.0f, 0.5f };
 
     private List<int> zoneIndexSamples = new List<int>();
-    private List<float> normalizedSpeedSamples = new List<float>();
+    private Queue<float> normalizedSpeedSamples = new Queue<float>();
     private bool isTracking = false;
 
     public bool IsTracking => isTracking;
@@ -24,7 +24,8 @@ public class ScoreMultiplierManager : MonoBehaviour
             zoneIndexSamples.Add(currentZone);
             
             float normalizedSpeed = Mathf.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f);
-            normalizedSpeedSamples.Add(normalizedSpeed);
+            if (normalizedSpeedSamples.Count > 100) normalizedSpeedSamples.Dequeue();   // TODO : adjust count after trying on bike
+            normalizedSpeedSamples.Enqueue(normalizedSpeed);
         }
     }
 
@@ -33,11 +34,6 @@ public class ScoreMultiplierManager : MonoBehaviour
         zoneIndexSamples.Clear();
         normalizedSpeedSamples.Clear();
         isTracking = true;
-    }
-
-    public void StopTracking()
-    {
-        isTracking = false;
     }
 
     public float GetAverageNormalizedSpeed()

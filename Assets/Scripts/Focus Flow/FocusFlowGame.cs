@@ -174,7 +174,6 @@ public class FocusFlowGame : NetworkBehaviour
     private void OnSequenceComplete()
     {
         waitingForInput = false;
-        multiplierManager.StopTracking();
 
         int pointsEarned = multiplierManager.ApplyAverageMultiplier(currentSequencePoints);
         totalScore += pointsEarned;
@@ -193,7 +192,6 @@ public class FocusFlowGame : NetworkBehaviour
     private void OnPlayerFailed()
     {
         waitingForInput = false;
-        multiplierManager.StopTracking();
         currentSequencePoints = 100f;
         ShowFeedback("Failed", Color.red);
         audioSource?.PlayOneShot(errorSound);
