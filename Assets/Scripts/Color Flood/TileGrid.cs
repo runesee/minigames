@@ -8,6 +8,10 @@ public class TileGrid : NetworkBehaviour
     [SerializeField] private int gridWidth = 20;
     [SerializeField] private int gridHeight = 20;
     [SerializeField] private float tileSize = 1f;
+
+    public int GridWidth => gridWidth;
+    public int GridHeight => gridHeight;
+    public float TileSize => tileSize;
     [SerializeField] private GameObject tilePrefab;
     [SerializeField] private Material greenMaterial;
     [SerializeField] private Material blueMaterial;

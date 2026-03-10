@@ -53,6 +53,10 @@ public class PlayerColorFlood : NetworkBehaviour
     private float smoothedPedalSpeed = 0f;
     private bool usingPlayPulse = true;
 
+    private float speedBoostTimer;
+    private const float SpeedBoostDuration = 5f;
+    private const float SpeedBoostMultiplier = 2f;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -123,6 +127,11 @@ public class PlayerColorFlood : NetworkBehaviour
             ColorFloodGameState.Instance.gameState.Value != GameState.Running) return;
         if (!IsOwner) return;
 
+        if (speedBoostTimer > 0)
+        {
+            speedBoostTimer -= Time.deltaTime;
+        }
+
         Vector2 input = moveAction.ReadValue<Vector2>();
         Vector3 joystickOffset = new Vector3(input.x, 0, input.y);
 
@@ -141,11 +150,16 @@ public class PlayerColorFlood : NetworkBehaviour
 
         if (joystickOffset.sqrMagnitude > 0.01f)
         {
-            isSprintingNet.Value = pedalSpeed > sprintSpeedThreshold;
+            bool isBoosted = speedBoostTimer > 0;
+            isSprintingNet.Value = isBoosted || pedalSpeed > sprintSpeedThreshold;
             isWalkingNet.Value = !isSprintingNet.Value;
-            isShowingBoostParticlesNet.Value = isSprintingNet.Value;
+            isShowingBoostParticlesNet.Value = isBoosted || pedalSpeed > sprintSpeedThreshold;
 
             float moveSpeed = walkSpeed * pedalSpeed;
+            if (speedBoostTimer > 0)
+            {
+                moveSpeed *= SpeedBoostMultiplier;
+            }
             Quaternion targetRotation = Quaternion.LookRotation(joystickOffset);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
             if (animator != null) animator.speed = pedalAnimationSpeed;
@@ -176,12 +190,29 @@ public class PlayerColorFlood : NetworkBehaviour
         if (!IsOwner) return;
         if (ColorFloodGameState.Instance == null ||
             ColorFloodGameState.Instance.gameState.Value != GameState.Running) return;
+
+        SpeedBoostPickup pickup = other.GetComponent<SpeedBoostPickup>();
+        if (pickup != null)
+        {
+            PowerUpSpawner.Instance.CollectSpeedBoostServerRpc(pickup.pickupId);
+            return;
+        }
+
         if (teamNet.Value == ColorFloodGameState.Team.None) return;
 
         ColorFloodTile tile = other.GetComponent<ColorFloodTile>();
         if (tile == null) return;
 
         TileGrid.Instance.PaintTileServerRpc(tile.tileIndex, teamNet.Value);
+    }
+
+    [ClientRpc]
+    public void GrantSpeedBoostClientRpc()
+    {
+        if (IsOwner)
+        {
+            speedBoostTimer = SpeedBoostDuration;
+        }
     }
 
     private void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
