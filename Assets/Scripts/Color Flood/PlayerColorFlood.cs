@@ -97,6 +97,11 @@ public class PlayerColorFlood : NetworkBehaviour
         string color = IsOwner ? data.color : colorNet.Value.ToString();
         SetSkinColor(color);
 
+        if (teamNet.Value != ColorFloodGameState.Team.None)
+        {
+            ApplyTeamTint(teamNet.Value);
+        }
+
         if (IsOwner)
         {
             UpdateColorServerRpc(color);
@@ -182,6 +187,10 @@ public class PlayerColorFlood : NetworkBehaviour
     private void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
     {
         SetSkinColor(newValue.ToString());
+        if (teamNet.Value != ColorFloodGameState.Team.None)
+        {
+            ApplyTeamTint(teamNet.Value);
+        }
     }
 
     private void SetSkinColor(string color)
