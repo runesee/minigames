@@ -56,6 +56,8 @@ public class PowerUpSpawner : NetworkBehaviour
         }
     }
 
+    private const int MaxSpawnAttempts = 20;
+
     private void SpawnRandomPowerUp()
     {
         if (TileGrid.Instance == null) return;
@@ -67,18 +69,30 @@ public class PowerUpSpawner : NetworkBehaviour
         float gridOriginX = -(gridWidth * tileSize) / 2f + tileSize / 2f;
         float gridOriginZ = -(gridHeight * tileSize) / 2f + tileSize / 2f;
 
-        int col = Random.Range(0, gridWidth);
-        int row = Random.Range(0, gridHeight);
+        Vector3 halfExtents = Vector3.one * (powerUpScale * 0.5f);
 
-        Vector3 position = new Vector3(
-            gridOriginX + col * tileSize,
-            floatHeight,
-            gridOriginZ + row * tileSize
-        );
+        for (int attempt = 0; attempt < MaxSpawnAttempts; attempt++)
+        {
+            int col = Random.Range(0, gridWidth);
+            int row = Random.Range(0, gridHeight);
 
-        int id = nextPowerUpId++;
-        activeIds.Add(id);
-        SpawnPowerUpClientRpc(id, position);
+            Vector3 position = new Vector3(
+                gridOriginX + col * tileSize,
+                floatHeight,
+                gridOriginZ + row * tileSize
+            );
+
+            if (Physics.CheckBox(position, halfExtents, Quaternion.identity,
+                    Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            {
+                continue;
+            }
+
+            int id = nextPowerUpId++;
+            activeIds.Add(id);
+            SpawnPowerUpClientRpc(id, position);
+            return;
+        }
     }
 
     [ClientRpc]
