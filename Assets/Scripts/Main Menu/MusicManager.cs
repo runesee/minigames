@@ -39,7 +39,7 @@ public class MusicManager : NetworkBehaviour
                 PlayTagMusicClientRpc();
                 break;
             case MinigameManager.MinigameScene.FocusFlow:
-                PlayFocusFlowMusicClientRpc();
+                PlayFocusFlowIntenseMusicClientRpc(true);
                 break;
             case MinigameManager.MinigameScene.CaptureTheFlag:
                 PlayFocusFlowMusicClientRpc();
@@ -69,9 +69,16 @@ public class MusicManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void PlayFocusFlowMusicClientRpc()
+    public void PlayFocusFlowMusicClientRpc()
     {
-        PlayMusic(focusFlowMusic);
+        StartCoroutine(FadeOutAndIn(focusFlowMusic, 3f));
+    }
+
+    [ClientRpc]
+    public void PlayFocusFlowIntenseMusicClientRpc(bool sceneChange)
+    {
+        if (!sceneChange) StartCoroutine(FadeOutAndIn(tagMusic, 3f));
+        else PlayMusic(tagMusic);
     }
 
     [ClientRpc]
@@ -86,6 +93,25 @@ public class MusicManager : NetworkBehaviour
         audioSource.Stop();
         audioSource.clip = audioClip;
         audioSource.Play();
+    }
+
+    private IEnumerator FadeOutAndIn(AudioClip audioClip, float FadeTime) {
+        float startVolume = 0.1f;
+        while (audioSource.volume > 0) 
+        {
+            audioSource.volume -= startVolume * Time.deltaTime / FadeTime;
+            yield return null;
+        }
+
+        audioSource.Stop();
+        audioSource.clip = audioClip;
+        audioSource.Play();
+
+        while (audioSource.volume < startVolume) 
+        {
+            audioSource.volume += startVolume * Time.deltaTime / FadeTime;
+            yield return null;
+        }
     }
 
     private IEnumerator PlayScoreboardSoundbyte()

@@ -24,11 +24,13 @@ public class IntervalTimer : NetworkBehaviour
     [Header("Audio Settings")]
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip intervalChangeSound;
+    [SerializeField] private AudioClip intervalCounterSound;
 
     private float currentTime;
     private int completedCycles;
     private bool isIntervalPhase = true;
     private bool isRunning = false;
+    private bool isChangingIntervals = false;
     private float currentLabelSize;
     private Coroutine phaseShiftCoroutine;
 
@@ -60,7 +62,13 @@ public class IntervalTimer : NetworkBehaviour
         {
             OnPhaseComplete();
         }
-
+        else if (currentTime <= 3f && !isChangingIntervals && IsServer)
+        {    // May fire at incorrect times due to local timer not being server synced
+            isChangingIntervals = true;
+            if (isIntervalPhase) MusicManager.Instance.PlayFocusFlowMusicClientRpc();
+            else MusicManager.Instance.PlayFocusFlowIntenseMusicClientRpc(false);
+            ToggleIntervalSoundsClientRpc();
+        }
         UpdateTimerDisplay();
     }
 
@@ -120,6 +128,19 @@ public class IntervalTimer : NetworkBehaviour
     {
         yield return new WaitForSeconds(8f);
         if(IsHost) FocusFlowGameState.Instance.SetGameStateServerRpc(GameState.Handover);
+    }
+
+    [ClientRpc]
+    private void ToggleIntervalSoundsClientRpc()
+    {
+        StartCoroutine(ToggleIntervalSounds());
+    }
+
+    private IEnumerator ToggleIntervalSounds()
+    {
+        audioSource?.PlayOneShot(intervalCounterSound);
+        yield return new WaitForSeconds(5f); // Just needs to be longer than 3f
+        isChangingIntervals = false;
     }
 
     private void UpdateTimerDisplay()
