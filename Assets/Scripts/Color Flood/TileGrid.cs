@@ -66,6 +66,39 @@ public class TileGrid : NetworkBehaviour
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void PaintTileServerRpc(int tileIndex, ColorFloodGameState.Team team)
     {
+        PaintTileInternal(tileIndex, team);
+    }
+
+    public void PaintArea(Vector3 center, float radius, ColorFloodGameState.Team team)
+    {
+        if (!IsServer) return;
+
+        float gridOriginX = -(gridWidth * tileSize) / 2f + tileSize / 2f;
+        float gridOriginZ = -(gridHeight * tileSize) / 2f + tileSize / 2f;
+
+        int centerCol = Mathf.RoundToInt((center.x - gridOriginX) / tileSize);
+        int centerRow = Mathf.RoundToInt((center.z - gridOriginZ) / tileSize);
+        int tileRadius = Mathf.CeilToInt(radius / tileSize);
+        float radiusSq = radius * radius;
+
+        for (int row = centerRow - tileRadius; row <= centerRow + tileRadius; row++)
+        {
+            for (int col = centerCol - tileRadius; col <= centerCol + tileRadius; col++)
+            {
+                if (row < 0 || row >= gridHeight || col < 0 || col >= gridWidth) continue;
+
+                float dx = (col - centerCol) * tileSize;
+                float dz = (row - centerRow) * tileSize;
+                if (dx * dx + dz * dz > radiusSq) continue;
+
+                int index = row * gridWidth + col;
+                PaintTileInternal(index, team);
+            }
+        }
+    }
+
+    private void PaintTileInternal(int tileIndex, ColorFloodGameState.Team team)
+    {
         if (tileIndex < 0 || tileIndex >= tileOwnership.Length) return;
         if (tileOwnership[tileIndex] == team) return;
 

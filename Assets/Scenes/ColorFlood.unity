@@ -477,9 +477,12 @@ MonoBehaviour:
   spawnInterval: 8
   initialDelay: 5
   maxActivePowerUps: 5
+  paintBombChance: 0.35
   speedBoostMaterial: {fileID: 2100000, guid: e285d4aeb85854272a1c927f0800f570, type: 2}
+  paintBombMaterial: {fileID: 2100000, guid: 9e162935cf2764f83bfc5c0fe24cb440, type: 2}
   powerUpScale: 0.6
   floatHeight: 0.8
+  paintBombRadius: 5
 --- !u!1 &190616423
 GameObject:
   m_ObjectHideFlags: 0

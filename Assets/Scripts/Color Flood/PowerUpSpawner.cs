@@ -7,15 +7,26 @@ public class PowerUpSpawner : NetworkBehaviour
 {
     public static PowerUpSpawner Instance { get; private set; }
 
+    public enum PowerUpType : byte
+    {
+        SpeedBoost,
+        PaintBomb,
+    }
+
     [Header("Spawn Settings")]
     [SerializeField] private float spawnInterval = 8f;
     [SerializeField] private float initialDelay = 5f;
     [SerializeField] private int maxActivePowerUps = 5;
+    [SerializeField, Range(0f, 1f)] private float paintBombChance = 0.35f;
 
     [Header("Power-Up Appearance")]
     [SerializeField] private Material speedBoostMaterial;
+    [SerializeField] private Material paintBombMaterial;
     [SerializeField] private float powerUpScale = 0.6f;
     [SerializeField] private float floatHeight = 0.8f;
+
+    [Header("Paint Bomb Settings")]
+    [SerializeField] private float paintBombRadius = 5f;
 
     private readonly HashSet<int> activeIds = new HashSet<int>();
     private readonly Dictionary<int, GameObject> localPowerUps = new Dictionary<int, GameObject>();
@@ -90,32 +101,61 @@ public class PowerUpSpawner : NetworkBehaviour
 
             int id = nextPowerUpId++;
             activeIds.Add(id);
-            SpawnPowerUpClientRpc(id, position);
+            PowerUpType type = Random.value < paintBombChance
+                ? PowerUpType.PaintBomb
+                : PowerUpType.SpeedBoost;
+            SpawnPowerUpClientRpc(id, position, type);
             return;
         }
     }
 
     [ClientRpc]
-    private void SpawnPowerUpClientRpc(int pickupId, Vector3 position)
+    private void SpawnPowerUpClientRpc(int pickupId, Vector3 position, PowerUpType type)
     {
-        GameObject powerUp = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        powerUp.name = $"SpeedBoost_{pickupId}";
+        PrimitiveType shape = type == PowerUpType.PaintBomb
+            ? PrimitiveType.Sphere
+            : PrimitiveType.Cube;
+
+        GameObject powerUp = GameObject.CreatePrimitive(shape);
+        powerUp.name = $"{type}_{pickupId}";
         powerUp.transform.position = position;
         powerUp.transform.localScale = Vector3.one * powerUpScale;
-        powerUp.transform.rotation = Quaternion.Euler(45f, 0f, 45f);
 
-        BoxCollider col = powerUp.GetComponent<BoxCollider>();
-        col.isTrigger = true;
-        col.size = Vector3.one * 2f;
-
-        MeshRenderer rend = powerUp.GetComponent<MeshRenderer>();
-        if (speedBoostMaterial != null)
+        if (type == PowerUpType.SpeedBoost)
         {
-            rend.material = speedBoostMaterial;
+            powerUp.transform.rotation = Quaternion.Euler(45f, 0f, 45f);
         }
 
-        SpeedBoostPickup pickup = powerUp.AddComponent<SpeedBoostPickup>();
-        pickup.pickupId = pickupId;
+        Collider col = powerUp.GetComponent<Collider>();
+        col.isTrigger = true;
+
+        if (col is BoxCollider box)
+        {
+            box.size = Vector3.one * 2f;
+        }
+        else if (col is SphereCollider sphere)
+        {
+            sphere.radius = 1f;
+        }
+
+        MeshRenderer rend = powerUp.GetComponent<MeshRenderer>();
+        Material mat = type == PowerUpType.PaintBomb ? paintBombMaterial : speedBoostMaterial;
+        if (mat != null)
+        {
+            rend.material = mat;
+        }
+
+        switch (type)
+        {
+            case PowerUpType.SpeedBoost:
+                var speedPickup = powerUp.AddComponent<SpeedBoostPickup>();
+                speedPickup.pickupId = pickupId;
+                break;
+            case PowerUpType.PaintBomb:
+                var bombPickup = powerUp.AddComponent<PaintBombPickup>();
+                bombPickup.pickupId = pickupId;
+                break;
+        }
 
         localPowerUps[pickupId] = powerUp;
     }
@@ -134,6 +174,31 @@ public class PowerUpSpawner : NetworkBehaviour
             if (player != null && player.OwnerClientId == senderClientId)
             {
                 player.GrantSpeedBoostClientRpc();
+                break;
+            }
+        }
+
+        RemovePowerUpClientRpc(pickupId);
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void CollectPaintBombServerRpc(int pickupId, RpcParams rpcParams = default)
+    {
+        if (!activeIds.Contains(pickupId)) return;
+        activeIds.Remove(pickupId);
+
+        ulong senderClientId = rpcParams.Receive.SenderClientId;
+
+        foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
+        {
+            var player = obj.GetComponent<PlayerColorFlood>();
+            if (player != null && player.OwnerClientId == senderClientId)
+            {
+                TileGrid.Instance.PaintArea(
+                    player.transform.position,
+                    paintBombRadius,
+                    player.teamNet.Value
+                );
                 break;
             }
         }

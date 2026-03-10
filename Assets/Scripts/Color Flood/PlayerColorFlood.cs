@@ -192,10 +192,17 @@ public class PlayerColorFlood : NetworkBehaviour
         if (ColorFloodGameState.Instance == null ||
             ColorFloodGameState.Instance.gameState.Value != GameState.Running) return;
 
-        SpeedBoostPickup pickup = other.GetComponent<SpeedBoostPickup>();
-        if (pickup != null)
+        SpeedBoostPickup speedPickup = other.GetComponent<SpeedBoostPickup>();
+        if (speedPickup != null)
         {
-            PowerUpSpawner.Instance.CollectSpeedBoostServerRpc(pickup.pickupId);
+            PowerUpSpawner.Instance.CollectSpeedBoostServerRpc(speedPickup.pickupId);
+            return;
+        }
+
+        PaintBombPickup bombPickup = other.GetComponent<PaintBombPickup>();
+        if (bombPickup != null)
+        {
+            PowerUpSpawner.Instance.CollectPaintBombServerRpc(bombPickup.pickupId);
             return;
         }
 
