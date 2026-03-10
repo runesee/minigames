@@ -171,9 +171,10 @@ public class PlayerColorFlood : NetworkBehaviour
         }
         else
         {
+            bool isBoosted = speedBoostTimer > 0;
             isWalkingNet.Value = false;
-            isSprintingNet.Value = false;
-            isShowingBoostParticlesNet.Value = false;
+            isSprintingNet.Value = isBoosted;
+            isShowingBoostParticlesNet.Value = isBoosted;
             if (animator != null) animator.speed = 1f;
         }
     }
