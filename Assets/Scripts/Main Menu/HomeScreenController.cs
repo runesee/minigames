@@ -26,8 +26,21 @@ public class HomeScreenController : MonoBehaviour
     [SerializeField] private AudioClip transitionClip;
 
     private const string MainMenuSceneName = "MainMenu";
-    private const int CharacterCount = 4;
-    private static readonly int[] ShowcaseColorIndices = { 0, 1, 2, 3 };
+
+    private const float FrontRowScale = 0.7f;
+    private const float BackRowScale = 0.6f;
+    private const float BackRowY = 1.0f;
+    private const float BackRowZ = 0.5f;
+
+    // Front row (6): evenly spaced at 1.4 apart
+    // Positions: -3.5, -2.1, -0.7, 0.7, 2.1, 3.5
+    private static readonly float[] FrontRowPositionsX = { -3.5f, -2.1f, -0.7f, 0.7f, 2.1f, 3.5f };
+    private static readonly int[] FrontRowColors = { 0, 2, 4, 6, 8, 9 };
+
+    // Back row (4): placed at midpoints between front chars, skipping center for title framing
+    // Midpoints: -2.8, -1.4, [0 skipped], 1.4, 2.8
+    private static readonly float[] BackRowPositionsX = { -2.8f, -1.4f, 1.4f, 2.8f };
+    private static readonly int[] BackRowColors = { 1, 3, 5, 7 };
 
     private bool isTransitioning;
     private Sequence promptSequence;
@@ -114,21 +127,23 @@ public class HomeScreenController : MonoBehaviour
     {
         if (characterPrefab == null || characterParent == null) return;
 
-        float spacing = 1.5f;
-        float startX = -((CharacterCount - 1) * spacing) / 2f;
+        SpawnRow(FrontRowColors, FrontRowPositionsX, 0f, 0f, FrontRowScale);
+        SpawnRow(BackRowColors, BackRowPositionsX, BackRowZ, BackRowY, BackRowScale);
+    }
 
-        for (int i = 0; i < CharacterCount; i++)
+    private void SpawnRow(int[] colorIndices, float[] positionsX, float zOffset, float yOffset, float scale)
+    {
+        for (int i = 0; i < colorIndices.Length; i++)
         {
             GameObject character = Instantiate(characterPrefab, characterParent);
-            character.transform.localPosition = new Vector3(startX + (i * spacing), 0f, 0f);
+            character.transform.localPosition = new Vector3(positionsX[i], yOffset, zOffset);
             character.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
-            character.transform.localScale = Vector3.one * 0.7f;
+            character.transform.localScale = Vector3.one * scale;
 
-            int colorIndex = ShowcaseColorIndices[i % ShowcaseColorIndices.Length];
             CharacterPreview preview = character.GetComponent<CharacterPreview>();
             if (preview != null)
             {
-                preview.SetColor(PlayerColorManager.GetColor(colorIndex));
+                preview.SetColor(PlayerColorManager.GetColor(colorIndices[i]));
             }
         }
     }
