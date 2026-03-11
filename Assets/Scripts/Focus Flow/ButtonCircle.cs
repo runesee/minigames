@@ -102,6 +102,7 @@ public class ButtonCircle : MonoBehaviour
         {
             ringObject.SetActive(true);
         }
+        PlayButtonSound();
     }
 
     private void CreateTorusRing(GameObject parent)

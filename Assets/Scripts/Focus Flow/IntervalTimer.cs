@@ -1,4 +1,5 @@
 using System.Collections;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,17 +12,23 @@ public class IntervalTimer : NetworkBehaviour
     [SerializeField] private int totalCycles = 3;
 
     [Header("UI Reference")]
+
     [SerializeField] private Text timerText;
+    [SerializeField] private TextMeshProUGUI startText;
 
     [Header("Phase Shift Animation")]
     [SerializeField] private float normalLabelSize = 110f;
     [SerializeField] private float shiftLabelSize = 180f;
     [SerializeField] private float shiftAnimationDuration = 1f;
 
+    [Header("Audio Settings")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip intervalChangeSound;
+
     private float currentTime;
     private int completedCycles;
     private bool isIntervalPhase = true;
-    private bool isRunning = true;
+    private bool isRunning = false;
     private float currentLabelSize;
     private Coroutine phaseShiftCoroutine;
 
@@ -33,6 +40,14 @@ public class IntervalTimer : NetworkBehaviour
         completedCycles = 0;
         currentLabelSize = normalLabelSize;
         UpdateTimerDisplay();
+        StartCoroutine(DisplayStartText());
+    }
+
+    private IEnumerator DisplayStartText()
+    {
+        yield return new WaitForSeconds(1f);
+        startText.text = "";
+        isRunning = true;
     }
 
     private void Update()
@@ -80,9 +95,8 @@ public class IntervalTimer : NetworkBehaviour
 
     private void TriggerPhaseShiftAnimation()
     {
-        if (phaseShiftCoroutine != null)
-            StopCoroutine(phaseShiftCoroutine);
-
+        if (phaseShiftCoroutine != null) StopCoroutine(phaseShiftCoroutine);
+        audioSource?.PlayOneShot(intervalChangeSound);
         phaseShiftCoroutine = StartCoroutine(PhaseShiftAnimation());
     }
 

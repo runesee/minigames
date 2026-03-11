@@ -9,6 +9,7 @@ public class GameTimer : NetworkBehaviour
     [Header("Timer Settings")]
     [SerializeField] private float gameDurationInSeconds = 60f;
     [SerializeField] private TextMeshProUGUI timerText;
+    [SerializeField] private TextMeshProUGUI stateText;
 
     private NetworkVariable<float> remainingTime = new NetworkVariable<float>(
         0f,
@@ -106,9 +107,15 @@ public class GameTimer : NetworkBehaviour
     private void OnGameStateChanged(GameState previousState, GameState newState)
     {
         if (!IsServer) return;
+        ToggleStartTextClientRpc(newState);
 
         if (newState == GameState.Running)
         {
+            if (CtFGameState.Instance != null)
+            {
+                CTFToggleStartTextClientRpc();
+                return;
+            }
             timerEndTime.Value = NetworkManager.ServerTime.Time + gameDurationInSeconds;
             remainingTime.Value = gameDurationInSeconds;
             timerRunning.Value = true;
@@ -117,6 +124,30 @@ public class GameTimer : NetworkBehaviour
         {
             timerRunning.Value = false;
         }
+    }
+
+    private IEnumerator DisplayStartText()
+    {
+        stateText.text = "GET READY!"; 
+        yield return new WaitForSeconds(3f);
+        timerEndTime.Value = NetworkManager.ServerTime.Time + gameDurationInSeconds;
+        stateText.text = "";
+        remainingTime.Value = gameDurationInSeconds;
+        timerRunning.Value = true;
+    }
+
+    [ClientRpc]
+    private void CTFToggleStartTextClientRpc()
+    {
+        StartCoroutine(DisplayStartText());
+    }
+
+    [ClientRpc]
+    private void ToggleStartTextClientRpc(GameState state)
+    {
+        if (CtFGameState.Instance != null) return;
+        if (state == GameState.Idling) stateText.text = "GET READY!"; 
+        else stateText.text = "";
     }
 
     private void OnRemainingTimeChanged(float previousTime, float newTime)

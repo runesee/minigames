@@ -14,8 +14,12 @@ public class MusicManager : NetworkBehaviour
 
     private void Awake()
     {
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else Destroy(gameObject);
     }
 
     public void PlaySong(MinigameManager.MinigameScene scene)
@@ -80,7 +84,8 @@ public class MusicManager : NetworkBehaviour
     private void PlayMusic(AudioClip audioClip)
     {
         audioSource.Stop();
-        audioSource?.PlayOneShot(audioClip);
+        audioSource.clip = audioClip;
+        audioSource.Play();
     }
 
     private IEnumerator PlayScoreboardSoundbyte()

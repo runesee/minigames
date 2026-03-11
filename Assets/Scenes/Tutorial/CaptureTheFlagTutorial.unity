@@ -524,9 +524,9 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u2022 Teams face each other 2 vs 2\n\n\u2022 Capture the most flags to
-    win\n\n\u2022 Navigate to the opposing team's flag\n\n\u2022 Grab the flag, and
-    bring it to your \n   starting zone to capture it\n\n\u2022 Move around the map
-    by pedaling"
+    win\n\n\u2022 Grab the opponent's flag, and bring it to your \n  starting zone
+    to capture it\n\n\u2022 Tag any opponent on your turf to stop their advance\n\n\u2022
+    Tag opponents holding a flag anywhere to return it"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

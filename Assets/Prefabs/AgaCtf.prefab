@@ -5164,7 +5164,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 0.3
+  m_Volume: 0.2
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -5494,8 +5494,15 @@ MonoBehaviour:
   collectedFlagsNet:
     m_InternalValue: 0
   sprintParticleEffect: {fileID: 6789903846567414674}
-  tagAudioSource: {fileID: 3805718767395553070}
+  audioSource: {fileID: 3805718767395553070}
   tagClip: {fileID: 8300000, guid: 792de47f43f4c91489da86277518a33b, type: 3}
+  plopClip: {fileID: 8300000, guid: 283febda42e3ee448a80cb4552b1b03a, type: 3}
+  scoreClip: {fileID: 8300000, guid: bfaeaa0eff4ed7b45bda83dd915061b5, type: 3}
+  enemyScoreClip: {fileID: 8300000, guid: 101fc00948ddf7d4ca325de7951cceac, type: 3}
+  flagTakenClip: {fileID: 8300000, guid: ae60ba2716a83064e97ca7270a2446f8, type: 3}
+  taggedClip: {fileID: 8300000, guid: 315551b267afe684b87bc1cc54a4e18e, type: 3}
+  flagReturnedClip: {fileID: 8300000, guid: b2f75dbcb4f542f4a9e7135636cc0176, type: 3}
+  camera: {fileID: 0}
 --- !u!1001 &2472634209218968432
 PrefabInstance:
   m_ObjectHideFlags: 0

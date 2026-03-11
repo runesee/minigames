@@ -175,6 +175,24 @@ public class CtFGameState : NetworkBehaviour
         StartCoroutine(DisplayToastMessage(tally));
     }
 
+    // Some networked sounds (especially for opponents) may need to use the this Rpc to correctly determine team membership.
+    [ClientRpc]
+    public void PlaySoundClientRpc(PlayerCtF.Team scoringTeam, PlayerCtF.CtfClips clip)
+    {
+        var player = PlayerCtF.Local;
+        if (player == null) return;
+        switch(clip)
+        {
+            case PlayerCtF.CtfClips.Score:
+                if (player.teamNet.Value == scoringTeam) player.audioSource.PlayOneShot(player.scoreClip);
+                else player.audioSource.PlayOneShot(player.enemyScoreClip);
+                break;
+            case PlayerCtF.CtfClips.Returned:
+                if (player.teamNet.Value == scoringTeam) player.audioSource.PlayOneShot(player.flagReturnedClip);
+                break;
+        }
+    }
+
     private IEnumerator DisplayToastMessage(int count)
     {
         yield return new WaitForSeconds(3f);

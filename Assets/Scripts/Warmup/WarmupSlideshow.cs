@@ -16,6 +16,10 @@ public class WarmupSlideshow : MonoBehaviour
     [Header("Transition")]
     [SerializeField] private float transitionDuration = 0.4f;
 
+    [Header("Audio Setup")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip plonkAudio;
+
     private const float ArrowActiveAlpha = 0.85f;
     private const float ArrowDimmedAlpha = 0.15f;
 
@@ -68,12 +72,14 @@ public class WarmupSlideshow : MonoBehaviour
     public void NavigateNext()
     {
         if (isTransitioning || currentIndex >= slides.Length - 1) return;
+        audioSource?.PlayOneShot(plonkAudio);
         StartCoroutine(Transition(currentIndex + 1, direction: 1));
     }
 
     public void NavigatePrevious()
     {
         if (isTransitioning || currentIndex <= 0) return;
+        audioSource?.PlayOneShot(plonkAudio);
         StartCoroutine(Transition(currentIndex - 1, direction: -1));
     }
 
