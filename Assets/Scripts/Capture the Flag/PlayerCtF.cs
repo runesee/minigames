@@ -361,8 +361,8 @@ public class PlayerCtF : NetworkBehaviour
         if (CtFGameState.Instance != null && CtFGameState.Instance.gameState.Value != GameState.Running) return;
         if (!IsOwner) return;
         double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
-        if (serverTime - lastRespawnTimeNet.Value >= 8f && isFrozen.Value && IsOwner) RespawnPlayerServerRpc();
-        else if (isFrozen.Value) return;
+        if (serverTime - lastRespawnTimeNet.Value >= 8f && isRespawning.Value && IsOwner) RespawnPlayerServerRpc();
+        else if (isRespawning.Value) return;
 
         // Parse InputInteractions
         Vector2 input = moveAction.ReadValue<Vector2>();
