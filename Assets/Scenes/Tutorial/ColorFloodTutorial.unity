@@ -887,7 +887,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   slider: {fileID: 2096906056}
   sliderText: {fileID: 1106144759}
-  relativeVideoPath: 
+  relativeVideoPath: minigames_colorflood.webm
   videoPlayer: {fileID: 2115377630}
 --- !u!114 &1053332722
 MonoBehaviour:
