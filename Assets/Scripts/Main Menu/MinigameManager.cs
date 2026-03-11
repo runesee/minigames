@@ -21,13 +21,14 @@ public class MinigameManager : NetworkBehaviour
         Tag,
         FocusFlowTutorial,
         FocusFlow,
+        ColorFloodTutorial,
+        ColorFlood,
         RedLightTutorial,
         RedLight,
-        BalloonTag,
         BalloonTagTutorial,
-        CaptureTheFlag,
+        BalloonTag,
         CaptureTheFlagTutorial,
-        ColorFlood,
+        CaptureTheFlag,
     }
 
     public MinigameScene currentGameState = MinigameScene.MainMenu;
@@ -47,8 +48,8 @@ public class MinigameManager : NetworkBehaviour
     public void StartGameSession()
     {
         if (!IsHost) return;
-        NetworkManager.Singleton.SceneManager.LoadScene("ColorFlood", LoadSceneMode.Single);
-        currentGameState = MinigameScene.ColorFlood;
+        NetworkManager.Singleton.SceneManager.LoadScene("TagTutorial", LoadSceneMode.Single);
+        currentGameState = MinigameScene.TagTutorial;
         MusicManager.Instance?.PlaySong(currentGameState);
     }
 
@@ -73,6 +74,14 @@ public class MinigameManager : NetworkBehaviour
                 currentGameState = MinigameScene.FocusFlow;
                 break;
             case MinigameScene.FocusFlow:
+                NetworkManager.Singleton.SceneManager.LoadScene("Scoreboard", LoadSceneMode.Single);
+                currentGameState = MinigameScene.Scoreboard;
+                break;
+            case MinigameScene.ColorFloodTutorial:
+                NetworkManager.Singleton.SceneManager.LoadScene("ColorFlood", LoadSceneMode.Single);
+                currentGameState = MinigameScene.ColorFlood;
+                break;
+            case MinigameScene.ColorFlood:
                 NetworkManager.Singleton.SceneManager.LoadScene("Scoreboard", LoadSceneMode.Single);
                 currentGameState = MinigameScene.Scoreboard;
                 break;
@@ -107,6 +116,11 @@ public class MinigameManager : NetworkBehaviour
                     currentGameState = MinigameScene.FocusFlowTutorial;
                 }
                 else if (previousGameState == MinigameScene.FocusFlow)
+                {
+                    NetworkManager.Singleton.SceneManager.LoadScene("ColorFloodTutorial", LoadSceneMode.Single);
+                    currentGameState = MinigameScene.ColorFloodTutorial;
+                }
+                else if (previousGameState == MinigameScene.ColorFlood)
                 {
                     NetworkManager.Singleton.SceneManager.LoadScene("RedLightTutorial", LoadSceneMode.Single);
                     currentGameState = MinigameScene.RedLightTutorial;
