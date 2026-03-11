@@ -121,7 +121,7 @@ public class PlayerCtF : NetworkBehaviour
     public AudioClip flagTakenClip;
     public AudioClip taggedClip;
     public AudioClip flagReturnedClip;
-    public Camera camera;
+    public Camera mainCamera;
     private GameObject greenFlag;
     private GameObject blueFlag;
     private GameObject greenFlagFabric;
@@ -167,7 +167,7 @@ public class PlayerCtF : NetworkBehaviour
         if (IsOwner) Local = this;
         animator = GetComponentInChildren<Animator>();
         animator.applyRootMotion = false;
-        camera = FindFirstObjectByType<Camera>();
+        mainCamera = FindFirstObjectByType<Camera>();
 
         // Configure sprint particle effect
         if (sprintParticleEffect != null)
@@ -235,8 +235,8 @@ public class PlayerCtF : NetworkBehaviour
     private System.Collections.IEnumerator ZoomCamera()
     {
         yield return new WaitForSeconds(8f);
-        camera.orthographicSize = 10;
-        camera.transform.position = new Vector3(Math.Clamp(rb.position.x, -18f, 18f), 20f, -20f);
+        mainCamera.orthographicSize = 10;
+        mainCamera.transform.position = new Vector3(Math.Clamp(rb.position.x, -18f, 18f), 20f, -20f);
     }
 
     public override void OnNetworkDespawn()
@@ -413,8 +413,8 @@ public class PlayerCtF : NetworkBehaviour
             if (IsOwner)
             {
                 Vector3 desiredPosition =  new Vector3(Math.Clamp(rb.position.x, -18f, 18f), 20f, -20f);
-                Vector3 smoothedPosition = Vector3.Lerp(camera.transform.position, desiredPosition, Time.deltaTime * moveSpeed);
-                camera.transform.position = smoothedPosition;
+                Vector3 smoothedPosition = Vector3.Lerp(mainCamera.transform.position, desiredPosition, Time.deltaTime * moveSpeed);
+                mainCamera.transform.position = smoothedPosition;
             } 
         }
         else
@@ -583,7 +583,7 @@ public class PlayerCtF : NetworkBehaviour
     {
         rb.position = position;
         rb.rotation = UnityEngine.Quaternion.Euler(0f, teamNet.Value == Team.Green ? -90f : 90f, 0f);
-        if (IsOwner) camera.transform.position = new Vector3(Math.Clamp(position.x, -18f, 18f), 20f, -20f);
+        if (IsOwner) mainCamera.transform.position = new Vector3(Math.Clamp(position.x, -18f, 18f), 20f, -20f);
     }
 
     [ClientRpc]
