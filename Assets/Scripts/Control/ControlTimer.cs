@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,12 +28,18 @@ public class ControlTimer : MonoBehaviour
     public bool IsIntervalPhase => isIntervalPhase;
     public bool IsRunning => isRunning;
     public int CompletedCycles => completedCycles;
+    public float TotalSessionDuration => totalCycles * (intervalDuration + restDuration);
+    public float ElapsedSessionTime { get; private set; }
+
+    public event Action<bool> OnPhaseChanged;
+    public event Action OnSessionComplete;
 
     private void Start()
     {
         currentTime = intervalDuration;
         completedCycles = 0;
         currentLabelSize = normalLabelSize;
+        ElapsedSessionTime = 0f;
         isRunning = true;
         UpdateTimerDisplay();
     }
@@ -42,6 +49,7 @@ public class ControlTimer : MonoBehaviour
         if (!isRunning) return;
 
         currentTime -= Time.deltaTime;
+        ElapsedSessionTime += Time.deltaTime;
 
         if (currentTime <= 0f)
         {
@@ -58,6 +66,7 @@ public class ControlTimer : MonoBehaviour
             isIntervalPhase = false;
             currentTime = restDuration;
             TriggerPhaseShiftAnimation();
+            OnPhaseChanged?.Invoke(isIntervalPhase);
         }
         else
         {
@@ -68,12 +77,14 @@ public class ControlTimer : MonoBehaviour
                 isRunning = false;
                 currentTime = 0f;
                 timerText.text = $"<size={Mathf.RoundToInt(normalLabelSize)}>DONE</size>\n00:00\nAll cycles complete";
+                OnSessionComplete?.Invoke();
                 return;
             }
 
             isIntervalPhase = true;
             currentTime = intervalDuration;
             TriggerPhaseShiftAnimation();
+            OnPhaseChanged?.Invoke(isIntervalPhase);
         }
     }
 

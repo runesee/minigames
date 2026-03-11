@@ -320,6 +320,7 @@ GameObject:
   m_Component:
   - component: {fileID: 965076115}
   - component: {fileID: 965076114}
+  - component: {fileID: 965076116}
   m_Layer: 0
   m_Name: TimerController
   m_TagString: Untagged
@@ -339,9 +340,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 315a7eb1607054d83abe6a7e8cf6ef17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControlTimer
-  intervalDuration: 60
-  restDuration: 30
-  totalCycles: 5
+  intervalDuration: 6
+  restDuration: 3
+  totalCycles: 2
   timerText: {fileID: 911403030}
   normalLabelSize: 110
   shiftLabelSize: 180
@@ -361,6 +362,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &965076116
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 965076113}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c295ecb6a1b4e406c94491c397d7604e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PedalSpeedGraph
+  controlTimer: {fileID: 965076114}
+  sampleInterval: 0.1
+  textureWidth: 1920
+  textureHeight: 400
+  backgroundColor: {r: 0.05, g: 0.05, b: 0.1, a: 1}
+  intervalLineColor: {r: 0.2, g: 0.8, b: 0.4, a: 1}
+  restLineColor: {r: 0.3, g: 0.6, b: 1, a: 1}
+  gridColor: {r: 0.2, g: 0.2, b: 0.3, a: 0.5}
+  phaseDividerColor: {r: 1, g: 1, b: 1, a: 0.3}
 --- !u!1 &1101028508
 GameObject:
   m_ObjectHideFlags: 0
