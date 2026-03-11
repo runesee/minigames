@@ -5266,6 +5266,7 @@ MonoBehaviour:
   playerShadowColor: {fileID: 2100000, guid: d2d3b1db5b82144d5aaab11b40549cbf, type: 2}
   flag: {fileID: 7685504545009282327}
   flagColor: {fileID: 4711070426998390495}
+  flagTransform: {fileID: 9026480660467426401}
   blueColor: {fileID: 2100000, guid: 5f79d6da33539264da6fd39a66c9a845, type: 2}
   greenColor: {fileID: 2100000, guid: 8e8f7e43ebf4ece4babb4a055b4c5ba0, type: 2}
   minX: -36

@@ -18,6 +18,7 @@ public class PlayerCtF : NetworkBehaviour
     [SerializeField] public Material playerShadowColor;
     [SerializeField] public GameObject flag;
     [SerializeField] public MeshRenderer flagColor;
+    [SerializeField] public Transform flagTransform;
     [SerializeField] public Material blueColor;
     [SerializeField] public Material greenColor;
 
@@ -452,6 +453,9 @@ public class PlayerCtF : NetworkBehaviour
         {
             isTauntingNet.Value = false;
         }
+
+        // Rotate flag with player model
+        if (isFlagActiveNet.Value) flagTransform.transform.rotation = rb.rotation;
     }
 
     private void LateUpdate()
