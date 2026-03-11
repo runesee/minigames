@@ -387,7 +387,7 @@ public class PlayerCtF : NetworkBehaviour
 
         // Handle animations and update position based on input actions
         float smoothing = 1f - Mathf.Exp(-10f * Time.deltaTime);
-        smoothedPedalSpeed = Mathf.Lerp(smoothedPedalSpeed, PlayPulse.Input.Input.Speed, smoothing);
+        smoothedPedalSpeed = Mathf.Lerp(smoothedPedalSpeed, Math.Clamp(PlayPulse.Input.Input.Speed, 0f, 1f), smoothing);
         float pedalSpeed = USING_PLAYPULSE ? smoothedPedalSpeed : 0.4f;
         float pedalAnimationSpeed = USING_PLAYPULSE ? 1.6f * pedalSpeed : 1f;
         joystickOffset = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ?
