@@ -18863,6 +18863,11 @@ MonoBehaviour:
   - {fileID: 1725073739}
   - {fileID: 2066477524}
   - {fileID: 1320352449}
+  tracks:
+  - {fileID: 1642063968}
+  - {fileID: 1828471744}
+  - {fileID: 1180266753}
+  - {fileID: 2065301069}
 --- !u!1 &666998488
 GameObject:
   m_ObjectHideFlags: 0

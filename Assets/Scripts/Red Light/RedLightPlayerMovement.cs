@@ -1,6 +1,7 @@
 using UnityEngine;
 using Unity.Netcode;
 using Unity.Collections;
+using System.Collections;
 
 [RequireComponent(typeof(Rigidbody))]
 public class RedLightPlayerMovement : NetworkBehaviour
@@ -17,6 +18,7 @@ public class RedLightPlayerMovement : NetworkBehaviour
     [Header("References")]
     [SerializeField] private Transform trafficLight;
     [SerializeField] private float trafficLightOffset = 5f;
+    [SerializeField] private GameObject track;
     [SerializeField] private SkinnedMeshRenderer playerSkinRenderer;
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip errorClip;
@@ -378,12 +380,37 @@ public class RedLightPlayerMovement : NetworkBehaviour
         guidNet.Value = guid;
     }
 
-    public void AssignTrafficLight(TrafficLightController light)
+    public void AssignTrafficLightAndTrack(TrafficLightController light, int playerIndex)
     {
         if (!IsServer) return;
         
         trafficLight = light.transform;
         AssignTrafficLightClientRpc(light.GetComponent<NetworkObject>().NetworkObjectId);
+        HighlightTrackClientRpc(playerIndex);
+    }
+
+    [ClientRpc]
+    private void HighlightTrackClientRpc(int playerIndex)
+    {
+        if (!IsOwner) return;
+        this.track = RedLightPlayerSpawner.Instance.tracks[playerIndex];
+        StartCoroutine(HighlightTrack());
+    }
+
+    private IEnumerator HighlightTrack()
+    {
+        yield return new WaitForSeconds(1f);
+        Color trackColor = track.GetComponentInChildren<MeshRenderer>().material.color;
+        ColorUtility.TryParseHtmlString(colorNet.Value.ToString(), out var skinColor);
+        track.GetComponentInChildren<MeshRenderer>().material.color = skinColor;
+        yield return new WaitForSeconds(0.3f);
+        track.GetComponentInChildren<MeshRenderer>().material.color = trackColor;
+        yield return new WaitForSeconds(0.3f);
+        track.GetComponentInChildren<MeshRenderer>().material.color = skinColor;
+        yield return new WaitForSeconds(0.3f);
+        track.GetComponentInChildren<MeshRenderer>().material.color = trackColor;
+        yield return new WaitForSeconds(0.3f);
+        track.GetComponentInChildren<MeshRenderer>().material.color = skinColor;
     }
 
     [ClientRpc]
