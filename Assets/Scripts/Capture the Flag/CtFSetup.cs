@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -33,12 +32,12 @@ public class CtFSetup : NetworkBehaviour
                 SessionManager.Instance.PlayerDataList[i].Guid
                 ));
         }
+        setupData.Sort((a, b) => string.Compare(a.Guid.ToString(), b.Guid.ToString(), StringComparison.Ordinal));
         ShowSetupClientRpc(this.setupData.ToArray());
     }
 
     private void UpdateCanvas(List<SetupData> data)
     {
-        data.Sort((a, b) => string.Compare(a.Guid.ToString(), b.Guid.ToString(), StringComparison.Ordinal));
         for (int i = 0; i < data.Count; i++)
         {
             if (i % 2 == 0)
@@ -56,7 +55,6 @@ public class CtFSetup : NetworkBehaviour
 
     private void InitializeCanvas(List<SetupData> data)
     {
-        data.Sort((a, b) => string.Compare(a.Guid.ToString(), b.Guid.ToString(), StringComparison.Ordinal));
         for (int i = 0; i < data.Count; i++)
         {
             playerCards[i].gameObject.SetActive(true);
@@ -87,13 +85,16 @@ public class CtFSetup : NetworkBehaviour
 
     private void AssignTeams()
     {
-        var players = NetworkManager.Singleton.SpawnManager.SpawnedObjectsList.Select(obj => obj.GetComponent<PlayerCtF>()).Where(p => p != null).ToList();
-        players.Sort((a, b) => string.Compare(a.guidNet.Value.ToString(), b.guidNet.Value.ToString(), StringComparison.Ordinal));
-        for (int i = 0; i < players.Count; i++)
+        setupData.Sort((a, b) => string.Compare(a.Guid.ToString(), b.Guid.ToString(), StringComparison.Ordinal));
+        var players = NetworkManager.Singleton.SpawnManager.SpawnedObjectsList.Select(obj => obj.GetComponent<PlayerCtF>()).Where(p => p != null).ToDictionary(p => p.guidNet.Value);
+        int teamIndex = 0;
+        foreach (var entry in setupData)
         {
-            players[i].teamNet.Value = (i % 2 == 0) ? PlayerCtF.Team.Green : PlayerCtF.Team.Blue;
+            if (!players.TryGetValue(entry.Guid, out var player)) continue; // Skip mocked players
+            player.teamNet.Value = (teamIndex % 2 == 0) ? PlayerCtF.Team.Green : PlayerCtF.Team.Blue;
             Vector3 spawnPosition = new();
-            if (players[i].teamNet.Value == PlayerCtF.Team.Green)
+
+            if (player.teamNet.Value == PlayerCtF.Team.Green)
             {
                 spawnPosition = greenSpawns[greenSpawnTally];
                 greenSpawnTally++;
@@ -103,8 +104,9 @@ public class CtFSetup : NetworkBehaviour
                 spawnPosition = blueSpawns[blueSpawnTally];
                 blueSpawnTally++;
             }
-            players[i].TeleportClientRpc(spawnPosition);
-        } 
+            player.TeleportClientRpc(spawnPosition);
+            teamIndex++;
+        }
     }
 
     private IEnumerator DelayedUpdateCanvas(List<SetupData> data)
