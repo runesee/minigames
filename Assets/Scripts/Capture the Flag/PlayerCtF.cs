@@ -4,6 +4,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System;
 using Unity.VisualScripting;
+using System.Collections;
+using TMPro;
+using UnityEngine.UIElements;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
@@ -122,6 +125,9 @@ public class PlayerCtF : NetworkBehaviour
     public AudioClip taggedClip;
     public AudioClip flagReturnedClip;
     public Camera mainCamera;
+    private Canvas mainCanvas;
+    private GameObject respawnPanel;
+    private TextMeshProUGUI respawnText;
     private GameObject greenFlag;
     private GameObject blueFlag;
     private GameObject greenFlagFabric;
@@ -168,6 +174,9 @@ public class PlayerCtF : NetworkBehaviour
         animator = GetComponentInChildren<Animator>();
         animator.applyRootMotion = false;
         mainCamera = FindFirstObjectByType<Camera>();
+        mainCanvas = FindFirstObjectByType<Canvas>();
+        respawnPanel = mainCanvas.transform.Find("RespawnPanel").gameObject;
+        respawnText = respawnPanel.transform.Find("RespawnTime").gameObject.GetComponent<TextMeshProUGUI>();
 
         // Configure sprint particle effect
         if (sprintParticleEffect != null)
@@ -352,7 +361,7 @@ public class PlayerCtF : NetworkBehaviour
         if (CtFGameState.Instance != null && CtFGameState.Instance.gameState.Value != GameState.Running) return;
         if (!IsOwner) return;
         double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
-        if (serverTime - lastRespawnTimeNet.Value >= 3f && isFrozen.Value && IsOwner) RespawnPlayerServerRpc();
+        if (serverTime - lastRespawnTimeNet.Value >= 8f && isFrozen.Value && IsOwner) RespawnPlayerServerRpc();
         else if (isFrozen.Value) return;
 
         // Parse InputInteractions
@@ -519,6 +528,7 @@ public class PlayerCtF : NetworkBehaviour
                 }
             }
             victim.TeleportClientRpc(new Vector3(victim.teamNet.Value == Team.Blue ? -34.5f : 34.5f, victim.rb.position.y, victim.rb.position.z));
+            victim.ToggleRespawnScreenClientRpc();
             PlayTaggedSoundClientRpc(new ClientRpcParams {Send = new ClientRpcSendParams {TargetClientIds = new ulong[] {victimClientId}}});
             PlaySoundClientRpc(CtfClips.Tag, Team.None);
         }
@@ -584,6 +594,25 @@ public class PlayerCtF : NetworkBehaviour
         rb.position = position;
         rb.rotation = UnityEngine.Quaternion.Euler(0f, teamNet.Value == Team.Green ? -90f : 90f, 0f);
         if (IsOwner) mainCamera.transform.position = new Vector3(Math.Clamp(position.x, -18f, 18f), 20f, -20f);
+    }
+
+    [ClientRpc]
+    public void ToggleRespawnScreenClientRpc()
+    {
+        if (IsOwner) StartCoroutine(ToggleRespawnScreen());
+    }
+
+    private IEnumerator ToggleRespawnScreen()
+    {
+        int remainingTime = 8;
+        respawnPanel?.SetActive(true);
+        while (remainingTime > 0)
+        {
+            remainingTime--;
+            respawnText.text = remainingTime.ToString() + "s";
+            yield return new WaitForSeconds(1f);
+        } 
+        respawnPanel?.SetActive(false);
     }
 
     [ClientRpc]
