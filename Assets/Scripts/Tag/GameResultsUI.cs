@@ -90,6 +90,17 @@ public class GameResultsUI : NetworkBehaviour
                 StartCoroutine(WaitForCtFGameState());
             }
         }
+        else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.ColorFlood)
+        {
+            if (ColorFloodGameState.Instance != null)
+            {
+                ColorFloodGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
+            }
+            else
+            {
+                StartCoroutine(WaitForColorFloodGameState());
+            }
+        }
     }
 
     private System.Collections.IEnumerator WaitForTagGameState()
@@ -122,6 +133,12 @@ public class GameResultsUI : NetworkBehaviour
         CtFGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
     }
 
+    private System.Collections.IEnumerator WaitForColorFloodGameState()
+    {
+        while (ColorFloodGameState.Instance == null) yield return new WaitForSeconds(0.1f);
+        ColorFloodGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
+    }
+
     public override void OnNetworkDespawn()
     {
         if (TagGameState.Instance != null)
@@ -144,6 +161,10 @@ public class GameResultsUI : NetworkBehaviour
         {
             CtFGameState.Instance.gameState.OnValueChanged -= OnGameStateChanged;
         }
+        else if (ColorFloodGameState.Instance != null)
+        {
+            ColorFloodGameState.Instance.gameState.OnValueChanged -= OnGameStateChanged;
+        }
     }
 
     private void OnGameStateChanged(GameState previousState, GameState newState)
@@ -161,9 +182,9 @@ public class GameResultsUI : NetworkBehaviour
                     DisplayWinnerTextClientRpc(CtFGameState.Instance.blueColor.color, PlayerCtF.Team.Blue);
                 }
                 else DisplayWinnerTextClientRpc(CtFGameState.Instance.greenColor.color, PlayerCtF.Team.Green);
-            } 
+            }
         }
-        else
+        else if (newState == GameState.Idling || newState == GameState.Initializing)
         {
             HideResults();
         }
@@ -345,6 +366,24 @@ public class GameResultsUI : NetworkBehaviour
         return results;
     }
 
+    private List<PlayerResult> AddColorFloodResults(List<PlayerResult> results)
+    {
+        foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
+        {
+            var player = obj.GetComponent<PlayerColorFlood>();
+            if (player == null) continue;
+            var data = player.GetPlayerData();
+            results.Add(new PlayerResult
+            {
+                clientId = player.OwnerClientId,
+                score = data.tilesOwned,
+                nickname = data.nickname.ToSafeString(),
+                color = data.color,
+            });
+        }
+        return results;
+    }
+
     private void BuildResultsText()
     {
         if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag)
@@ -367,6 +406,10 @@ public class GameResultsUI : NetworkBehaviour
         else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.CaptureTheFlag)
         {
             results = AddCtFResults(results);
+        }
+        else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.ColorFlood)
+        {
+            results = AddColorFloodResults(results);
         }
         results = results.OrderBy(r => r.score).ToList();
 
