@@ -21,6 +21,7 @@ public class PlayerBalloonTag : NetworkBehaviour
     [Header("Audio settings")]
     public AudioSource tagAudioSource;
     public AudioClip tagClip;
+    public AudioClip popClip;
 
     private NetworkVariable<bool> isWalkingNet = new NetworkVariable<bool>(
         false,
@@ -227,6 +228,7 @@ public class PlayerBalloonTag : NetworkBehaviour
         if (isPunching && NetworkManager.Singleton.ServerTime.FixedTime - lastTagTimeNet.Value > 0.7)
         {
             PlayerBalloonTag target = FindClosestPlayerInRange(2.5f);
+            tagAudioSource.pitch = 1f;
             tagAudioSource?.PlayOneShot(tagClip);
             if (target != null) TagPlayerServerRpc(target.NetworkObjectId);
             else TagServerRpc();
@@ -325,7 +327,8 @@ public class PlayerBalloonTag : NetworkBehaviour
     [ClientRpc]
     private void PlayTagSoundClientRpc()
     {
-        if (!tagAudioSource.isPlaying) tagAudioSource?.PlayOneShot(tagClip);
+        tagAudioSource.pitch = UnityEngine.Random.Range(0.7f, 1.3f);
+        tagAudioSource?.PlayOneShot(popClip);
     }
 
 
