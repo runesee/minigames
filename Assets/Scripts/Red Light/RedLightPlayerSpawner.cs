@@ -8,6 +8,7 @@ public class RedLightPlayerSpawner : NetworkBehaviour
     [SerializeField] private GameObject playerPrefab;
     [SerializeField] private Transform[] spawnPoints;
     [SerializeField] private TrafficLightController[] trafficLights;
+    [SerializeField] public GameObject[] tracks;
 
     public static RedLightPlayerSpawner Instance { get; private set; }
 
@@ -61,7 +62,7 @@ public class RedLightPlayerSpawner : NetworkBehaviour
         RedLightPlayerMovement playerMovement = playerInstance.GetComponent<RedLightPlayerMovement>();
         if (playerMovement != null && playerIndex < trafficLights.Length)
         {
-            playerMovement.AssignTrafficLight(trafficLights[playerIndex]);
+            playerMovement.AssignTrafficLightAndTrack(trafficLights[playerIndex], playerIndex);
         }
 
         spawnedClients.Add(clientId);
