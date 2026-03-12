@@ -29,6 +29,7 @@ public class MinigameManager : NetworkBehaviour
         BalloonTag,
         CaptureTheFlagTutorial,
         CaptureTheFlag,
+        EndScreen,
     }
 
     public MinigameScene currentGameState = MinigameScene.MainMenu;
@@ -141,8 +142,8 @@ public class MinigameManager : NetworkBehaviour
                 }
                 else if (previousGameState == MinigameScene.CaptureTheFlag)
                 {
-                    NetworkManager.Singleton.SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
-                    currentGameState = MinigameScene.MainMenu;
+                    NetworkManager.Singleton.SceneManager.LoadScene("EndScreen", LoadSceneMode.Single);
+                    currentGameState = MinigameScene.EndScreen;
                 }
                 previousGameState = MinigameScene.Scoreboard;
                 break;

@@ -1,0 +1,57 @@
+using System.Collections.Generic;
+using System.Linq;
+using Unity.Netcode;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class EndScreenController : NetworkBehaviour
+{
+    private const string NoPlayerName = "-";
+    private const string ScoreFormat = "{0} pts";
+
+    [SerializeField] private GameObject[] playerSlots;
+
+    public override void OnNetworkSpawn()
+    {
+        if (IsHost)
+        {
+            SessionManager.PlayerData[] allPlayers = SessionManager.Instance.PlayerDataList.ToArray();
+            PopulatePlayerSlotsClientRpc(allPlayers);
+        }
+    }
+
+    [ClientRpc]
+    private void PopulatePlayerSlotsClientRpc(SessionManager.PlayerData[] players)
+    {
+        List<SessionManager.PlayerData> sortedPlayers = players
+            .OrderByDescending(p => p.Score)
+            .ToList();
+
+        for (int i = 0; i < playerSlots.Length; i++)
+        {
+            GameObject slot = playerSlots[i];
+
+            CharacterPreview characterPreview = slot.transform.Find("AgaEndScreen")?.GetComponent<CharacterPreview>();
+            Text nameText = slot.transform.Find("Nametag/NameText")?.GetComponent<Text>();
+            Text scoreText = slot.transform.Find("Nametag/ScoreText")?.GetComponent<Text>();
+
+            if (i < sortedPlayers.Count)
+            {
+                SessionManager.PlayerData playerData = sortedPlayers[i];
+
+                if (characterPreview != null && ColorUtility.TryParseHtmlString(playerData.color.ToString(), out Color playerColor))
+                {
+                    characterPreview.SetColor(playerColor);
+                }
+
+                if (nameText != null) nameText.text = playerData.nickname.ToString();
+                if (scoreText != null) scoreText.text = string.Format(ScoreFormat, playerData.Score);
+            }
+            else
+            {
+                if (nameText != null) nameText.text = NoPlayerName;
+                if (scoreText != null) scoreText.text = string.Format(ScoreFormat, 0);
+            }
+        }
+    }
+}

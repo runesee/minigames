@@ -14,6 +14,14 @@ public class CharacterPreview : MonoBehaviour
 
     private void Update()
     {
-        transform.Rotate(Vector3.up, 30f * Time.deltaTime);
+        Camera mainCamera = Camera.main;
+        if (mainCamera == null)
+            return;
+
+        Vector3 directionToCamera = mainCamera.transform.position - transform.position;
+        directionToCamera.y = 0f;
+
+        if (directionToCamera.sqrMagnitude > 0f)
+            transform.rotation = Quaternion.LookRotation(directionToCamera);
     }
 }
