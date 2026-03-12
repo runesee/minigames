@@ -50,6 +50,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Warmup.unity
     guid: fc006a6c0f78d4b58bd89fce695aec28
+  - enabled: 1
+    path: Assets/Scenes/EndScreen.unity
+    guid: 11ec3db3165204ec39051cd85f400164
+  - enabled: 1
+    path: Assets/Scenes/ColorFlood.unity
+    guid: 8512abd8ac40347e1939b0fd08e7a7df
+  - enabled: 1
+    path: Assets/Scenes/Tutorial/ColorFloodTutorial.unity
+    guid: d6c930d629ab54e7b9cc3eda92887812
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 289c1b55c9541489481df5cc06664110, type: 3}
   m_UseUCBPForAssetBundles: 0

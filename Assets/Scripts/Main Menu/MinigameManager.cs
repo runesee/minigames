@@ -21,12 +21,15 @@ public class MinigameManager : NetworkBehaviour
         Tag,
         FocusFlowTutorial,
         FocusFlow,
+        ColorFloodTutorial,
+        ColorFlood,
         RedLightTutorial,
         RedLight,
-        BalloonTag,
         BalloonTagTutorial,
-        CaptureTheFlag,
+        BalloonTag,
         CaptureTheFlagTutorial,
+        CaptureTheFlag,
+        EndScreen,
     }
 
     public MinigameScene currentGameState = MinigameScene.MainMenu;
@@ -79,6 +82,14 @@ public class MinigameManager : NetworkBehaviour
                 NetworkManager.Singleton.SceneManager.LoadScene("Scoreboard", LoadSceneMode.Single);
                 currentGameState = MinigameScene.Scoreboard;
                 break;
+            case MinigameScene.ColorFloodTutorial:
+                NetworkManager.Singleton.SceneManager.LoadScene("ColorFlood", LoadSceneMode.Single);
+                currentGameState = MinigameScene.ColorFlood;
+                break;
+            case MinigameScene.ColorFlood:
+                NetworkManager.Singleton.SceneManager.LoadScene("Scoreboard", LoadSceneMode.Single);
+                currentGameState = MinigameScene.Scoreboard;
+                break;
             case MinigameScene.RedLightTutorial:
                 NetworkManager.Singleton.SceneManager.LoadScene("RedLight", LoadSceneMode.Single);
                 currentGameState = MinigameScene.RedLight;
@@ -111,6 +122,11 @@ public class MinigameManager : NetworkBehaviour
                 }
                 else if (previousGameState == MinigameScene.FocusFlow)
                 {
+                    NetworkManager.Singleton.SceneManager.LoadScene("ColorFloodTutorial", LoadSceneMode.Single);
+                    currentGameState = MinigameScene.ColorFloodTutorial;
+                }
+                else if (previousGameState == MinigameScene.ColorFlood)
+                {
                     NetworkManager.Singleton.SceneManager.LoadScene("RedLightTutorial", LoadSceneMode.Single);
                     currentGameState = MinigameScene.RedLightTutorial;
                 }
@@ -126,8 +142,8 @@ public class MinigameManager : NetworkBehaviour
                 }
                 else if (previousGameState == MinigameScene.CaptureTheFlag)
                 {
-                    NetworkManager.Singleton.SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
-                    currentGameState = MinigameScene.MainMenu;
+                    NetworkManager.Singleton.SceneManager.LoadScene("EndScreen", LoadSceneMode.Single);
+                    currentGameState = MinigameScene.EndScreen;
                 }
                 previousGameState = MinigameScene.Scoreboard;
                 break;
