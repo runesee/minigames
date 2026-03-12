@@ -340,9 +340,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 315a7eb1607054d83abe6a7e8cf6ef17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControlTimer
-  intervalDuration: 6
-  restDuration: 3
-  totalCycles: 2
+  intervalDuration: 10
+  restDuration: 10
+  totalCycles: 4
   timerText: {fileID: 911403030}
   normalLabelSize: 110
   shiftLabelSize: 180

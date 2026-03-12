@@ -42,6 +42,14 @@ public class ControlTimer : MonoBehaviour
         ElapsedSessionTime = 0f;
         isRunning = true;
         UpdateTimerDisplay();
+
+        PlayPulse.PlayPulseService.Initialize(
+            string.Empty,
+            connectToBikeService: true,
+            appSocketPathOverride: "127.0.0.1:13337",
+            shellSocketPathOverride: "127.0.0.1:13337",
+            useTcpSocket: true
+            );
     }
 
     private void Update()
