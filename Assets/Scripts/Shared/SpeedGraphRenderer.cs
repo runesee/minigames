@@ -3,10 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-/// <summary>
-/// Reusable utility for rendering pedal speed data into a PNG graph image.
-/// Used by both the Control session and the Game session speed graphs.
-/// </summary>
 public static class SpeedGraphRenderer
 {
     public struct SpeedSample
@@ -130,8 +126,6 @@ public static class SpeedGraphRenderer
 
         byte[] pngData = texture.EncodeToPNG();
         File.WriteAllBytes(filePath, pngData);
-
-        Debug.Log($"[SpeedGraphRenderer] Graph saved to: {filePath}");
     }
 
     private static void DrawHorizontalLine(Texture2D texture, GraphSettings settings, int y, Color color)

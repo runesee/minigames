@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-/// <summary>
-/// Records pedal speed across the entire game session (Lobby to EndScreen)
-/// and saves a color-coded graph PNG when the EndScreen is reached.
-/// Attach this to the MinigameManager prefab so it persists across scenes.
-/// </summary>
 public class GameSessionSpeedGraph : MonoBehaviour
 {
+    private const string LobbySceneName = "Lobby";
+    private const string EndScreenSceneName = "EndScreen";
+
     [Header("Sampling")]
     [SerializeField] private float sampleInterval = 0.1f;
 
@@ -33,21 +31,18 @@ public class GameSessionSpeedGraph : MonoBehaviour
     [SerializeField] private Color scoreboardColor = new Color(0.4f, 0.4f, 0.4f, 1f);
     [SerializeField] private Color tutorialColor = new Color(0.6f, 0.6f, 0.6f, 1f);
     [SerializeField] private Color endScreenColor = new Color(1f, 1f, 1f, 1f);
+    [SerializeField] private Color defaultColor = Color.white;
 
     private readonly List<SpeedGraphRenderer.SpeedSample> samples = new();
     private readonly List<SpeedGraphRenderer.SceneTransition> transitions = new();
+    private readonly Dictionary<string, int> sceneNameToIndex = new();
+    private readonly Dictionary<int, string> indexToSceneName = new();
     private float nextSampleTime;
     private float sessionStartTime;
     private bool isRecording;
     private bool hasSaved;
     private int currentSceneIndex = -1;
-
-    private readonly Dictionary<MinigameManager.MinigameScene, int> sceneToIndex = new();
-
-    private void Awake()
-    {
-        BuildSceneIndexMap();
-    }
+    private int nextIndex;
 
     private void OnEnable()
     {
@@ -59,51 +54,56 @@ public class GameSessionSpeedGraph : MonoBehaviour
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
-    private void BuildSceneIndexMap()
-    {
-        int index = 0;
-        foreach (MinigameManager.MinigameScene scene in Enum.GetValues(typeof(MinigameManager.MinigameScene)))
-        {
-            sceneToIndex[scene] = index++;
-        }
-    }
-
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (MinigameManager.Instance == null) return;
+        string sceneName = scene.name;
 
-        var currentState = MinigameManager.Instance.currentGameState;
-
-        if (!isRecording && currentState == MinigameManager.MinigameScene.Lobby)
+        if (!isRecording && sceneName == LobbySceneName)
         {
             StartRecording();
         }
 
         if (!isRecording) return;
 
-        int newSceneIndex = sceneToIndex.GetValueOrDefault(currentState, 0);
+        int sceneIndex = GetOrCreateSceneIndex(sceneName);
 
-        if (newSceneIndex != currentSceneIndex)
+        if (sceneIndex != currentSceneIndex)
         {
             float elapsed = GetElapsedTime();
             transitions.Add(new SpeedGraphRenderer.SceneTransition
             {
                 Time = elapsed,
-                SceneIndex = newSceneIndex
+                SceneIndex = sceneIndex
             });
-            currentSceneIndex = newSceneIndex;
+            currentSceneIndex = sceneIndex;
         }
 
-        if (currentState == MinigameManager.MinigameScene.EndScreen)
+        if (sceneName == EndScreenSceneName)
         {
             SaveGraph();
         }
+    }
+
+    private int GetOrCreateSceneIndex(string sceneName)
+    {
+        if (sceneNameToIndex.TryGetValue(sceneName, out int existing))
+        {
+            return existing;
+        }
+
+        int index = nextIndex++;
+        sceneNameToIndex[sceneName] = index;
+        indexToSceneName[index] = sceneName;
+        return index;
     }
 
     private void StartRecording()
     {
         samples.Clear();
         transitions.Clear();
+        sceneNameToIndex.Clear();
+        indexToSceneName.Clear();
+        nextIndex = 0;
         sessionStartTime = Time.realtimeSinceStartup;
         nextSampleTime = 0f;
         isRecording = true;
@@ -161,38 +161,30 @@ public class GameSessionSpeedGraph : MonoBehaviour
 
     private Color GetSceneColor(int sceneIndex)
     {
-        // Reverse lookup from index to scene enum
-        foreach (var kvp in sceneToIndex)
+        if (!indexToSceneName.TryGetValue(sceneIndex, out string sceneName))
         {
-            if (kvp.Value == sceneIndex)
-            {
-                return GetColorForScene(kvp.Key);
-            }
+            return defaultColor;
         }
-        return Color.white;
-    }
 
-    private Color GetColorForScene(MinigameManager.MinigameScene scene)
-    {
-        return scene switch
+        return sceneName switch
         {
-            MinigameManager.MinigameScene.MainMenu => lobbyColor,
-            MinigameManager.MinigameScene.Lobby => lobbyColor,
-            MinigameManager.MinigameScene.Scoreboard => scoreboardColor,
-            MinigameManager.MinigameScene.TagTutorial => tutorialColor,
-            MinigameManager.MinigameScene.Tag => tagColor,
-            MinigameManager.MinigameScene.FocusFlowTutorial => tutorialColor,
-            MinigameManager.MinigameScene.FocusFlow => focusFlowColor,
-            MinigameManager.MinigameScene.ColorFloodTutorial => tutorialColor,
-            MinigameManager.MinigameScene.ColorFlood => colorFloodColor,
-            MinigameManager.MinigameScene.RedLightTutorial => tutorialColor,
-            MinigameManager.MinigameScene.RedLight => redLightColor,
-            MinigameManager.MinigameScene.BalloonTagTutorial => tutorialColor,
-            MinigameManager.MinigameScene.BalloonTag => balloonTagColor,
-            MinigameManager.MinigameScene.CaptureTheFlagTutorial => tutorialColor,
-            MinigameManager.MinigameScene.CaptureTheFlag => captureTheFlagColor,
-            MinigameManager.MinigameScene.EndScreen => endScreenColor,
-            _ => Color.white
+            "MainMenu" => lobbyColor,
+            "Lobby" => lobbyColor,
+            "Scoreboard" => scoreboardColor,
+            "TagTutorial" => tutorialColor,
+            "TagScene" => tagColor,
+            "FocusFlowTutorial" => tutorialColor,
+            "FocusFlow" => focusFlowColor,
+            "ColorFloodTutorial" => tutorialColor,
+            "ColorFlood" => colorFloodColor,
+            "RedLightTutorial" => tutorialColor,
+            "RedLight" => redLightColor,
+            "BalloonTagTutorial" => tutorialColor,
+            "BalloonTag" => balloonTagColor,
+            "CaptureTheFlagTutorial" => tutorialColor,
+            "CaptureTheFlag" => captureTheFlagColor,
+            "EndScreen" => endScreenColor,
+            _ => defaultColor
         };
     }
 }
