@@ -874,7 +874,6 @@ MonoBehaviour:
   joystickRepeatDelay: 0.25
   audioSource: {fileID: 431995760}
   plinkAudio: {fileID: 8300000, guid: 9ed8561406bed7448940a6f043a6d56b, type: 3}
-  plonkAudio: {fileID: 8300000, guid: 781d0e9a8d4f48f4695e4418f2eb8380, type: 3}
 --- !u!4 &431995759
 Transform:
   m_ObjectHideFlags: 0
@@ -7147,7 +7146,6 @@ MonoBehaviour:
   gameDurationInSeconds: 150
   timerText: {fileID: 443790207}
   stateText: {fileID: 1162774659}
-  isTag: 1
 --- !u!1 &927912698
 GameObject:
   m_ObjectHideFlags: 0
@@ -9356,7 +9354,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: ed208b4fa25eb3f4f9b5473a23bf2454, type: 2}
+  - {fileID: 2100000, guid: 2b75c5314a4e0b94590b6c2bd0f677b0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -9468,7 +9466,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 39e110c14fc41cf4895b10edb13f5eaa, type: 2}
+  - {fileID: 2100000, guid: 19c6fb48964444e81b6638600afbaa70, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

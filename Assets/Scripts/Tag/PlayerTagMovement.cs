@@ -247,41 +247,28 @@ public class PlayerTagMovement : NetworkBehaviour
         return playerData;
     }
 
-    // There is arguably a lot of logic in onGUI, which runs often.
-    // TODO : Move this logic when a better UI solution is in place.
     void OnGUI()
     {
-        if (!TagGameState.Instance || !NetworkManager.Singleton) return;
+        if (!IsOwner) return;
 
-        // Draw scoreboard
-        GUILayout.BeginArea(new Rect(Screen.width - 210, 10, 200, 300));
-        if (TagGameState.Instance.gameState.Value == GameState.Running)
-        {
-            GUILayout.TextArea("Scoreboard");
-            foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
-            {
-                var player = obj.GetComponent<PlayerTagMovement>();
-                if (!player) continue;
+        float barWidth = 200f;
+        float barHeight = 20f;
+        float padding = 20f;
+        float xPos = Screen.width - barWidth - padding;
+        float yPos = Screen.height - barHeight - padding;
 
-                double displayTime = player.timeSpentTaggedNet.Value;
+        Rect backgroundRect = new Rect(xPos, yPos, barWidth, barHeight);
+        GUI.color = new Color(0.2f, 0.2f, 0.2f, 0.8f);
+        GUI.DrawTexture(backgroundRect, Texture2D.whiteTexture);
 
-                if (player.NetworkObjectId == TagGameState.Instance.taggedPlayerIdNet.Value)
-                {
-                    double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
-                    displayTime += serverTime - player.lastTagTimeNet.Value;
-                }
-                
-                string playerName = player.nicknameNet.Value.ToString();
-                if (string.IsNullOrEmpty(playerName))
-                {
-                    playerName = $"Player{player.OwnerClientId}";
-                }
-                GUILayout.TextArea($"{playerName}: {displayTime:F1}s");
-            }
-        }
-        GUILayout.EndArea();
+        float currentMaxStamina = GetCurrentMaxStamina();
+        float staminaPercent = staminaNet.Value / currentMaxStamina;
+        Rect fillRect = new Rect(xPos, yPos, barWidth * staminaPercent, barHeight);
 
-        if (IsOwner) DrawStaminaBar();
+        Color fillColor = Color.Lerp(Color.red, Color.green, staminaPercent);
+        GUI.color = fillColor;
+        GUI.DrawTexture(fillRect, Texture2D.whiteTexture);
+        GUI.color = Color.white;
     }
 
     private void Update()
@@ -403,31 +390,6 @@ public class PlayerTagMovement : NetworkBehaviour
         var random = UnityEngine.Random.Range(0, players.Count);
         var selectedPlayer = players[random];
         SetInitialTaggedPlayerServerRpc(selectedPlayer.NetworkObjectId);
-    }
-
-    /// <summary>
-    /// Helper function for rendering the stamina bar in OnGui.
-    /// </summary>
-    private void DrawStaminaBar()
-    {
-        float barWidth = 200f;
-        float barHeight = 20f;
-        float padding = 20f;
-        float xPos = Screen.width - barWidth - padding;
-        float yPos = Screen.height - barHeight - padding;
-
-        Rect backgroundRect = new Rect(xPos, yPos, barWidth, barHeight);
-        GUI.color = new Color(0.2f, 0.2f, 0.2f, 0.8f);
-        GUI.DrawTexture(backgroundRect, Texture2D.whiteTexture);
-
-        float currentMaxStamina = GetCurrentMaxStamina();
-        float staminaPercent = staminaNet.Value / currentMaxStamina;
-        Rect fillRect = new Rect(xPos, yPos, barWidth * staminaPercent, barHeight);
-
-        Color fillColor = Color.Lerp(Color.red, Color.green, staminaPercent);
-        GUI.color = fillColor;
-        GUI.DrawTexture(fillRect, Texture2D.whiteTexture);
-        GUI.color = Color.white;
     }
 
     /// <summary>
