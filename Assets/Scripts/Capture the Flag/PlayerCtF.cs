@@ -144,7 +144,7 @@ public class PlayerCtF : NetworkBehaviour
     private bool isTaunting;
     private bool canTaunt;
     private float smoothedPedalSpeed = 0f;
-    private bool USING_PLAYPULSE = true; // Flag for dev/bike movement toggling.
+    private bool USING_PLAYPULSE = false; // Flag for dev/bike movement toggling.
     private readonly float sprintSpeedThreshold = 0.65f;
 
     public enum Team
@@ -362,7 +362,7 @@ public class PlayerCtF : NetworkBehaviour
         if (CtFGameState.Instance != null && CtFGameState.Instance.gameState.Value != GameState.Running) return;
         if (!IsOwner) return;
         double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
-        if (serverTime - lastRespawnTimeNet.Value >= 8f && isRespawning.Value && IsOwner) RespawnPlayerServerRpc();
+        if (serverTime - lastRespawnTimeNet.Value >= 4f && isRespawning.Value && IsOwner) RespawnPlayerServerRpc();
         else if (isRespawning.Value) return;
 
         // Parse InputInteractions
@@ -608,7 +608,7 @@ public class PlayerCtF : NetworkBehaviour
 
     private IEnumerator ToggleRespawnScreen()
     {
-        int remainingTime = 8;
+        int remainingTime = 4;
         respawnPanel?.SetActive(true);
         while (remainingTime > 0)
         {
