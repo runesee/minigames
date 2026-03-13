@@ -4,6 +4,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System;
 using Unity.VisualScripting;
+using System.Collections;
+using TMPro;
+using UnityEngine.UIElements;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
@@ -13,6 +16,7 @@ public class PlayerCtF : NetworkBehaviour
     [SerializeField] public SkinnedMeshRenderer playerSkinRenderer;
     [SerializeField] public GameObject flag;
     [SerializeField] public MeshRenderer flagColor;
+    [SerializeField] public Transform flagTransform;
     [SerializeField] public Material blueColor;
     [SerializeField] public Material greenColor;
 
@@ -119,7 +123,10 @@ public class PlayerCtF : NetworkBehaviour
     public AudioClip flagTakenClip;
     public AudioClip taggedClip;
     public AudioClip flagReturnedClip;
-    public Camera camera;
+    public Camera mainCamera;
+    private Canvas mainCanvas;
+    private GameObject respawnPanel;
+    private TextMeshProUGUI respawnText;
     private GameObject greenFlag;
     private GameObject blueFlag;
     private GameObject greenFlagFabric;
@@ -135,7 +142,7 @@ public class PlayerCtF : NetworkBehaviour
     private bool isTaunting;
     private bool canTaunt;
     private float smoothedPedalSpeed = 0f;
-    private bool USING_PLAYPULSE = true; // Flag for dev/bike movement toggling.
+    private bool USING_PLAYPULSE = false; // Flag for dev/bike movement toggling.
     private readonly float sprintSpeedThreshold = 0.65f;
 
     public enum Team
@@ -165,7 +172,10 @@ public class PlayerCtF : NetworkBehaviour
         if (IsOwner) Local = this;
         animator = GetComponentInChildren<Animator>();
         animator.applyRootMotion = false;
-        camera = FindFirstObjectByType<Camera>();
+        mainCamera = FindFirstObjectByType<Camera>();
+        mainCanvas = FindFirstObjectByType<Canvas>();
+        respawnPanel = mainCanvas.transform.Find("RespawnPanel").gameObject;
+        respawnText = respawnPanel.transform.Find("RespawnTime").gameObject.GetComponent<TextMeshProUGUI>();
 
         // Configure sprint particle effect
         if (sprintParticleEffect != null)
@@ -227,8 +237,8 @@ public class PlayerCtF : NetworkBehaviour
     private System.Collections.IEnumerator ZoomCamera()
     {
         yield return new WaitForSeconds(8f);
-        camera.orthographicSize = 10;
-        camera.transform.position = new Vector3(Math.Clamp(rb.position.x, -18f, 18f), 20f, -20f);
+        mainCamera.orthographicSize = 10;
+        mainCamera.transform.position = new Vector3(Math.Clamp(rb.position.x, -18f, 18f), 20f, -20f);
     }
 
     public override void OnNetworkDespawn()
@@ -344,8 +354,8 @@ public class PlayerCtF : NetworkBehaviour
         if (CtFGameState.Instance != null && CtFGameState.Instance.gameState.Value != GameState.Running) return;
         if (!IsOwner) return;
         double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
-        if (serverTime - lastRespawnTimeNet.Value >= 3f && isFrozen.Value && IsOwner) RespawnPlayerServerRpc();
-        else if (isFrozen.Value) return;
+        if (serverTime - lastRespawnTimeNet.Value >= 4f && isRespawning.Value && IsOwner) RespawnPlayerServerRpc();
+        else if (isRespawning.Value) return;
 
         // Parse InputInteractions
         Vector2 input = moveAction.ReadValue<Vector2>();
@@ -379,7 +389,7 @@ public class PlayerCtF : NetworkBehaviour
 
         // Handle animations and update position based on input actions
         float smoothing = 1f - Mathf.Exp(-10f * Time.deltaTime);
-        smoothedPedalSpeed = Mathf.Lerp(smoothedPedalSpeed, PlayPulse.Input.Input.Speed, smoothing);
+        smoothedPedalSpeed = Mathf.Lerp(smoothedPedalSpeed, Math.Clamp(PlayPulse.Input.Input.Speed, 0f, 1f), smoothing);
         float pedalSpeed = USING_PLAYPULSE ? smoothedPedalSpeed : 0.4f;
         float pedalAnimationSpeed = USING_PLAYPULSE ? 1.6f * pedalSpeed : 1f;
         joystickOffset = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ?
@@ -405,8 +415,8 @@ public class PlayerCtF : NetworkBehaviour
             if (IsOwner)
             {
                 Vector3 desiredPosition =  new Vector3(Math.Clamp(rb.position.x, -18f, 18f), 20f, -20f);
-                Vector3 smoothedPosition = Vector3.Lerp(camera.transform.position, desiredPosition, Time.deltaTime * moveSpeed);
-                camera.transform.position = smoothedPosition;
+                Vector3 smoothedPosition = Vector3.Lerp(mainCamera.transform.position, desiredPosition, Time.deltaTime * moveSpeed);
+                mainCamera.transform.position = smoothedPosition;
             } 
         }
         else
@@ -435,6 +445,9 @@ public class PlayerCtF : NetworkBehaviour
         {
             isTauntingNet.Value = false;
         }
+
+        // Rotate flag with player model
+        if (isFlagActiveNet.Value) flagTransform.transform.rotation = rb.rotation;
     }
 
     private void LateUpdate()
@@ -511,6 +524,7 @@ public class PlayerCtF : NetworkBehaviour
                 }
             }
             victim.TeleportClientRpc(new Vector3(victim.teamNet.Value == Team.Blue ? -34.5f : 34.5f, victim.rb.position.y, victim.rb.position.z));
+            victim.ToggleRespawnScreenClientRpc();
             PlayTaggedSoundClientRpc(new ClientRpcParams {Send = new ClientRpcSendParams {TargetClientIds = new ulong[] {victimClientId}}});
             PlaySoundClientRpc(CtfClips.Tag, Team.None);
         }
@@ -575,7 +589,26 @@ public class PlayerCtF : NetworkBehaviour
     {
         rb.position = position;
         rb.rotation = UnityEngine.Quaternion.Euler(0f, teamNet.Value == Team.Green ? -90f : 90f, 0f);
-        if (IsOwner) camera.transform.position = new Vector3(Math.Clamp(position.x, -18f, 18f), 20f, -20f);
+        if (IsOwner) mainCamera.transform.position = new Vector3(Math.Clamp(position.x, -18f, 18f), 20f, -20f);
+    }
+
+    [ClientRpc]
+    public void ToggleRespawnScreenClientRpc()
+    {
+        if (IsOwner) StartCoroutine(ToggleRespawnScreen());
+    }
+
+    private IEnumerator ToggleRespawnScreen()
+    {
+        int remainingTime = 4;
+        respawnPanel?.SetActive(true);
+        while (remainingTime > 0)
+        {
+            remainingTime--;
+            respawnText.text = remainingTime.ToString() + "s";
+            yield return new WaitForSeconds(1f);
+        } 
+        respawnPanel?.SetActive(false);
     }
 
     [ClientRpc]

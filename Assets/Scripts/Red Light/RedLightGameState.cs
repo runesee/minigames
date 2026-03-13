@@ -98,25 +98,6 @@ public class RedLightGameState : NetworkBehaviour
             SessionManager.PlayerData scoredPlayerData = new SessionManager.PlayerData(guid, nickname, color, score + globalSessionData.Score);
             SessionManager.Instance.SaveData(scoredPlayerData);
         }
-
-        // Fill remaining slots if less than 4 players
-        if (rankedPlayers.Count < 4)
-        {
-            for (int i = rankedPlayers.Count; i < 4; i++)
-            {
-                Color playerColor = PlayerColorManager.AvailableColors[i];
-                string colorHex = $"#{ColorUtility.ToHtmlStringRGB(playerColor)}";
-                
-                SessionManager.Instance.SaveData(
-                    new SessionManager.PlayerData(
-                        new FixedString64Bytes(Guid.NewGuid().ToString()),
-                        $"Player {i+1}",
-                        new FixedString64Bytes(colorHex),
-                        0f
-                    )
-                );
-            }
-        }
     }
 
     [ServerRpc]

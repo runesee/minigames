@@ -191,7 +191,7 @@ public class GameTimer : NetworkBehaviour
                 }
                 else
                 {
-                    CtFGameState.Instance.ToastMessageClientRpc(PlayerCtF.Team.None, "Overtime! First team to capture a flag wins!");
+                    CtFGameState.Instance.ToastMessageClientRpc(PlayerCtF.Team.None, "Overtime! 45 seconds added to the clock!");
                     OvertimeServerRpc(46f);
                 }
                 return;
