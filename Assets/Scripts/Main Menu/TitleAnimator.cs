@@ -1,10 +1,6 @@
 using UnityEngine;
 using TMPro;
 
-/// <summary>
-/// Animates a TextMeshProUGUI title with a per-character wave effect,
-/// a pulsating glow, and a gentle scale breathing animation.
-/// </summary>
 [RequireComponent(typeof(TextMeshProUGUI))]
 public class TitleAnimator : MonoBehaviour
 {
