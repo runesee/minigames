@@ -407,14 +407,14 @@ MonoBehaviour:
   characterParent: {fileID: 1641117163}
   showcaseBaseController: {fileID: 9100000, guid: e296e0aa5a39648f9b43c622220032a1, type: 2}
   showcaseAnimations:
-  - {fileID: -203655887218126122, guid: f7d7b4cff605ece45828afc46c321ebb, type: 3}
+  - {fileID: -203655887218126122, guid: bfb0f9d3c4cc64385b1a8bb31fe0c209, type: 3}
   - {fileID: -203655887218126122, guid: b0147d2eb2c1e4cb5a7d2143375c227c, type: 3}
   - {fileID: -203655887218126122, guid: b824d9227f55fc247bc46a535d8b0121, type: 3}
   - {fileID: -203655887218126122, guid: a2860e6e66544614b92822878bdf0fac, type: 3}
   - {fileID: -203655887218126122, guid: 31b014ae9458f4e3e97b3addcbafabf1, type: 3}
   - {fileID: -203655887218126122, guid: 14e61707daffe4a4d94b6e2d54a5619e, type: 3}
-  - {fileID: -203655887218126122, guid: 1e31a61e704ee454d81d2938de4aed30, type: 3}
-  - {fileID: -203655887218126122, guid: eb3846b7fa184944096c589b4520cc1b, type: 3}
+  - {fileID: -203655887218126122, guid: 797676ed238304952a92a7ba38d3c47d, type: 3}
+  - {fileID: -203655887218126122, guid: e9cb347ec7128466cae63aa76a4905cc, type: 3}
   - {fileID: -203655887218126122, guid: 7d377684eee724c18a9fecafe3fc7aec, type: 3}
   - {fileID: -203655887218126122, guid: 7a025408aa3634be0aa5fdc81cbb309b, type: 3}
   promptFadeDuration: 1.2
