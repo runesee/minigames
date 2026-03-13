@@ -20,8 +20,6 @@ public class HomeScreenController : MonoBehaviour
     [Header("Settings")]
     [SerializeField] private float promptFadeDuration = 1.2f;
     [SerializeField] private float sceneTransitionDuration = 0.8f;
-    [SerializeField] private float titleBounceAmplitude = 10f;
-    [SerializeField] private float titleBounceDuration = 2f;
 
     [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
@@ -42,14 +40,13 @@ public class HomeScreenController : MonoBehaviour
 
     private bool isTransitioning;
     private Sequence promptSequence;
-    private Sequence titleSequence;
 
     private void Start()
     {
         fadeOverlay.alpha = 1f;
         fadeOverlay.blocksRaycasts = true;
 
-        SetupTitleAnimation();
+        SetupTitleAnimator();
         SetupPromptAnimation();
         SpawnCharacterShowcase();
 
@@ -69,24 +66,14 @@ public class HomeScreenController : MonoBehaviour
     private void OnDestroy()
     {
         promptSequence?.Kill();
-        titleSequence?.Kill();
     }
 
-    private void SetupTitleAnimation()
+    private void SetupTitleAnimator()
     {
-        RectTransform titleRect = titleText.GetComponent<RectTransform>();
-        Vector2 originalPos = titleRect.anchoredPosition;
-
-        titleSequence = DOTween.Sequence();
-        titleSequence.Append(
-            titleRect.DOAnchorPosY(originalPos.y + titleBounceAmplitude, titleBounceDuration)
-                .SetEase(Ease.InOutSine)
-        );
-        titleSequence.Append(
-            titleRect.DOAnchorPosY(originalPos.y, titleBounceDuration)
-                .SetEase(Ease.InOutSine)
-        );
-        titleSequence.SetLoops(-1);
+        if (titleText.GetComponent<TitleAnimator>() == null)
+        {
+            titleText.gameObject.AddComponent<TitleAnimator>();
+        }
     }
 
     private void SetupPromptAnimation()
