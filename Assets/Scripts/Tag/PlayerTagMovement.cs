@@ -283,7 +283,7 @@ public class PlayerTagMovement : NetworkBehaviour
         // Set target player as isHit if punched by punching player
         if (isPunching && isTaggedNet.Value)
         {
-            PlayerTagMovement target = FindClosestPlayerInRange(2.5f);
+            PlayerTagMovement target = PlayerUtils.FindClosestPlayerInRange<PlayerTagMovement>(2.5f, this.gameObject, this.transform);
             tagAudioSource?.PlayOneShot(tagClip);
             if (target != null)
             {
@@ -456,48 +456,6 @@ public class PlayerTagMovement : NetworkBehaviour
         playerObject.isTaggedNet.Value = true;
         playerObject.lastTagTimeNet.Value = NetworkManager.Singleton.ServerTime.FixedTime;
         TagGameState.Instance.taggedPlayerIdNet.Value = playerId;
-    }
-
-    /// <summary>
-    /// Helper function for getting the closest player within range and field of view, if any.
-    /// </summary>
-    /// <param name="range"></param> Limit for how far a player can tag.
-    /// <returns></returns> A PlayerTagMovement object or null.
-    private PlayerTagMovement FindClosestPlayerInRange(float range)
-    {
-        PlayerTagMovement closest = null;
-        float shortest = Mathf.Infinity;
-        bool isWithinBounds = false;
-        GameObject _player = new GameObject();
-        PlayerTagMovement taggedPlayer = this;
-        foreach (var player in FindObjectsByType(typeof(PlayerTagMovement), FindObjectsSortMode.None))
-        {
-            if (player == this) continue;
-
-            float distance = Vector3.Distance(transform.position, ((PlayerTagMovement)player).transform.position);
-
-            if (distance < range && distance < shortest)
-            {
-                shortest = distance;
-                closest = (PlayerTagMovement)player;
-                Vector3 targetVector = (closest.transform.position - transform.position).normalized;
-
-                // Within bounds if angle between position diff vector and tagged player's forward vector < 45 degrees
-                Quaternion.FromToRotation(transform.forward, targetVector).ToAngleAxis(out float angle, out Vector3 axis);
-                isWithinBounds = Mathf.Abs(angle) <= (distance > range / 2 ? 70f : 45f);
-                taggedPlayer = (PlayerTagMovement)player;
-                _player = player.GameObject();
-            }
-        }
-        // Need to check whether a GameObject is blocking the player's view (e.g. a Cube)
-        if (Physics.Linecast(transform.position, taggedPlayer.transform.position, out RaycastHit hit))
-        {
-            if (hit.collider.gameObject != _player)
-            {
-                isWithinBounds = false;
-            }
-        }
-        return isWithinBounds ? closest : null;
     }
 
     /// <summary>

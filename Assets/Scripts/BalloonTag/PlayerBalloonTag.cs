@@ -226,7 +226,7 @@ public class PlayerBalloonTag : NetworkBehaviour
 
         if (isPunching && NetworkManager.Singleton.ServerTime.FixedTime - lastTagTimeNet.Value > 0.7)
         {
-            PlayerBalloonTag target = FindClosestPlayerInRange(2.5f);
+            PlayerBalloonTag target = PlayerUtils.FindClosestPlayerInRange<PlayerBalloonTag>(2.5f, this.gameObject, this.transform);
             tagAudioSource.pitch = 1f;
             tagAudioSource?.PlayOneShot(tagClip);
             if (target != null) TagPlayerServerRpc(target.NetworkObjectId);
@@ -374,47 +374,5 @@ public class PlayerBalloonTag : NetworkBehaviour
     private void UnfreezePlayerServerRpc()
     {
         isFrozen.Value = false;
-    }
-
-    /// <summary>
-    /// Helper function for getting the closest player within range and field of view, if any.
-    /// </summary>
-    /// <param name="range"></param> Limit for how far a player can tag.
-    /// <returns></returns> A PlayerTagMovement object or null.
-    private PlayerBalloonTag FindClosestPlayerInRange(float range)
-    {
-        PlayerBalloonTag closest = null;
-        float shortest = Mathf.Infinity;
-        bool isWithinBounds = false;
-        GameObject _player = new GameObject();
-        PlayerBalloonTag taggedPlayer = this;
-        foreach (var player in FindObjectsByType(typeof(PlayerBalloonTag), FindObjectsSortMode.None))
-        {
-            if (player == this) continue;
-
-            float distance = Vector3.Distance(transform.position, ((PlayerBalloonTag)player).transform.position);
-
-            if (distance < range && distance < shortest)
-            {
-                shortest = distance;
-                closest = (PlayerBalloonTag)player;
-                Vector3 targetVector = (closest.transform.position - transform.position).normalized;
-
-                // Within bounds if angle between position diff vector and tagged player's forward vector < 45 degrees
-                Quaternion.FromToRotation(transform.forward, targetVector).ToAngleAxis(out float angle, out Vector3 axis);
-                isWithinBounds = Mathf.Abs(angle) <= (distance > range / 2 ? 70f : 45f);
-                taggedPlayer = (PlayerBalloonTag)player;
-                _player = player.GameObject();
-            }
-        }
-        // Need to check whether a GameObject is blocking the player's view (e.g. a Cube)
-        if (Physics.Linecast(transform.position, taggedPlayer.transform.position, out RaycastHit hit))
-        {
-            if (hit.collider.gameObject != _player)
-            {
-                isWithinBounds = false;
-            }
-        }
-        return isWithinBounds ? closest : null;
     }
 }
