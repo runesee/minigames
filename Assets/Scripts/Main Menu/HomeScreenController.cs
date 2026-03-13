@@ -14,6 +14,8 @@ public class HomeScreenController : MonoBehaviour
     [Header("Character Showcase")]
     [SerializeField] private GameObject characterPrefab;
     [SerializeField] private Transform characterParent;
+    [SerializeField] private RuntimeAnimatorController showcaseBaseController;
+    [SerializeField] private AnimationClip[] showcaseAnimations;
 
     [Header("Settings")]
     [SerializeField] private float promptFadeDuration = 1.2f;
@@ -101,12 +103,15 @@ public class HomeScreenController : MonoBehaviour
 
     private void SpawnCharacterShowcase()
     {
-        SpawnRow(FrontRowColors, FrontRowPositionsX, 0f, 0f, FrontRowScale);
-        SpawnRow(BackRowColors, BackRowPositionsX, BackRowZ, BackRowY, BackRowScale);
+        int animIndex = 0;
+        animIndex = SpawnRow(FrontRowColors, FrontRowPositionsX, 0f, 0f, FrontRowScale, animIndex);
+        SpawnRow(BackRowColors, BackRowPositionsX, BackRowZ, BackRowY, BackRowScale, animIndex);
     }
 
-    private void SpawnRow(int[] colorIndices, float[] positionsX, float zOffset, float yOffset, float scale)
+    private int SpawnRow(int[] colorIndices, float[] positionsX, float zOffset, float yOffset, float scale, int animStartIndex)
     {
+        int animIndex = animStartIndex;
+
         for (int i = 0; i < colorIndices.Length; i++)
         {
             GameObject character = Instantiate(characterPrefab, characterParent);
@@ -116,7 +121,18 @@ public class HomeScreenController : MonoBehaviour
 
             CharacterPreview preview = character.GetComponent<CharacterPreview>();
             preview.SetColor(PlayerColorManager.GetColor(colorIndices[i]));
+
+            if (showcaseBaseController != null && showcaseAnimations != null && showcaseAnimations.Length > 0)
+            {
+                ShowcaseAnimator showcaseAnimator = character.AddComponent<ShowcaseAnimator>();
+                AnimationClip clip = showcaseAnimations[animIndex % showcaseAnimations.Length];
+                float timeOffset = (float)animIndex / showcaseAnimations.Length;
+                showcaseAnimator.Initialize(showcaseBaseController, clip, timeOffset);
+                animIndex++;
+            }
         }
+
+        return animIndex;
     }
 
     private bool AnyInputDetected()
