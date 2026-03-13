@@ -29,7 +29,8 @@ public class CtFSetup : NetworkBehaviour
             this.setupData.Add(new SetupData(
                 SessionManager.Instance.PlayerDataList[i].nickname, 
                 SessionManager.Instance.PlayerDataList[i].color, 
-                SessionManager.Instance.PlayerDataList[i].Guid
+                SessionManager.Instance.PlayerDataList[i].Guid,
+                PlayerCtF.Team.None
                 ));
         }
         setupData.Sort((a, b) => string.Compare(a.Guid.ToString(), b.Guid.ToString(), StringComparison.Ordinal));
@@ -40,7 +41,8 @@ public class CtFSetup : NetworkBehaviour
     {
         for (int i = 0; i < data.Count; i++)
         {
-            if (i % 2 == 0)
+            playerCards[i].gameObject.SetActive(true);
+            if (data[i].team == PlayerCtF.Team.Green)
             {
                 playerCards[i].teamText.text = "Green";
                 playerCards[i].teamText.color = Color.green;
@@ -88,12 +90,16 @@ public class CtFSetup : NetworkBehaviour
         setupData.Sort((a, b) => string.Compare(a.Guid.ToString(), b.Guid.ToString(), StringComparison.Ordinal));
         var players = NetworkManager.Singleton.SpawnManager.SpawnedObjectsList.Select(obj => obj.GetComponent<PlayerCtF>()).Where(p => p != null).ToDictionary(p => p.guidNet.Value);
         int teamIndex = 0;
-        foreach (var entry in setupData)
+        foreach (var i in Enumerable.Range(0, setupData.Count))
         {
-            if (!players.TryGetValue(entry.Guid, out var player)) continue; // Skip mocked players
+            var entry = setupData[i];
+            if (!players.TryGetValue(entry.Guid, out var player)) continue;
             player.teamNet.Value = (teamIndex % 2 == 0) ? PlayerCtF.Team.Green : PlayerCtF.Team.Blue;
-            Vector3 spawnPosition = new();
+            var data = setupData[teamIndex];
+            data.team = player.teamNet.Value;
+            setupData[teamIndex] = data;
 
+            Vector3 spawnPosition = new();
             if (player.teamNet.Value == PlayerCtF.Team.Green)
             {
                 spawnPosition = greenSpawns[greenSpawnTally];
@@ -107,11 +113,12 @@ public class CtFSetup : NetworkBehaviour
             player.TeleportClientRpc(spawnPosition);
             teamIndex++;
         }
+        UpdateCanvasClientRpc(setupData.ToArray());
     }
 
-    private IEnumerator DelayedUpdateCanvas(List<SetupData> data)
+    [ClientRpc]
+    private void UpdateCanvasClientRpc(SetupData[] data)
     {
-        yield return new WaitForSeconds(2f);
         UpdateCanvas(data.ToList());
     }
 
@@ -119,7 +126,6 @@ public class CtFSetup : NetworkBehaviour
     private void ShowSetupClientRpc(SetupData[] data)
     {
         InitializeCanvas(data.ToList());
-        StartCoroutine(DelayedUpdateCanvas(data.ToList()));
     }
 
     private struct SetupData : INetworkSerializable
@@ -127,12 +133,14 @@ public class CtFSetup : NetworkBehaviour
         public FixedString64Bytes nickname;
         public FixedString64Bytes color;
         public FixedString64Bytes Guid;
+        public PlayerCtF.Team team;
 
-        public SetupData(FixedString64Bytes nickname, FixedString64Bytes color, FixedString64Bytes guid)
+        public SetupData(FixedString64Bytes nickname, FixedString64Bytes color, FixedString64Bytes guid, PlayerCtF.Team team)
         {
             this.nickname = nickname;
             this.color = color;
             this.Guid = guid;
+            this.team = team;
         }
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
@@ -140,6 +148,7 @@ public class CtFSetup : NetworkBehaviour
             serializer.SerializeValue(ref nickname);
             serializer.SerializeValue(ref color);
             serializer.SerializeValue(ref Guid);
+            serializer.SerializeValue(ref team);
         }
     }
 }

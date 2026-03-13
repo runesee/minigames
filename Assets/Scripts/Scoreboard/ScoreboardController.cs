@@ -17,12 +17,7 @@ public class ScoreboardController : NetworkBehaviour
         -199.7f
     };
     private Dictionary<string, PlayerCard> cardByGuid = new();
-    private List<PlayerCard> playerCards;
-
-    private void Awake()
-    {
-        playerCards = panel.GetComponentsInChildren<PlayerCard>(true).ToList();
-    }
+    public List<PlayerCard> playerCards;
 
     public override void OnNetworkSpawn()
     {
@@ -46,9 +41,10 @@ public class ScoreboardController : NetworkBehaviour
 
     public void InitializeScoreboard(List<SessionManager.PlayerData> scores)
     {
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < scores.Count; i++)
         {
             var card = playerCards[i];
+            card.gameObject.SetActive(true);
             card.guid = scores[i].Guid.ToString();
             cardByGuid[card.guid] = card;
 
@@ -72,7 +68,7 @@ public class ScoreboardController : NetworkBehaviour
     {
         scores = scores.OrderByDescending(s => s.Score).ToList();
         previousScores = previousScores.OrderByDescending(s => s.Score).ToList();
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < scores.Count; i++)
         {
             var guid = scores[i].Guid.ToSafeString();
             var card = cardByGuid[guid];
