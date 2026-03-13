@@ -97,7 +97,6 @@ public class PlayerBalloonTag : NetworkBehaviour
     private bool isTaunting;
     private bool canTaunt;
     private float smoothedPedalSpeed = 0f;
-    private bool USING_PLAYPULSE = false; // Flag for dev/bike movement toggling.
     private readonly float sprintSpeedThreshold = 0.65f;
 
     private void Awake()
@@ -238,8 +237,8 @@ public class PlayerBalloonTag : NetworkBehaviour
         float smoothing = 1f - Mathf.Exp(-10f * Time.deltaTime);
         float inputSpeed = Math.Clamp(PlayPulse.Input.Input.Speed, 0f, 1f);
         smoothedPedalSpeed = Mathf.Lerp(smoothedPedalSpeed, inputSpeed, smoothing);
-        float pedalSpeed = USING_PLAYPULSE ? smoothedPedalSpeed : 0.5f;
-        float pedalAnimationSpeed = USING_PLAYPULSE ? 1.6f * pedalSpeed : 1f;
+        float pedalSpeed = MinigameManager.USING_PLAYPULSE ? smoothedPedalSpeed : 0.5f;
+        float pedalAnimationSpeed = MinigameManager.USING_PLAYPULSE ? 1.6f * pedalSpeed : 1f;
         joystickOffset = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ?
         new Vector3((-1) * PlayPulse.Input.Input.JoystickX, 0, (-1) * PlayPulse.Input.Input.JoystickY) : joystickOffset;
 

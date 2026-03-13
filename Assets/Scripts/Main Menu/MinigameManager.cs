@@ -11,7 +11,7 @@ using UnityEngine.SceneManagement;
 public class MinigameManager : NetworkBehaviour
 {
     public static MinigameManager Instance { get; private set; }
-
+    public static bool USING_PLAYPULSE = true; // Flag for dev/bike movement toggling.
     public enum MinigameScene
     {
         MainMenu,
@@ -31,10 +31,8 @@ public class MinigameManager : NetworkBehaviour
         CaptureTheFlag,
         EndScreen,
     }
-
     public MinigameScene currentGameState = MinigameScene.MainMenu;
     public MinigameScene previousGameState = MinigameScene.MainMenu;
-
     private readonly HashSet<string> _takenColors = new HashSet<string>(System.StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<ulong, string> _clientColorMap = new Dictionary<ulong, string>();
 
@@ -46,6 +44,16 @@ public class MinigameManager : NetworkBehaviour
             DontDestroyOnLoad(gameObject);
         }
         else Destroy(gameObject);
+    }
+
+    void Start()
+    {
+        if (!USING_PLAYPULSE) return;
+        try // Initialize connection with PP-service, which should already be started.
+        {
+            if (!PlayPulse.PlayPulseService.IsInitialized) USING_PLAYPULSE = false;
+        }
+        catch { USING_PLAYPULSE = false; } // Bike connection failed, overriding to use keyboard instead
     }
 
     // Boilerplate function that will be called by the Lobby once the host presses start (after enough players have connected.)

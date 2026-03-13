@@ -108,9 +108,7 @@ public class PlayerTagMovement : NetworkBehaviour
     private bool isTaunting;
     private bool canTaunt;
     private bool isBoosting;
-    private float pedalResistance;
     private float smoothedPedalSpeed = 0f;
-    private bool USING_PLAYPULSE = true; // Flag for dev/bike movement toggling.
     private readonly float walkSpeed = 5f;
     private readonly float boostSpeed = 8f;
     private readonly float maxStamina = 100f;
@@ -124,22 +122,6 @@ public class PlayerTagMovement : NetworkBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-    }
-
-    void Start()
-    {
-        if (!USING_PLAYPULSE) return;
-        // Initialize connection with PP-service, which should already by started.
-        try
-        {
-            if (!PlayPulse.PlayPulseService.IsInitialized)
-            {
-                // Reset resistance
-                pedalResistance = 0.2f;
-                PlayPulse.Input.Input.ResistanceSetPoint = pedalResistance;
-            }
-        }
-        catch { USING_PLAYPULSE = false; } // Bike connection failed, overriding to use keyboard instead
     }
 
     public override void OnNetworkSpawn()
@@ -313,8 +295,8 @@ public class PlayerTagMovement : NetworkBehaviour
         float smoothing = 1f - Mathf.Exp(-10f * Time.deltaTime);
         float inputSpeed = Math.Clamp(PlayPulse.Input.Input.Speed, 0f, 1f);
         smoothedPedalSpeed = Mathf.Lerp(smoothedPedalSpeed, inputSpeed, smoothing);
-        float pedalSpeed = USING_PLAYPULSE ? smoothedPedalSpeed : 0.4f;
-        float pedalAnimationSpeed = USING_PLAYPULSE ? 1.6f * pedalSpeed : 1f;
+        float pedalSpeed = MinigameManager.USING_PLAYPULSE ? smoothedPedalSpeed : 0.4f;
+        float pedalAnimationSpeed = MinigameManager.USING_PLAYPULSE ? 1.6f * pedalSpeed : 1f;
         joystickOffset = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ?
         new Vector3((-1) * PlayPulse.Input.Input.JoystickX, 0, (-1) * PlayPulse.Input.Input.JoystickY) : joystickOffset;
         float moveSpeed = (isBoosting ? boostSpeed : walkSpeed) * (staminaNet.Value <= 0f ? exhaustedSpeedMultiplier : 1f) * pedalSpeed;
@@ -335,7 +317,7 @@ public class PlayerTagMovement : NetworkBehaviour
             // TODO : use a range instead of ONE value to prevent jitter!
             isSprintingNet.Value = moveSpeed > sprintSpeedThreshold;
             isWalkingNet.Value = !isSprintingNet.Value;
-            isShowingBoostParticlesNet.Value = isBoosting && (USING_PLAYPULSE ? pedalSpeed > 0f : input.sqrMagnitude > 0.1f);
+            isShowingBoostParticlesNet.Value = isBoosting && (MinigameManager.USING_PLAYPULSE ? pedalSpeed > 0f : input.sqrMagnitude > 0.1f);
         }
         else
         {

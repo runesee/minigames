@@ -142,7 +142,6 @@ public class PlayerCtF : NetworkBehaviour
     private bool isTaunting;
     private bool canTaunt;
     private float smoothedPedalSpeed = 0f;
-    private bool USING_PLAYPULSE = false; // Flag for dev/bike movement toggling.
     private readonly float sprintSpeedThreshold = 0.65f;
 
     public enum Team
@@ -390,8 +389,8 @@ public class PlayerCtF : NetworkBehaviour
         // Handle animations and update position based on input actions
         float smoothing = 1f - Mathf.Exp(-10f * Time.deltaTime);
         smoothedPedalSpeed = Mathf.Lerp(smoothedPedalSpeed, Math.Clamp(PlayPulse.Input.Input.Speed, 0f, 1f), smoothing);
-        float pedalSpeed = USING_PLAYPULSE ? smoothedPedalSpeed : 0.4f;
-        float pedalAnimationSpeed = USING_PLAYPULSE ? 1.6f * pedalSpeed : 1f;
+        float pedalSpeed = MinigameManager.USING_PLAYPULSE ? smoothedPedalSpeed : 0.4f;
+        float pedalAnimationSpeed = MinigameManager.USING_PLAYPULSE ? 1.6f * pedalSpeed : 1f;
         joystickOffset = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ?
         new Vector3((-1) * PlayPulse.Input.Input.JoystickX, 0, (-1) * PlayPulse.Input.Input.JoystickY) : joystickOffset;
 
