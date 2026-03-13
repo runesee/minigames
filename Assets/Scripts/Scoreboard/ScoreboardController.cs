@@ -41,6 +41,7 @@ public class ScoreboardController : NetworkBehaviour
 
     public void InitializeScoreboard(List<SessionManager.PlayerData> scores)
     {
+        scores = scores.OrderByDescending(s => s.Score).ToList();
         for (int i = 0; i < scores.Count; i++)
         {
             var card = playerCards[i];
