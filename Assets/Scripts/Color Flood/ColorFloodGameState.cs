@@ -48,7 +48,7 @@ public class ColorFloodGameState : MinigameGameState
         if (blueTileCountText != null) blueTileCountText.text = newValue.ToString();
     }
 
-    public override void SaveData()
+    protected override void SaveData()
     {
         var rankedPlayers = PlayerDataList.OrderBy(p => p.ordering).ToList();
         if (greenTileCount.Value < blueTileCount.Value) rankedPlayers.Reverse();

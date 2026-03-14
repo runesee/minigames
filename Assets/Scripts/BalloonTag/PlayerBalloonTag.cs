@@ -3,15 +3,12 @@ using Unity.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System;
-using Unity.VisualScripting;
 using System.Collections.Generic;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
 public class PlayerBalloonTag : Player
 {
-    [SerializeField] private SkinnedMeshRenderer playerSkinRenderer;
-
     [Header("Map Boundaries")]
     public float minX = -17f;
     public float maxX = 17f;
@@ -63,23 +60,8 @@ public class PlayerBalloonTag : Player
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
-    public NetworkVariable<FixedString64Bytes> colorNet = new NetworkVariable<FixedString64Bytes>(
-    "#D6877F",
-    NetworkVariableReadPermission.Everyone,
-    NetworkVariableWritePermission.Server
-    );
     public NetworkVariable<BalloonState> balloonsNet = new NetworkVariable<BalloonState>(
     new BalloonState(2, "#D6877F"),
-    NetworkVariableReadPermission.Everyone,
-    NetworkVariableWritePermission.Server
-    );
-    public NetworkVariable<FixedString64Bytes> nicknameNet = new NetworkVariable<FixedString64Bytes>(
-    "Player",
-    NetworkVariableReadPermission.Everyone,
-    NetworkVariableWritePermission.Server
-    );
-    public NetworkVariable<FixedString64Bytes> guidNet = new NetworkVariable<FixedString64Bytes>(
-    "",
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Server
     );
@@ -163,11 +145,6 @@ public class PlayerBalloonTag : Player
         balloonsNet.OnValueChanged -= OnBalloonsChanged;
     }
 
-    private void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
-    {
-        SetSkinColor(newValue.Value.ToString());
-    }
-
     private void OnSprintParticlesChanged(bool previousValue, bool newValue)
     {
         if (sprintParticleEffect == null) return;
@@ -189,10 +166,10 @@ public class PlayerBalloonTag : Player
     /// Helper method for changing a player model's color.
     /// </summary>
     /// <param name="color">Updated hex-code color.</param>
-    private void SetSkinColor(string color)
+    protected override void SetSkinColor(string color)
     {
+        base.SetSkinColor(color);
         UnityEngine.ColorUtility.TryParseHtmlString(color, out var skinColor);
-        playerSkinRenderer.material.color = skinColor;
         BalloonPrefabs[0].GetComponentInChildren<MeshRenderer>().material.color = skinColor;
         BalloonPrefabs[1].GetComponentInChildren<MeshRenderer>().material.color = skinColor;
         if (IsOwner) InitializeBalloonsServerRpc(color);
@@ -293,28 +270,6 @@ public class PlayerBalloonTag : Player
         animator.SetBool("isSprinting", isSprintingNet.Value);
         animator.SetBool("isPunching", isPunchingNet.Value);
         animator.SetBool("isTaunting", isTauntingNet.Value);
-    }
-
-    /// <summary>
-    /// Sets player model color to specified hexcode.
-    /// </summary>
-    /// <param name="color">New player model color.</param>
-    [ServerRpc]
-    public void UpdateColorServerRpc(string color)
-    {
-        colorNet.Value = new FixedString64Bytes(color);
-    }
-
-    [ServerRpc]
-    public void UpdateNicknameServerRpc(string nickname)
-    {
-        nicknameNet.Value = nickname;
-    }
-
-    [ServerRpc]
-    public void UpdateGuidServerRpc(string guid)
-    {
-        guidNet.Value = guid;
     }
  
     [ServerRpc]

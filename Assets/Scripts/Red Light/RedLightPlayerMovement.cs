@@ -19,7 +19,6 @@ public class RedLightPlayerMovement : Player
     [SerializeField] private Transform trafficLight;
     [SerializeField] private float trafficLightOffset = 5f;
     [SerializeField] private GameObject track;
-    [SerializeField] private SkinnedMeshRenderer playerSkinRenderer;
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip errorClip;
 
@@ -50,24 +49,6 @@ public class RedLightPlayerMovement : Player
 
     private NetworkVariable<bool> isPenalizedNet = new NetworkVariable<bool>(
         false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-
-    public NetworkVariable<FixedString64Bytes> colorNet = new NetworkVariable<FixedString64Bytes>(
-        "#D6877F",
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-
-    public NetworkVariable<FixedString64Bytes> nicknameNet = new NetworkVariable<FixedString64Bytes>(
-        "Player",
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-
-    public NetworkVariable<FixedString64Bytes> guidNet = new NetworkVariable<FixedString64Bytes>(
-        "",
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
@@ -133,7 +114,7 @@ public class RedLightPlayerMovement : Player
                 animator.applyRootMotion = false;
             }
 
-            originalColor = playerSkinRenderer.material.color;
+            originalColor = PlayerSkinRenderer.material.color;
         }
     }
 
@@ -186,12 +167,12 @@ public class RedLightPlayerMovement : Player
         if (flashTimer <= 0f)
         {
             isFlashing = false;
-            playerSkinRenderer.material.color = originalColor;
+            PlayerSkinRenderer.material.color = originalColor;
         }
         else
         {
             float flash = Mathf.PingPong(Time.time * 10f, 1f);
-            playerSkinRenderer.material.color = Color.Lerp(Color.red, originalColor, flash);
+            PlayerSkinRenderer.material.color = Color.Lerp(Color.red, originalColor, flash);
         }
     }
 
@@ -323,11 +304,6 @@ public class RedLightPlayerMovement : Player
         }
     }
 
-    private void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
-    {
-        SetSkinColor(newValue.Value.ToString());
-    }
-
     private void OnPenaltyStateChanged(bool previousValue, bool newValue)
     {
         if (newValue && !isFlashing)
@@ -336,31 +312,13 @@ public class RedLightPlayerMovement : Player
         }
     }
 
-    private void SetSkinColor(string color)
+    protected override void SetSkinColor(string color)
     {
+        base.SetSkinColor(color);
         if (ColorUtility.TryParseHtmlString(color, out var skinColor))
         {
-            playerSkinRenderer.material.color = skinColor;
             originalColor = skinColor;
         }
-    }
-
-    [ServerRpc]
-    public void UpdateColorServerRpc(string color)
-    {
-        colorNet.Value = new FixedString64Bytes(color);
-    }
-
-    [ServerRpc]
-    public void UpdateNicknameServerRpc(string nickname)
-    {
-        nicknameNet.Value = nickname;
-    }
-
-    [ServerRpc]
-    public void UpdateGuidServerRpc(string guid)
-    {
-        guidNet.Value = guid;
     }
 
     public void AssignTrafficLightAndTrack(TrafficLightController light, int playerIndex)

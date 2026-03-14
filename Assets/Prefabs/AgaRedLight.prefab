@@ -74,7 +74,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2344792605
+  GlobalObjectIdHash: 2138924577
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -195,16 +195,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RedLightPlayerMovement
   ShowTopMostFoldoutHeaderGroup: 1
-  speedMultiplier: 10
-  sprintSpeedThreshold: 5
-  penaltyPushBackDistance: 3
-  penaltyFreezeDuration: 1.5
-  movementThreshold: 0.1
-  trafficLight: {fileID: 0}
-  trafficLightOffset: 5
-  playerSkinRenderer: {fileID: 8576045237320093323}
-  audioSource: {fileID: 3109466611227583882}
-  errorClip: {fileID: 8300000, guid: c1f10d4c1cc5a3d4c90709d6e43943c4, type: 3}
+  PlayerSkinRenderer: {fileID: 8576045237320093323}
   colorNet:
     m_InternalValue:
       utf8LengthInBytes: 7
@@ -412,6 +403,16 @@ MonoBehaviour:
         byte0059: 0
         byte0060: 0
         byte0061: 0
+  speedMultiplier: 10
+  sprintSpeedThreshold: 5
+  penaltyPushBackDistance: 3
+  penaltyFreezeDuration: 1.5
+  movementThreshold: 0.1
+  trafficLight: {fileID: 0}
+  trafficLightOffset: 5
+  track: {fileID: 0}
+  audioSource: {fileID: 3109466611227583882}
+  errorClip: {fileID: 8300000, guid: c1f10d4c1cc5a3d4c90709d6e43943c4, type: 3}
   distanceTraveledNet:
     m_InternalValue: 0
 --- !u!82 &3109466611227583882

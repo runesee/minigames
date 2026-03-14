@@ -106,7 +106,7 @@ public abstract class MinigameGameState : NetworkBehaviour
         shouldChangeScene = true;
     }
 
-    public virtual void SaveData()
+    protected virtual void SaveData()
     {
         var rankedPlayers = PlayerDataList.OrderByDescending(p => p.ordering).ToList();
         for (int i = 0; i < rankedPlayers.Count; i++)

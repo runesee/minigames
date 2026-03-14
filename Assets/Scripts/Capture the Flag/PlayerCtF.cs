@@ -1,5 +1,4 @@
 using Unity.Netcode;
-using Unity.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System;
@@ -11,7 +10,6 @@ using TMPro;
 public class PlayerCtF : Player
 {
     public static PlayerCtF Local;
-    [SerializeField] public SkinnedMeshRenderer playerSkinRenderer;
     [SerializeField] public GameObject flag;
     [SerializeField] public MeshRenderer flagColor;
     [SerializeField] public Transform flagTransform;
@@ -71,21 +69,6 @@ public class PlayerCtF : Player
     );
     public NetworkVariable<double> lastRespawnTimeNet = new NetworkVariable<double>(
         0,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-    public NetworkVariable<FixedString64Bytes> colorNet = new NetworkVariable<FixedString64Bytes>(
-        "#D6877F",
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-    public NetworkVariable<FixedString64Bytes> nicknameNet = new NetworkVariable<FixedString64Bytes>(
-        "Player",
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-    public NetworkVariable<FixedString64Bytes> guidNet = new NetworkVariable<FixedString64Bytes>(
-        "",
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
@@ -238,11 +221,6 @@ public class PlayerCtF : Player
         isFlagActiveNet.OnValueChanged -= OnFlagChanged;
     }
 
-    private void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
-    {
-        SetSkinColor(newValue.Value.ToString());
-    }
-
     private void OnFlagChanged(bool previousValue, bool newValue)
     {
         flag.SetActive(newValue);
@@ -257,24 +235,14 @@ public class PlayerCtF : Player
 
     private void OnTeamChanged(Team previousValue, Team newValue)
     {
-        playerSkinRenderer.material.color = newValue == Team.Green ? greenColor.color : blueColor.color;
+        PlayerSkinRenderer.material.color = newValue == Team.Green ? greenColor.color : blueColor.color;
         if (IsOwner)
         {
-            playerSkinRenderer.material.color = playerSkinRenderer.material.color * 2f;
-            playerSkinRenderer.material.EnableKeyword("_EMISSION");
-            playerSkinRenderer.material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+            PlayerSkinRenderer.material.color = PlayerSkinRenderer.material.color * 2f;
+            PlayerSkinRenderer.material.EnableKeyword("_EMISSION");
+            PlayerSkinRenderer.material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
             SetCurrentZoneServerRpc(newValue);
         }
-    }
-
-    /// <summary>
-    /// Helper method for changing a player model's color.
-    /// </summary>
-    /// <param name="color">Updated hex-code color.</param>
-    private void SetSkinColor(string color)
-    {
-        UnityEngine.ColorUtility.TryParseHtmlString(color, out var skinColor);
-        playerSkinRenderer.material.color = skinColor;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -447,32 +415,10 @@ public class PlayerCtF : Player
         animator.SetBool("isTaunting", isTauntingNet.Value);
     }
 
-    /// <summary>
-    /// Sets player model color to specified hexcode.
-    /// </summary>
-    /// <param name="color">New player model color.</param>
-    [ServerRpc]
-    public void UpdateColorServerRpc(string color)
-    {
-        colorNet.Value = new FixedString64Bytes(color);
-    }
-
-    [ServerRpc]
-    public void UpdateNicknameServerRpc(string nickname)
-    {
-        nicknameNet.Value = nickname;
-    }
-
     [ServerRpc]
     public void SetCurrentZoneServerRpc(Team zone)
     {
         currentZoneNet.Value = zone;
-    }
-
-    [ServerRpc]
-    public void UpdateGuidServerRpc(string guid)
-    {
-        guidNet.Value = guid;
     }
 
     /// <summary>

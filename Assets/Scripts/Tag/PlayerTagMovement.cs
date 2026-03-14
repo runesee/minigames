@@ -1,19 +1,14 @@
 using Unity.Netcode;
-using Unity.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Linq;
-using System.Collections.Generic;
 using System;
 using PlayPulse.Api.Utils;
-using Unity.VisualScripting;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
 public class PlayerTagMovement : Player
 {
-    [SerializeField] private SkinnedMeshRenderer playerSkinRenderer;
-
     [Header("Map Boundaries")]
     public float minX = -17f;
     public float maxX = 17f;
@@ -68,21 +63,6 @@ public class PlayerTagMovement : Player
     );
     public NetworkVariable<double> lastTagTimeNet = new NetworkVariable<double>(
         0,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-    public NetworkVariable<FixedString64Bytes> colorNet = new NetworkVariable<FixedString64Bytes>(
-        "#D6877F",
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-    public NetworkVariable<FixedString64Bytes> nicknameNet = new NetworkVariable<FixedString64Bytes>(
-        "Player",
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-    public NetworkVariable<FixedString64Bytes> guidNet = new NetworkVariable<FixedString64Bytes>(
-        "",
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
@@ -181,26 +161,11 @@ public class PlayerTagMovement : Player
         isShowingBoostParticlesNet.OnValueChanged -= OnSprintParticlesChanged;
     }
 
-    private void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
-    {
-        SetSkinColor(newValue.Value.ToString());
-    }
-
     private void OnSprintParticlesChanged(bool previousValue, bool newValue)
     {
         if (sprintParticleEffect == null) return;
         if (newValue && !sprintParticleEffect.isPlaying) sprintParticleEffect.Play();
         else if (sprintParticleEffect.isPlaying) sprintParticleEffect.Stop();
-    }
-
-    /// <summary>
-    /// Helper method for changing a player model's color.
-    /// </summary>
-    /// <param name="color">Updated hex-code color.</param>
-    private void SetSkinColor(string color)
-    {
-        UnityEngine.ColorUtility.TryParseHtmlString(color, out var skinColor);
-        playerSkinRenderer.material.color = skinColor;
     }
 
     public override PlayerData GetPlayerData()
@@ -365,28 +330,6 @@ public class PlayerTagMovement : Player
         var random = UnityEngine.Random.Range(0, players.Count);
         var selectedPlayer = players[random];
         SetInitialTaggedPlayerServerRpc(selectedPlayer.NetworkObjectId);
-    }
-
-    /// <summary>
-    /// Sets player model color to specified hexcode.
-    /// </summary>
-    /// <param name="color">New player model color.</param>
-    [ServerRpc]
-    public void UpdateColorServerRpc(string color)
-    {
-        colorNet.Value = new FixedString64Bytes(color);
-    }
-
-    [ServerRpc]
-    public void UpdateNicknameServerRpc(string nickname)
-    {
-        nicknameNet.Value = nickname;
-    }
-
-    [ServerRpc]
-    public void UpdateGuidServerRpc(string guid)
-    {
-        guidNet.Value = guid;
     }
 
     /// <summary>

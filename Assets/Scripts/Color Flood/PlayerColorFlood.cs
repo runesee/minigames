@@ -7,8 +7,6 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(NetworkObject))]
 public class PlayerColorFlood : Player
 {
-    [SerializeField] private SkinnedMeshRenderer playerSkinRenderer;
-
     [Header("Map Boundaries")]
     public float minX = -39.5f;
     public float maxX = 39.5f;
@@ -33,24 +31,6 @@ public class PlayerColorFlood : Player
         false,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner
-    );
-
-    public NetworkVariable<FixedString64Bytes> colorNet = new NetworkVariable<FixedString64Bytes>(
-        "#D6877F",
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-
-    public NetworkVariable<FixedString64Bytes> nicknameNet = new NetworkVariable<FixedString64Bytes>(
-        "Player",
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-
-    public NetworkVariable<FixedString64Bytes> guidNet = new NetworkVariable<FixedString64Bytes>(
-        "",
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
     );
 
     public NetworkVariable<Team> teamNet = new NetworkVariable<Team>(
@@ -225,20 +205,10 @@ public class PlayerColorFlood : Player
         }
     }
 
-    private void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
+    public override void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
     {
-        SetSkinColor(newValue.ToString());
-        if (teamNet.Value != Team.None)
-        {
-            ApplyTeamTint(teamNet.Value);
-        }
-    }
-
-    private void SetSkinColor(string color)
-    {
-        if (playerSkinRenderer == null) return;
-        if (ColorUtility.TryParseHtmlString(color, out Color skinColor))
-            playerSkinRenderer.material.color = skinColor;
+        base.OnSkinColorChanged(previousValue, newValue);
+        if (teamNet.Value != Team.None) ApplyTeamTint(teamNet.Value);
     }
 
     private void OnSprintParticlesChanged(bool previousValue, bool newValue)
@@ -255,32 +225,14 @@ public class PlayerColorFlood : Player
 
     private void ApplyTeamTint(Team team)
     {
-        if (playerSkinRenderer == null) return;
+        if (PlayerSkinRenderer == null) return;
         Color tint = team switch
         {
             Team.Green => new Color(0.5f, 1f, 0.5f),
             Team.Blue => new Color(0.5f, 0.7f, 1f),
             _ => Color.white,
         };
-        playerSkinRenderer.material.color = tint;
-    }
-
-    [ServerRpc]
-    public void UpdateColorServerRpc(string color)
-    {
-        colorNet.Value = new FixedString64Bytes(color);
-    }
-
-    [ServerRpc]
-    public void UpdateNicknameServerRpc(string nickname)
-    {
-        nicknameNet.Value = new FixedString64Bytes(nickname);
-    }
-
-    [ServerRpc]
-    public void UpdateGuidServerRpc(string guid)
-    {
-        guidNet.Value = new FixedString64Bytes(guid);
+        PlayerSkinRenderer.material.color = tint;
     }
 
     [ClientRpc]

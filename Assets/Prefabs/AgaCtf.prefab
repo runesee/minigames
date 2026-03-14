@@ -5028,7 +5028,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
   GlobalObjectIdHash: 1405452638
-  GlobalObjectIdHash: 1405452638
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -5263,22 +5262,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCtF
   ShowTopMostFoldoutHeaderGroup: 1
-  playerSkinRenderer: {fileID: 8576045237320093323}
-  flag: {fileID: 7685504545009282327}
-  flagColor: {fileID: 4711070426998390495}
-  flagTransform: {fileID: 9026480660467426401}
-  blueColor: {fileID: 2100000, guid: 5f79d6da33539264da6fd39a66c9a845, type: 2}
-  greenColor: {fileID: 2100000, guid: 8e8f7e43ebf4ece4babb4a055b4c5ba0, type: 2}
-  minX: -36
-  maxX: 36
-  minZ: -14
-  maxZ: 14
-  timeSpentTaggedNet:
-    m_InternalValue: 0
-  lastTagTimeNet:
-    m_InternalValue: 0
-  lastRespawnTimeNet:
-    m_InternalValue: 0
+  PlayerSkinRenderer: {fileID: 8576045237320093323}
   colorNet:
     m_InternalValue:
       utf8LengthInBytes: 7
@@ -5486,6 +5470,21 @@ MonoBehaviour:
         byte0059: 0
         byte0060: 0
         byte0061: 0
+  flag: {fileID: 7685504545009282327}
+  flagColor: {fileID: 4711070426998390495}
+  flagTransform: {fileID: 9026480660467426401}
+  blueColor: {fileID: 2100000, guid: 5f79d6da33539264da6fd39a66c9a845, type: 2}
+  greenColor: {fileID: 2100000, guid: 8e8f7e43ebf4ece4babb4a055b4c5ba0, type: 2}
+  minX: -36
+  maxX: 36
+  minZ: -14
+  maxZ: 14
+  timeSpentTaggedNet:
+    m_InternalValue: 0
+  lastTagTimeNet:
+    m_InternalValue: 0
+  lastRespawnTimeNet:
+    m_InternalValue: 0
   teamNet:
     m_InternalValue: 0
   isFlagActiveNet:
