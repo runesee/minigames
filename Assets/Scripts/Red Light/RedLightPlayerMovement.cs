@@ -4,7 +4,7 @@ using Unity.Collections;
 using System.Collections;
 
 [RequireComponent(typeof(Rigidbody))]
-public class RedLightPlayerMovement : NetworkBehaviour
+public class RedLightPlayerMovement : Player
 {
     [Header("Movement Settings")]
     [SerializeField] private float speedMultiplier = 10f;
@@ -34,7 +34,6 @@ public class RedLightPlayerMovement : NetworkBehaviour
     private Color originalColor;
     private float flashTimer = 0f;
     private bool isFlashing = false;
-    private bool usingPlayPulse = true;
     private float startPositionZ = 0f;
 
     private NetworkVariable<bool> isWalking = new NetworkVariable<bool>(
@@ -93,22 +92,6 @@ public class RedLightPlayerMovement : NetworkBehaviour
         {
             animator.applyRootMotion = false;
         }
-
-        if (usingPlayPulse)
-        {
-            try
-            {
-                if (!PlayPulse.PlayPulseService.IsInitialized)
-                {
-                    usingPlayPulse = false;
-                }
-            }
-            catch
-            {
-                usingPlayPulse = false;
-            }
-        }
-
         colorNet.OnValueChanged += OnSkinColorChanged;
         isPenalizedNet.OnValueChanged += OnPenaltyStateChanged;
 
@@ -285,7 +268,7 @@ public class RedLightPlayerMovement : NetworkBehaviour
     {
         bool stopHeld;
         
-        if (usingPlayPulse)
+        if (MinigameManager.USING_PLAYPULSE)
         {
             stopHeld = PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.A);
         }
@@ -330,7 +313,7 @@ public class RedLightPlayerMovement : NetworkBehaviour
 
     private float GetPedalInput()
     {
-        if (usingPlayPulse)
+        if (MinigameManager.USING_PLAYPULSE)
         {
             return Mathf.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f);
         }
@@ -436,14 +419,14 @@ public class RedLightPlayerMovement : NetworkBehaviour
         return transform.position.z;
     }
 
-    public RedLightGameState.PlayerData GetPlayerData()
+    public override PlayerData GetPlayerData()
     {
         float distance = isStandaloneMode ? GetTraveledDistance() : distanceTraveledNet.Value;
-        
-        return new RedLightGameState.PlayerData(
+        return new PlayerData(
             guidNet.Value,
             nicknameNet.Value,
             colorNet.Value,
+            distance,
             distance
         );
     }

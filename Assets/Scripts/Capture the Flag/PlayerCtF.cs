@@ -3,14 +3,12 @@ using Unity.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System;
-using Unity.VisualScripting;
 using System.Collections;
 using TMPro;
-using UnityEngine.UIElements;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
-public class PlayerCtF : NetworkBehaviour
+public class PlayerCtF : Player
 {
     public static PlayerCtF Local;
     [SerializeField] public SkinnedMeshRenderer playerSkinRenderer;
@@ -143,13 +141,6 @@ public class PlayerCtF : NetworkBehaviour
     private bool canTaunt;
     private float smoothedPedalSpeed = 0f;
     private readonly float sprintSpeedThreshold = 0.65f;
-
-    public enum Team
-    {
-        None,
-        Green,
-        Blue,
-    }
 
     public enum CtfClips
     {
@@ -335,15 +326,14 @@ public class PlayerCtF : NetworkBehaviour
         }
     }
 
-    public CtFGameState.PlayerData GetTagData()
+    public override PlayerData GetPlayerData()
     {
-        CtFGameState.PlayerData playerData = new CtFGameState.PlayerData(
+        PlayerData playerData = new PlayerData(
             guidNet.Value,
             nicknameNet.Value,
             colorNet.Value,
-            teamNet.Value,
             collectedFlagsNet.Value,
-            lastTagTimeNet.Value
+            teamNet.Value == Team.Green ? 0f : 1f
         );
         return playerData;
     }

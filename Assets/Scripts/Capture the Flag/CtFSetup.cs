@@ -30,7 +30,7 @@ public class CtFSetup : NetworkBehaviour
                 SessionManager.Instance.PlayerDataList[i].nickname, 
                 SessionManager.Instance.PlayerDataList[i].color, 
                 SessionManager.Instance.PlayerDataList[i].Guid,
-                PlayerCtF.Team.None
+                Team.None
                 ));
         }
         setupData.Sort((a, b) => string.Compare(a.Guid.ToString(), b.Guid.ToString(), StringComparison.Ordinal));
@@ -42,7 +42,7 @@ public class CtFSetup : NetworkBehaviour
         for (int i = 0; i < data.Count; i++)
         {
             playerCards[i].gameObject.SetActive(true);
-            if (data[i].team == PlayerCtF.Team.Green)
+            if (data[i].team == Team.Green)
             {
                 playerCards[i].teamText.text = "Green";
                 playerCards[i].teamText.color = Color.green;
@@ -94,13 +94,13 @@ public class CtFSetup : NetworkBehaviour
         {
             var entry = setupData[i];
             if (!players.TryGetValue(entry.Guid, out var player)) continue;
-            player.teamNet.Value = (teamIndex % 2 == 0) ? PlayerCtF.Team.Green : PlayerCtF.Team.Blue;
+            player.teamNet.Value = (teamIndex % 2 == 0) ? Team.Green : Team.Blue;
             var data = setupData[teamIndex];
             data.team = player.teamNet.Value;
             setupData[teamIndex] = data;
 
             Vector3 spawnPosition = new();
-            if (player.teamNet.Value == PlayerCtF.Team.Green)
+            if (player.teamNet.Value == Team.Green)
             {
                 spawnPosition = greenSpawns[greenSpawnTally];
                 greenSpawnTally++;
@@ -133,9 +133,9 @@ public class CtFSetup : NetworkBehaviour
         public FixedString64Bytes nickname;
         public FixedString64Bytes color;
         public FixedString64Bytes Guid;
-        public PlayerCtF.Team team;
+        public Team team;
 
-        public SetupData(FixedString64Bytes nickname, FixedString64Bytes color, FixedString64Bytes guid, PlayerCtF.Team team)
+        public SetupData(FixedString64Bytes nickname, FixedString64Bytes color, FixedString64Bytes guid, Team team)
         {
             this.nickname = nickname;
             this.color = color;

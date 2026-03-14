@@ -1,9 +1,7 @@
 using Unity.Collections;
 using Unity.Netcode;
-using UnityEngine;
 
-public class FocusFlowData : NetworkBehaviour
-
+public class FocusFlowData : Player
 {
     public NetworkVariable<FixedString64Bytes> guidNet = new NetworkVariable<FixedString64Bytes>(
     "",
@@ -39,12 +37,13 @@ public class FocusFlowData : NetworkBehaviour
         }
     }
 
-    public FocusFlowGameState.PlayerData GetFocusFlowData()
+    public override PlayerData GetPlayerData()
     {
-        FocusFlowGameState.PlayerData playerData = new FocusFlowGameState.PlayerData(
+        PlayerData playerData = new PlayerData(
             guidNet.Value,
             nicknameNet.Value,
             colorNet.Value,
+            totalScoreNet.Value,
             totalScoreNet.Value
         );
         return playerData;

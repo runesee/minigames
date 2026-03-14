@@ -19,7 +19,7 @@ public class TileGrid : NetworkBehaviour
 
     private ColorFloodTile[] tiles;
 
-    private ColorFloodGameState.Team[] tileOwnership;
+    private Team[] tileOwnership;
 
     private void Awake()
     {
@@ -34,7 +34,7 @@ public class TileGrid : NetworkBehaviour
     private void GenerateGrid()
     {
         tiles = new ColorFloodTile[gridWidth * gridHeight];
-        tileOwnership = new ColorFloodGameState.Team[gridWidth * gridHeight];
+        tileOwnership = new Team[gridWidth * gridHeight];
 
         float gridOriginX = -(gridWidth * tileSize) / 2f + tileSize / 2f;
         float gridOriginZ = -(gridHeight * tileSize) / 2f + tileSize / 2f;
@@ -55,21 +55,21 @@ public class TileGrid : NetworkBehaviour
 
                 ColorFloodTile tile = tileObject.GetComponent<ColorFloodTile>();
                 tile.tileIndex = index;
-                tile.SetColor(ColorFloodGameState.Team.None, greenMaterial, blueMaterial, neutralMaterial);
+                tile.SetColor(Team.None, greenMaterial, blueMaterial, neutralMaterial);
 
                 tiles[index] = tile;
-                tileOwnership[index] = ColorFloodGameState.Team.None;
+                tileOwnership[index] = Team.None;
             }
         }
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-    public void PaintTileServerRpc(int tileIndex, ColorFloodGameState.Team team)
+    public void PaintTileServerRpc(int tileIndex, Team team)
     {
         PaintTileInternal(tileIndex, team);
     }
 
-    public void PaintArea(Vector3 center, float radius, ColorFloodGameState.Team team)
+    public void PaintArea(Vector3 center, float radius, Team team)
     {
         if (!IsServer) return;
 
@@ -97,29 +97,29 @@ public class TileGrid : NetworkBehaviour
         }
     }
 
-    private void PaintTileInternal(int tileIndex, ColorFloodGameState.Team team)
+    private void PaintTileInternal(int tileIndex, Team team)
     {
         if (tileIndex < 0 || tileIndex >= tileOwnership.Length) return;
         if (tileOwnership[tileIndex] == team) return;
 
-        ColorFloodGameState.Team previousOwner = tileOwnership[tileIndex];
+        Team previousOwner = tileOwnership[tileIndex];
         tileOwnership[tileIndex] = team;
 
-        if (previousOwner == ColorFloodGameState.Team.Green)
+        if (previousOwner == Team.Green)
             ColorFloodGameState.Instance.greenTileCount.Value--;
-        else if (previousOwner == ColorFloodGameState.Team.Blue)
+        else if (previousOwner == Team.Blue)
             ColorFloodGameState.Instance.blueTileCount.Value--;
 
-        if (team == ColorFloodGameState.Team.Green)
+        if (team == Team.Green)
             ColorFloodGameState.Instance.greenTileCount.Value++;
-        else if (team == ColorFloodGameState.Team.Blue)
+        else if (team == Team.Blue)
             ColorFloodGameState.Instance.blueTileCount.Value++;
 
         UpdateTileColorClientRpc(tileIndex, team);
     }
 
     [ClientRpc]
-    private void UpdateTileColorClientRpc(int tileIndex, ColorFloodGameState.Team team)
+    private void UpdateTileColorClientRpc(int tileIndex, Team team)
     {
         if (tiles == null || tileIndex < 0 || tileIndex >= tiles.Length) return;
         tiles[tileIndex].SetColor(team, greenMaterial, blueMaterial, neutralMaterial);

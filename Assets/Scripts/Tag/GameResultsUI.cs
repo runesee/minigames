@@ -179,9 +179,9 @@ public class GameResultsUI : NetworkBehaviour
             {
                 if (CtFGameState.Instance.blueScore.Value > CtFGameState.Instance.greenScore.Value)
                 {
-                    DisplayWinnerTextClientRpc(CtFGameState.Instance.blueColor.color, PlayerCtF.Team.Blue);
+                    DisplayWinnerTextClientRpc(CtFGameState.Instance.blueColor.color, Team.Blue);
                 }
-                else DisplayWinnerTextClientRpc(CtFGameState.Instance.greenColor.color, PlayerCtF.Team.Green);
+                else DisplayWinnerTextClientRpc(CtFGameState.Instance.greenColor.color, Team.Green);
             }
         }
         else if (newState == GameState.Idling || newState == GameState.Initializing)
@@ -258,125 +258,17 @@ public class GameResultsUI : NetworkBehaviour
         }
     }
 
-    private List<PlayerResult> AddTagResults(List<PlayerResult> results)
+    private static List<PlayerResult> AddResults<T>(List<PlayerResult> results) where T : Player
     {
         foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
         {
-            var player = obj.GetComponent<PlayerTagMovement>();
-            if (player == null) continue;
-
-            double totalTime = player.timeSpentTaggedNet.Value;
-
-            if (player.NetworkObjectId == TagGameState.Instance.taggedPlayerIdNet.Value)
-            {
-                var gameTimer = FindAnyObjectByType<GameTimer>();
-                double serverTime = gameTimer != null
-                    ? gameTimer.GameEndServerTime
-                    : NetworkManager.Singleton.ServerTime.FixedTime;
-                totalTime += serverTime - player.lastTagTimeNet.Value;
-            }
-
-            string nickname = new string(player.nicknameNet.Value.Value);
-            if (string.IsNullOrEmpty(nickname))
-            {
-                nickname = $"Player{player.OwnerClientId}";
-            }
-
-            results.Add(new PlayerResult
-            {
-                clientId = player.OwnerClientId,
-                score = totalTime,
-                nickname = nickname,
-                color = player.colorNet.Value
-            });
-        }
-        return results;
-    }
-
-    private List<PlayerResult> AddFocusFlowResults(List<PlayerResult> results)
-    {
-        foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
-        {
-            FocusFlowData data = obj.GetComponent<FocusFlowData>();
-            if (data == null) continue;
-            results.Add(new PlayerResult
-            {
-                clientId = data.OwnerClientId,
-                score = data.totalScoreNet.Value,
-                nickname = data.nicknameNet.Value.ToSafeString(),
-                color = data.colorNet.Value
-            });
-        }
-        return results;
-    }
-
-    private List<PlayerResult> AddBalloonTagResults(List<PlayerResult> results)
-    {
-        foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
-        {
-            var player = obj.GetComponent<PlayerBalloonTag>();
-            if (player == null) continue;
-            results.Add(new PlayerResult
-            {
-                clientId = player.OwnerClientId,
-                score = player.balloonsNet.Value.count,
-                nickname = player.nicknameNet.Value.ToSafeString(),
-                color = player.colorNet.Value
-            });
-        }
-        return results;
-    }
-
-    private List<PlayerResult> AddRedLightResults(List<PlayerResult> results)
-    {
-        foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
-        {
-            RedLightPlayerMovement player = obj.GetComponent<RedLightPlayerMovement>();
-            if (player == null) continue;
-
-            results.Add(new PlayerResult
-            {
-                clientId = player.OwnerClientId,
-                score = player.distanceTraveledNet.Value,
-                nickname = player.nicknameNet.Value,
-                color = player.colorNet.Value
-            });
-        }
-        return results;
-    }
-
-    private List<PlayerResult> AddCtFResults(List<PlayerResult> results)
-    {
-        foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
-        {
-            var player = obj.GetComponent<PlayerCtF>();
-            if (player == null) continue;
-            float score = player.collectedFlagsNet.Value;
-            Color color = player.teamNet.Value == PlayerCtF.Team.Green ? player.greenColor.color : player.blueColor.color;
-            FixedString64Bytes _color = new FixedString64Bytes("#" + color.ToHexString());
-
-            results.Add(new PlayerResult
-            {
-                clientId = player.OwnerClientId,
-                score = score,
-                nickname = player.nicknameNet.Value.ToSafeString(),
-                color = _color,
-            });
-        }
-        return results;
-    }
-
-    private List<PlayerResult> AddColorFloodResults(List<PlayerResult> results)
-    {
-        foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
-        {
-            var player = obj.GetComponent<PlayerColorFlood>();
+            var player = obj.GetComponent<T>();
             if (player == null) continue;
             var data = player.GetPlayerData();
             results.Add(new PlayerResult
             {
                 clientId = player.OwnerClientId,
-                score = data.tilesOwned,
+                score = data.score,
                 nickname = data.nickname.ToSafeString(),
                 color = data.color,
             });
@@ -388,28 +280,27 @@ public class GameResultsUI : NetworkBehaviour
     {
         if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag)
         {
-            results = AddTagResults(results);
+            results = AddResults<PlayerTagMovement>(results);
         }
         else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.FocusFlow)
         {
-            results = AddFocusFlowResults(results);
+            results = AddResults<FocusFlowData>(results);
         }
         else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.RedLight)
         {
-            results = AddRedLightResults(results);
+            results = AddResults<RedLightPlayerMovement>(results);
         }
-
         else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.BalloonTag)
         {
-            results = AddBalloonTagResults(results);
+            results = AddResults<PlayerBalloonTag>(results);
         }
         else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.CaptureTheFlag)
         {
-            results = AddCtFResults(results);
+            results = AddResults<PlayerCtF>(results);
         }
         else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.ColorFlood)
         {
-            results = AddColorFloodResults(results);
+            results = AddResults<PlayerColorFlood>(results);
         }
         results = results.OrderBy(r => r.score).ToList();
 
@@ -418,7 +309,6 @@ public class GameResultsUI : NetworkBehaviour
         {
             results.Reverse();
         }
-
         UpdateCanvas(results);
     }
 
@@ -473,18 +363,18 @@ public class GameResultsUI : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void DisplayWinnerTextClientRpc(Color color, PlayerCtF.Team team)
+    private void DisplayWinnerTextClientRpc(Color color, Team team)
     {
         UpdateWinnerText(color, team);
     }
 
-    private void UpdateWinnerText(Color color, PlayerCtF.Team team)
+    private void UpdateWinnerText(Color color, Team team)
     {
         winnerText.text = team.ToString() + " team wins!";
         winnerText.color = color;
     }
 
-    private struct PlayerResult : INetworkSerializable
+    public struct PlayerResult : INetworkSerializable
     {
         public ulong clientId;
         public double score;

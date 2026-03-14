@@ -80,14 +80,14 @@ public class ColorFloodPlayerSpawner : NetworkBehaviour
 
         for (int i = 0; i < players.Count; i++)
         {
-            ColorFloodGameState.Team team = (i % 2 == 0)
-                ? ColorFloodGameState.Team.Green
-                : ColorFloodGameState.Team.Blue;
+            Team team = (i % 2 == 0)
+                ? Team.Green
+                : Team.Blue;
 
             players[i].teamNet.Value = team;
 
             Vector3 spawnPosition;
-            if (team == ColorFloodGameState.Team.Green)
+            if (team == Team.Green)
             {
                 spawnPosition = greenSpawns.Count > greenSpawnTally
                     ? greenSpawns[greenSpawnTally++]

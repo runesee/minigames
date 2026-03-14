@@ -10,7 +10,7 @@ using Unity.VisualScripting;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
-public class PlayerTagMovement : NetworkBehaviour
+public class PlayerTagMovement : Player
 {
     [SerializeField] private SkinnedMeshRenderer playerSkinRenderer;
 
@@ -72,23 +72,20 @@ public class PlayerTagMovement : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
     public NetworkVariable<FixedString64Bytes> colorNet = new NetworkVariable<FixedString64Bytes>(
-    "#D6877F",
-    NetworkVariableReadPermission.Everyone,
-    NetworkVariableWritePermission.Server
+        "#D6877F",
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
     );
-
     public NetworkVariable<FixedString64Bytes> nicknameNet = new NetworkVariable<FixedString64Bytes>(
-    "Player",
-    NetworkVariableReadPermission.Everyone,
-    NetworkVariableWritePermission.Server
+        "Player",
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
     );
-
     public NetworkVariable<FixedString64Bytes> guidNet = new NetworkVariable<FixedString64Bytes>(
-    "",
-    NetworkVariableReadPermission.Everyone,
-    NetworkVariableWritePermission.Server
+        "",
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
     );
-
     private NetworkVariable<float> staminaNet = new NetworkVariable<float>(
         100f,
         NetworkVariableReadPermission.Everyone,
@@ -206,27 +203,23 @@ public class PlayerTagMovement : NetworkBehaviour
         playerSkinRenderer.material.color = skinColor;
     }
 
-    public TagGameState.PlayerData GetTagData()
+    public override PlayerData GetPlayerData()
     {
-        var position = transform.position;
         double totalTime = timeSpentTaggedNet.Value;
         if (NetworkObjectId == TagGameState.Instance.taggedPlayerIdNet.Value)
         {
-            double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
+            var gameTimer = FindAnyObjectByType<GameTimer>();
+            double serverTime = gameTimer != null ? gameTimer.GameEndServerTime : NetworkManager.Singleton.ServerTime.FixedTime;
+            //double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
             totalTime += serverTime - lastTagTimeNet.Value;
         }
-
-        TagGameState.PlayerData playerData = new TagGameState.PlayerData(
+        return new PlayerData(
             guidNet.Value,
             nicknameNet.Value,
             colorNet.Value,
-            position.x,
-            position.z,
-            totalTime,
-            lastTagTimeNet.Value,
-            isTaggedNet.Value
+            (float) totalTime,
+            (float) totalTime
         );
-        return playerData;
     }
 
     void OnGUI()

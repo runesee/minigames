@@ -184,14 +184,14 @@ public class GameTimer : NetworkBehaviour
                 overtimeCount++;
                 if (overtimeCount >= 2)
                 {
-                    CtFGameState.Instance.ToastMessageClientRpc(PlayerCtF.Team.None, "2nd Overtime! Last chance to avoid a tie!");
+                    CtFGameState.Instance.ToastMessageClientRpc(Team.None, "2nd Overtime! Last chance to avoid a tie!");
                     float[] scores = { 5f, 5f, 5f, 5f };
-                    CtFGameState.Instance.scores = scores;
+                    CtFGameState.Instance.SetScores(scores);
                     OvertimeServerRpc(31f);
                 }
                 else
                 {
-                    CtFGameState.Instance.ToastMessageClientRpc(PlayerCtF.Team.None, "Overtime! 45 seconds added to the clock!");
+                    CtFGameState.Instance.ToastMessageClientRpc(Team.None, "Overtime! 45 seconds added to the clock!");
                     OvertimeServerRpc(46f);
                 }
                 return;

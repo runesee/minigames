@@ -1,4 +1,3 @@
-using System.Collections;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -6,7 +5,7 @@ using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
-public class PlayerColorFlood : NetworkBehaviour
+public class PlayerColorFlood : Player
 {
     [SerializeField] private SkinnedMeshRenderer playerSkinRenderer;
 
@@ -19,30 +18,46 @@ public class PlayerColorFlood : NetworkBehaviour
     private readonly float walkSpeed = 5f;
     private readonly float sprintSpeedThreshold = 0.65f;
 
-    // --- NetworkVariables ---
-
     private NetworkVariable<bool> isWalkingNet = new NetworkVariable<bool>(
-        false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-
+        false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Owner
+    );
     private NetworkVariable<bool> isSprintingNet = new NetworkVariable<bool>(
-        false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Owner
+    );
 
     private NetworkVariable<bool> isShowingBoostParticlesNet = new NetworkVariable<bool>(
-        false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Owner
+    );
 
     public NetworkVariable<FixedString64Bytes> colorNet = new NetworkVariable<FixedString64Bytes>(
-        "#D6877F", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+        "#D6877F",
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
 
     public NetworkVariable<FixedString64Bytes> nicknameNet = new NetworkVariable<FixedString64Bytes>(
-        "Player", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+        "Player",
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
 
     public NetworkVariable<FixedString64Bytes> guidNet = new NetworkVariable<FixedString64Bytes>(
-        "", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+        "",
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
 
-    public NetworkVariable<ColorFloodGameState.Team> teamNet = new NetworkVariable<ColorFloodGameState.Team>(
-        ColorFloodGameState.Team.None, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-
-    // --- Component refs ---
+    public NetworkVariable<Team> teamNet = new NetworkVariable<Team>(
+        Team.None,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
 
     public ParticleSystem sprintParticleEffect;
     private InputAction moveAction;
@@ -51,8 +66,6 @@ public class PlayerColorFlood : NetworkBehaviour
     private Rigidbody rb;
 
     private float smoothedPedalSpeed = 0f;
-    private bool usingPlayPulse = true;
-
     private float speedBoostTimer;
     private const float SpeedBoostDuration = 5f;
     private const float SpeedBoostMultiplier = 2f;
@@ -60,17 +73,6 @@ public class PlayerColorFlood : NetworkBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-    }
-
-    private void Start()
-    {
-        if (!usingPlayPulse) return;
-        try
-        {
-            if (!PlayPulse.PlayPulseService.IsInitialized)
-                PlayPulse.Input.Input.ResistanceSetPoint = 0.2f;
-        }
-        catch { usingPlayPulse = false; }
     }
 
     public override void OnNetworkSpawn()
@@ -101,7 +103,7 @@ public class PlayerColorFlood : NetworkBehaviour
         string color = IsOwner ? data.color : colorNet.Value.ToString();
         SetSkinColor(color);
 
-        if (teamNet.Value != ColorFloodGameState.Team.None)
+        if (teamNet.Value != Team.None)
         {
             ApplyTeamTint(teamNet.Value);
         }
@@ -138,8 +140,8 @@ public class PlayerColorFlood : NetworkBehaviour
         float smoothing = 1f - Mathf.Exp(-10f * Time.deltaTime);
         float inputSpeed = Mathf.Clamp(PlayPulse.Input.Input.Speed, 0f, 1f);
         smoothedPedalSpeed = Mathf.Lerp(smoothedPedalSpeed, inputSpeed, smoothing);
-        float pedalSpeed = usingPlayPulse ? smoothedPedalSpeed : 0.5f;
-        float pedalAnimationSpeed = usingPlayPulse ? 1.6f * pedalSpeed : 1f;
+        float pedalSpeed = MinigameManager.USING_PLAYPULSE ? smoothedPedalSpeed : 0.5f;
+        float pedalAnimationSpeed = MinigameManager.USING_PLAYPULSE  ? 1.6f * pedalSpeed : 1f;
 
         if (System.Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f ||
             System.Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f)
@@ -206,7 +208,7 @@ public class PlayerColorFlood : NetworkBehaviour
             return;
         }
 
-        if (teamNet.Value == ColorFloodGameState.Team.None) return;
+        if (teamNet.Value == Team.None) return;
 
         ColorFloodTile tile = other.GetComponent<ColorFloodTile>();
         if (tile == null) return;
@@ -226,7 +228,7 @@ public class PlayerColorFlood : NetworkBehaviour
     private void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
     {
         SetSkinColor(newValue.ToString());
-        if (teamNet.Value != ColorFloodGameState.Team.None)
+        if (teamNet.Value != Team.None)
         {
             ApplyTeamTint(teamNet.Value);
         }
@@ -246,18 +248,18 @@ public class PlayerColorFlood : NetworkBehaviour
         else if (!newValue && sprintParticleEffect.isPlaying) sprintParticleEffect.Stop();
     }
 
-    private void OnTeamChanged(ColorFloodGameState.Team previousValue, ColorFloodGameState.Team newValue)
+    private void OnTeamChanged(Team previousValue, Team newValue)
     {
         ApplyTeamTint(newValue);
     }
 
-    private void ApplyTeamTint(ColorFloodGameState.Team team)
+    private void ApplyTeamTint(Team team)
     {
         if (playerSkinRenderer == null) return;
         Color tint = team switch
         {
-            ColorFloodGameState.Team.Green => new Color(0.5f, 1f, 0.5f),
-            ColorFloodGameState.Team.Blue => new Color(0.5f, 0.7f, 1f),
+            Team.Green => new Color(0.5f, 1f, 0.5f),
+            Team.Blue => new Color(0.5f, 0.7f, 1f),
             _ => Color.white,
         };
         playerSkinRenderer.material.color = tint;
@@ -282,24 +284,24 @@ public class PlayerColorFlood : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void TeleportClientRpc(Vector3 position, ColorFloodGameState.Team team)
+    public void TeleportClientRpc(Vector3 position, Team team)
     {
         rb.position = position;
-        rb.rotation = Quaternion.Euler(0f, team == ColorFloodGameState.Team.Green ? 90f : -90f, 0f);
+        rb.rotation = Quaternion.Euler(0f, team == Team.Green ? 90f : -90f, 0f);
     }
 
-    public ColorFloodGameState.PlayerData GetPlayerData()
+    public override PlayerData GetPlayerData()
     {
-        int tilesOwned = teamNet.Value == ColorFloodGameState.Team.Green
+        int tilesOwned = teamNet.Value == Team.Green
             ? ColorFloodGameState.Instance.greenTileCount.Value
             : ColorFloodGameState.Instance.blueTileCount.Value;
 
-        return new ColorFloodGameState.PlayerData(
+        return new PlayerData(
             guidNet.Value,
             nicknameNet.Value,
             colorNet.Value,
-            teamNet.Value,
-            tilesOwned
+            tilesOwned,
+            teamNet.Value == Team.Green ? 0f : 1f
         );
     }
 }

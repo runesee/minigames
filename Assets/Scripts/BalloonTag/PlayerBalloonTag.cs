@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
-public class PlayerBalloonTag : NetworkBehaviour
+public class PlayerBalloonTag : Player
 {
     [SerializeField] private SkinnedMeshRenderer playerSkinRenderer;
 
@@ -198,14 +198,14 @@ public class PlayerBalloonTag : NetworkBehaviour
         if (IsOwner) InitializeBalloonsServerRpc(color);
     }
 
-    public BalloonTagGameState.PlayerData GetTagData()
+    public override PlayerData GetPlayerData()
     {
-        BalloonTagGameState.PlayerData playerData = new BalloonTagGameState.PlayerData(
+        PlayerData playerData = new PlayerData(
             guidNet.Value,
             nicknameNet.Value,
             colorNet.Value,
             balloonsNet.Value.count,
-            lastTagTimeNet.Value
+            balloonsNet.Value.count
         );
         return playerData;
     }
