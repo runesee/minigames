@@ -5,7 +5,7 @@ using System.Linq;
 using System;
 using PlayPulse.Api.Utils;
 
-public class PlayerTagMovement : BoostPlayer
+public class PlayerTagMovement : TagPlayer
 {
     [Header("Map Boundaries")]
     public float minX = -17f;
@@ -13,17 +13,9 @@ public class PlayerTagMovement : BoostPlayer
     public float minZ = -13f;
     public float maxZ = 12f;
 
-    [Header("Audio settings")]
-    public AudioSource tagAudioSource;
     public AudioSource boostAudioSource;
-    public AudioClip tagClip;
     public AudioClip boostClip;
 
-    private NetworkVariable<bool> isPunchingNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
     private NetworkVariable<bool> isHitNet = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
@@ -34,34 +26,12 @@ public class PlayerTagMovement : BoostPlayer
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
-    private NetworkVariable<bool> isTauntingNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
-    public NetworkVariable<double> timeSpentTaggedNet = new NetworkVariable<double>(
-        0,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-    public NetworkVariable<double> lastTagTimeNet = new NetworkVariable<double>(
-        0,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
     private NetworkVariable<float> staminaNet = new NetworkVariable<float>(
         100f,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner
     );
-
-    private InputAction attackAction;
-    private InputAction interactAction;
     private InputAction resetTaggedPlayerDebug;
-
-    private bool isPunching;
-    private bool isTaunting;
-    private bool canTaunt;
     private bool isBoosting;
     private new readonly float sprintSpeedThreshold = 3.3f;
     private readonly float boostSpeed = 8f;
@@ -75,25 +45,8 @@ public class PlayerTagMovement : BoostPlayer
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        // Configure sprint particle effect
-        if (sprintParticleEffect != null)
-        {
-            var main = sprintParticleEffect.main;
-            main.playOnAwake = false;
-            main.startLifetime = 0.5f;
-            main.startSpeed = 2f;
-            main.startSize = 0.3f;
-            sprintParticleEffect.Stop();
-        }
-
-        // Init key bindings
-        attackAction = InputSystem.actions.FindAction("Attack");
-        interactAction = InputSystem.actions.FindAction("Interact");
         resetTaggedPlayerDebug = InputSystem.actions.FindAction("Crouch");
-        attackAction.Enable();
-        interactAction.Enable();
         resetTaggedPlayerDebug.Enable();
-        isShowingBoostParticlesNet.OnValueChanged += OnSprintParticlesChanged;
         if (IsHost && IsOwner) StartCoroutine(WaitForPlayerConnect());
     }
 
@@ -102,12 +55,6 @@ public class PlayerTagMovement : BoostPlayer
         while (NetworkManager.Singleton.ConnectedClientsList.Count < 2 || TagGameState.Instance == null) yield return new WaitForSeconds(0.1f);
         TagGameState.Instance.SetGameStateServerRpc(GameState.Running);
         SetInitialTaggedPlayer();
-    }
-
-    public override void OnNetworkDespawn()
-    {
-        base.OnNetworkDespawn();
-        isShowingBoostParticlesNet.OnValueChanged -= OnSprintParticlesChanged;
     }
 
     public override PlayerData GetPlayerData()
@@ -254,9 +201,7 @@ public class PlayerTagMovement : BoostPlayer
     public override void LateUpdate()
     {
         base.LateUpdate();
-        animator.SetBool("isPunching", isPunchingNet.Value);
         animator.SetBool("isHit", isHitNet.Value);
-        animator.SetBool("isTaunting", isTauntingNet.Value);
     }
 
     /// <summary>
@@ -271,15 +216,6 @@ public class PlayerTagMovement : BoostPlayer
         var random = UnityEngine.Random.Range(0, players.Count);
         var selectedPlayer = players[random];
         SetInitialTaggedPlayerServerRpc(selectedPlayer.NetworkObjectId);
-    }
-
-    /// <summary>
-    /// Re-enable user actions after freeze period.
-    /// </summary>
-    [ServerRpc]
-    private void UnfreezePlayerServerRpc()
-    {
-        isHitNet.Value = false;
     }
 
     /// <summary>
@@ -309,15 +245,6 @@ public class PlayerTagMovement : BoostPlayer
     private void PlayTagSoundClientRpc()
     {
         if (!tagAudioSource.isPlaying) tagAudioSource?.PlayOneShot(tagClip);
-    }
-
-    [ClientRpc]
-    void StopAnimationsClientRpc()
-    {
-        if (!IsOwner) return;
-        isWalkingNet.Value = false;
-        isSprintingNet.Value = false;
-        isTauntingNet.Value = false;
     }
 
     /// <summary>

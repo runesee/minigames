@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 using System;
 using System.Collections.Generic;
 
-public class PlayerBalloonTag : BoostPlayer
+public class PlayerBalloonTag : TagPlayer
 {
     [Header("Map Boundaries")]
     public float minX = -17f;
@@ -13,78 +13,17 @@ public class PlayerBalloonTag : BoostPlayer
     public float minZ = -13f;
     public float maxZ = 12f;
 
-    [Header("Audio settings")]
-    public AudioSource tagAudioSource;
-    public AudioClip tagClip;
     public AudioClip popClip;
-
-    private NetworkVariable<bool> isPunchingNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
-    private NetworkVariable<bool> isTauntingNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
-    private NetworkVariable<bool> isFrozen = new NetworkVariable<bool>(
-    false,
-    NetworkVariableReadPermission.Everyone,
-    NetworkVariableWritePermission.Server
-    );
-    public NetworkVariable<double> timeSpentTaggedNet = new NetworkVariable<double>(
-        0,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-    public NetworkVariable<double> lastTagTimeNet = new NetworkVariable<double>(
-        0,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-    public NetworkVariable<BalloonState> balloonsNet = new NetworkVariable<BalloonState>(
-    new BalloonState(2, "#D6877F"),
-    NetworkVariableReadPermission.Everyone,
-    NetworkVariableWritePermission.Server
-    );
-
     public List<GameObject> BalloonPrefabs;
-    private InputAction attackAction;
-    private InputAction interactAction;
-
-    private bool isPunching;
-    private bool isTaunting;
-    private bool canTaunt;
+    public NetworkVariable<BalloonState> balloonsNet = new NetworkVariable<BalloonState>(
+        new BalloonState(2, "#D6877F"),
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
 
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        animator = GetComponentInChildren<Animator>();
-        animator.applyRootMotion = false;
-
-        // Configure sprint particle effect
-        if (sprintParticleEffect != null)
-        {
-            var main = sprintParticleEffect.main;
-            main.playOnAwake = false;
-            main.startLifetime = 0.5f;
-            main.startSpeed = 2f;
-            main.startSize = 0.3f;
-            sprintParticleEffect.Stop();
-        }
-
-        // Init key bindings
-        moveAction = InputSystem.actions.FindAction("Move");
-        sprintAction = InputSystem.actions.FindAction("Sprint");
-        attackAction = InputSystem.actions.FindAction("Attack");
-        interactAction = InputSystem.actions.FindAction("Interact");
-        moveAction.Enable();
-        sprintAction.Enable();
-        attackAction.Enable();
-        interactAction.Enable();
-
-        isShowingBoostParticlesNet.OnValueChanged += OnSprintParticlesChanged;
         balloonsNet.OnValueChanged += OnBalloonsChanged;
         if (IsHost) StartCoroutine(WaitForPlayerConnect());
     }
@@ -98,7 +37,6 @@ public class PlayerBalloonTag : BoostPlayer
     public override void OnNetworkDespawn()
     {
         base.OnNetworkDespawn();
-        isShowingBoostParticlesNet.OnValueChanged -= OnSprintParticlesChanged;
         balloonsNet.OnValueChanged -= OnBalloonsChanged;
     }
     
@@ -213,13 +151,6 @@ public class PlayerBalloonTag : BoostPlayer
             isTauntingNet.Value = false;
         }
     }
-
-    public override void LateUpdate()
-    {
-        base.LateUpdate();
-        animator.SetBool("isPunching", isPunchingNet.Value);
-        animator.SetBool("isTaunting", isTauntingNet.Value);
-    }
  
     [ServerRpc]
     public void InitializeBalloonsServerRpc(FixedString64Bytes color)
@@ -269,14 +200,5 @@ public class PlayerBalloonTag : BoostPlayer
     {
         double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
         this.lastTagTimeNet.Value = serverTime;
-    }
-
-    /// <summary>
-    /// Re-enable user actions after freeze period.
-    /// </summary>
-    [ServerRpc]
-    private void UnfreezePlayerServerRpc()
-    {
-        isFrozen.Value = false;
     }
 }

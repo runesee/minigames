@@ -76,11 +76,11 @@ public class CtFGameState : MinigameGameState
         switch(clip)
         {
             case PlayerCtF.CtfClips.Score:
-                if (player.teamNet.Value == scoringTeam) player.audioSource.PlayOneShot(player.scoreClip);
-                else player.audioSource.PlayOneShot(player.enemyScoreClip);
+                if (player.teamNet.Value == scoringTeam) player.tagAudioSource.PlayOneShot(player.scoreClip);
+                else player.tagAudioSource.PlayOneShot(player.enemyScoreClip);
                 break;
             case PlayerCtF.CtfClips.Returned:
-                if (player.teamNet.Value == scoringTeam) player.audioSource.PlayOneShot(player.flagReturnedClip);
+                if (player.teamNet.Value == scoringTeam) player.tagAudioSource.PlayOneShot(player.flagReturnedClip);
                 break;
         }
     }

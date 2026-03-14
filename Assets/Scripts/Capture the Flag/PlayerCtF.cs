@@ -5,7 +5,7 @@ using System;
 using System.Collections;
 using TMPro;
 
-public class PlayerCtF : BoostPlayer
+public class PlayerCtF : TagPlayer
 {
     public static PlayerCtF Local;
     [SerializeField] public GameObject flag;
@@ -20,33 +20,8 @@ public class PlayerCtF : BoostPlayer
     public float minZ = -13f;
     public float maxZ = 12f;
 
-    private NetworkVariable<bool> isPunchingNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
-    private NetworkVariable<bool> isTauntingNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
-    private NetworkVariable<bool> isFrozen = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
     private NetworkVariable<bool> isRespawning = new NetworkVariable<bool>(
         false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-    public NetworkVariable<double> timeSpentTaggedNet = new NetworkVariable<double>(
-        0,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-    public NetworkVariable<double> lastTagTimeNet = new NetworkVariable<double>(
-        0,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
@@ -78,8 +53,6 @@ public class PlayerCtF : BoostPlayer
 
     public Team? currentStartZone;
     public Team? currentFlagZone;
-    public AudioSource audioSource;
-    public AudioClip tagClip;
     public AudioClip plopClip;
     public AudioClip scoreClip;
     public AudioClip enemyScoreClip;
@@ -94,12 +67,6 @@ public class PlayerCtF : BoostPlayer
     private GameObject blueFlag;
     private GameObject greenFlagFabric;
     private GameObject blueFlagFabric;
-    private InputAction attackAction;
-    private InputAction interactAction;
-
-    private bool isPunching;
-    private bool isTaunting;
-    private bool canTaunt;
 
     public enum CtfClips
     {
@@ -115,36 +82,11 @@ public class PlayerCtF : BoostPlayer
     {
         base.OnNetworkSpawn();
         if (IsOwner) Local = this;
-        animator = GetComponentInChildren<Animator>();
-        animator.applyRootMotion = false;
         mainCamera = FindFirstObjectByType<Camera>();
         mainCanvas = FindFirstObjectByType<Canvas>();
         respawnPanel = mainCanvas.transform.Find("RespawnPanel").gameObject;
         respawnText = respawnPanel.transform.Find("RespawnTime").gameObject.GetComponent<TextMeshProUGUI>();
 
-        // Configure sprint particle effect
-        if (sprintParticleEffect != null)
-        {
-            var main = sprintParticleEffect.main;
-            main.playOnAwake = false;
-            main.startLifetime = 0.5f;
-            main.startSpeed = 2f;
-            main.startSize = 0.3f;
-            sprintParticleEffect.Stop();
-        }
-
-        // Init key bindings
-        moveAction = InputSystem.actions.FindAction("Move");
-        sprintAction = InputSystem.actions.FindAction("Sprint");
-        attackAction = InputSystem.actions.FindAction("Attack");
-        interactAction = InputSystem.actions.FindAction("Interact");
-        moveAction.Enable();
-        sprintAction.Enable();
-        attackAction.Enable();
-        interactAction.Enable();
-
-        // Subscribe to color and sprint particle changes
-        isShowingBoostParticlesNet.OnValueChanged += OnSprintParticlesChanged;
         teamNet.OnValueChanged += OnTeamChanged;
         isFlagActiveNet.OnValueChanged += OnFlagChanged;
         flag.SetActive(false);
@@ -176,7 +118,6 @@ public class PlayerCtF : BoostPlayer
     public override void OnNetworkDespawn()
     {
         base.OnNetworkDespawn();
-        isShowingBoostParticlesNet.OnValueChanged -= OnSprintParticlesChanged;
         isFlagActiveNet.OnValueChanged -= OnFlagChanged;
     }
 
@@ -275,22 +216,22 @@ public class PlayerCtF : BoostPlayer
         isPunching = attackAction.WasPerformedThisFrame() || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A);
         isPunchingNet.Value = isPunching;
 
-        if (isPunching && !isFrozen.Value)
+        if (isPunching && !isFrozenNet.Value)
         {
             if (currentFlagZone != Team.None && currentFlagZone != teamNet.Value && currentZoneNet.Value != teamNet.Value)
             {
                 string enemyFlag = teamNet.Value == Team.Blue ? "GreenFlag" : "BlueFlag";
-                audioSource?.PlayOneShot(plopClip);
+                tagAudioSource?.PlayOneShot(plopClip);
                 TakeFlagServerRpc(enemyFlag);
             }
             else
             {
                 PlayerCtF target = PlayerUtils.FindClosestPlayerInRange<PlayerCtF>(2.5f, this.gameObject, this.transform);
-                audioSource?.PlayOneShot(tagClip);
+                tagAudioSource?.PlayOneShot(tagClip);
                 if (target != null) TagPlayerServerRpc(target.NetworkObjectId);
             }
         }
-        else if (isFrozen.Value)
+        else if (isFrozenNet.Value)
         {
             double timeSinceTagged = serverTime - lastTagTimeNet.Value;
             if (timeSinceTagged >= 0.7f) UnfreezePlayerServerRpc();
@@ -379,7 +320,7 @@ public class PlayerCtF : BoostPlayer
     [ClientRpc]
     private void PlayTaggedSoundClientRpc(ClientRpcParams clientRpcParams = default)
     {
-        if (!audioSource.isPlaying) audioSource?.PlayOneShot(taggedClip);
+        if (!tagAudioSource.isPlaying) tagAudioSource?.PlayOneShot(taggedClip);
     }
 
     /// <summary>
@@ -417,7 +358,7 @@ public class PlayerCtF : BoostPlayer
         if (IsOwner) StopAnimationsClientRpc();
 
         // Add timediff to current player and prevent tagging again for another .7 seconds
-        this.isFrozen.Value = true;
+        this.isFrozenNet.Value = true;
         this.timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
         this.lastTagTimeNet.Value = serverTime;
     }
@@ -425,18 +366,18 @@ public class PlayerCtF : BoostPlayer
     [ClientRpc]
     private void PlaySoundClientRpc(CtfClips clip, Team team)
     {
-        if (!audioSource.isPlaying)
+        if (!tagAudioSource.isPlaying)
         {
             switch(clip)
             {
                 case CtfClips.Tag:
-                    audioSource?.PlayOneShot(tagClip);
+                    tagAudioSource?.PlayOneShot(tagClip);
                     break;
                 case CtfClips.Plop:
-                    audioSource?.PlayOneShot(plopClip);
+                    tagAudioSource?.PlayOneShot(plopClip);
                     break;
                 case CtfClips.Taken:
-                    if (teamNet.Value != team) audioSource?.PlayOneShot(flagTakenClip);
+                    if (teamNet.Value != team) tagAudioSource?.PlayOneShot(flagTakenClip);
                     break;
             }
         } 
@@ -446,28 +387,9 @@ public class PlayerCtF : BoostPlayer
     /// Re-enable user actions after freeze period.
     /// </summary>
     [ServerRpc]
-    private void UnfreezePlayerServerRpc()
-    {
-        isFrozen.Value = false;
-    }
-
-    /// <summary>
-    /// Re-enable user actions after freeze period.
-    /// </summary>
-    [ServerRpc]
     private void RespawnPlayerServerRpc()
     {
         isRespawning.Value = false;
-    }
-
-    [ClientRpc]
-    void StopAnimationsClientRpc()
-    {
-        if (!IsOwner) return;
-        isWalkingNet.Value = false;
-        isSprintingNet.Value = false;
-        isTauntingNet.Value = false;
-        isPunchingNet.Value = false;
     }
 
     [ClientRpc]
