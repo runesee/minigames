@@ -5,9 +5,7 @@ using System;
 using System.Collections;
 using TMPro;
 
-[RequireComponent(typeof(Rigidbody))]
-[RequireComponent(typeof(NetworkObject))]
-public class PlayerCtF : Player
+public class PlayerCtF : PlayerPrefab
 {
     public static PlayerCtF Local;
     [SerializeField] public GameObject flag;
@@ -116,8 +114,6 @@ public class PlayerCtF : Player
     private InputAction moveAction;
     private InputAction sprintAction;
     private InputAction interactAction;
-    private Animator animator;
-    private Rigidbody rb;
 
     private bool isPunching;
     private bool isTaunting;
@@ -133,11 +129,6 @@ public class PlayerCtF : Player
         Taken,
         Tagged,
         Returned,
-    }
-
-    private void Awake()
-    {
-        rb = GetComponent<Rigidbody>();
     }
 
     public override void OnNetworkSpawn()

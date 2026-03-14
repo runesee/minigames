@@ -5,8 +5,6 @@ using System.Linq;
 using System;
 using PlayPulse.Api.Utils;
 
-[RequireComponent(typeof(Rigidbody))]
-[RequireComponent(typeof(NetworkObject))]
 public class PlayerTagMovement : PlayerPrefab
 {
     [Header("Map Boundaries")]

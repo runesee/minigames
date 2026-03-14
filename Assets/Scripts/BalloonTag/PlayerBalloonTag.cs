@@ -5,9 +5,7 @@ using UnityEngine.InputSystem;
 using System;
 using System.Collections.Generic;
 
-[RequireComponent(typeof(Rigidbody))]
-[RequireComponent(typeof(NetworkObject))]
-public class PlayerBalloonTag : Player
+public class PlayerBalloonTag : PlayerPrefab
 {
     [Header("Map Boundaries")]
     public float minX = -17f;
@@ -72,19 +70,12 @@ public class PlayerBalloonTag : Player
     private InputAction moveAction;
     private InputAction sprintAction;
     private InputAction interactAction;
-    private Animator animator;
-    private Rigidbody rb;
 
     private bool isPunching;
     private bool isTaunting;
     private bool canTaunt;
     private float smoothedPedalSpeed = 0f;
     private readonly float sprintSpeedThreshold = 0.65f;
-
-    private void Awake()
-    {
-        rb = GetComponent<Rigidbody>();
-    }
 
     public override void OnNetworkSpawn()
     {

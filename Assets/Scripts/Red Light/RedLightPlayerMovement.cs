@@ -4,7 +4,7 @@ using Unity.Collections;
 using System.Collections;
 
 [RequireComponent(typeof(Rigidbody))]
-public class RedLightPlayerMovement : Player
+public class RedLightPlayerMovement : PlayerPrefab
 {
     [Header("Movement Settings")]
     [SerializeField] private float speedMultiplier = 10f;
@@ -22,8 +22,6 @@ public class RedLightPlayerMovement : Player
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip errorClip;
 
-    private Rigidbody rb;
-    private Animator animator;
     private bool isStopped = false;
     private bool isStandaloneMode = false;
     private bool isWalkingLocal = false;
@@ -58,11 +56,6 @@ public class RedLightPlayerMovement : Player
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner
     );
-
-    private void Awake()
-    {
-        rb = GetComponent<Rigidbody>();
-    }
 
     public override void OnNetworkSpawn()
     {

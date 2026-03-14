@@ -3,9 +3,7 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(Rigidbody))]
-[RequireComponent(typeof(NetworkObject))]
-public class PlayerColorFlood : Player
+public class PlayerColorFlood : PlayerPrefab
 {
     [Header("Map Boundaries")]
     public float minX = -39.5f;
@@ -42,18 +40,11 @@ public class PlayerColorFlood : Player
     public ParticleSystem sprintParticleEffect;
     private InputAction moveAction;
     private InputAction sprintAction;
-    private Animator animator;
-    private Rigidbody rb;
 
     private float smoothedPedalSpeed = 0f;
     private float speedBoostTimer;
     private const float SpeedBoostDuration = 5f;
     private const float SpeedBoostMultiplier = 2f;
-
-    private void Awake()
-    {
-        rb = GetComponent<Rigidbody>();
-    }
 
     public override void OnNetworkSpawn()
     {
