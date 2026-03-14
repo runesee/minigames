@@ -3,7 +3,7 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerColorFlood : MovementPlayer
+public class PlayerColorFlood : BoostPlayer
 {
     [Header("Map Boundaries")]
     public float minX = -39.5f;
@@ -11,19 +11,12 @@ public class PlayerColorFlood : MovementPlayer
     public float minZ = -19.5f;
     public float maxZ = 19.5f;
 
-    private NetworkVariable<bool> isShowingBoostParticlesNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
     public NetworkVariable<Team> teamNet = new NetworkVariable<Team>(
         Team.None,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
-    public ParticleSystem sprintParticleEffect;
-    private float smoothedPedalSpeed = 0f;
     private float speedBoostTimer;
     private const float SpeedBoostDuration = 5f;
     private const float SpeedBoostMultiplier = 2f;
@@ -49,7 +42,6 @@ public class PlayerColorFlood : MovementPlayer
         moveAction.Enable();
         sprintAction?.Enable();
 
-        isShowingBoostParticlesNet.OnValueChanged += OnSprintParticlesChanged;
         teamNet.OnValueChanged += OnTeamChanged;
         if (teamNet.Value != Team.None) ApplyTeamTint(teamNet.Value);
     }
@@ -57,7 +49,6 @@ public class PlayerColorFlood : MovementPlayer
     public override void OnNetworkDespawn()
     {
         base.OnNetworkDespawn();
-        isShowingBoostParticlesNet.OnValueChanged -= OnSprintParticlesChanged;
         teamNet.OnValueChanged -= OnTeamChanged;
     }
 
@@ -160,13 +151,6 @@ public class PlayerColorFlood : MovementPlayer
     {
         base.OnSkinColorChanged(previousValue, newValue);
         if (teamNet.Value != Team.None) ApplyTeamTint(teamNet.Value);
-    }
-
-    private void OnSprintParticlesChanged(bool previousValue, bool newValue)
-    {
-        if (sprintParticleEffect == null) return;
-        if (newValue && !sprintParticleEffect.isPlaying) sprintParticleEffect.Play();
-        else if (!newValue && sprintParticleEffect.isPlaying) sprintParticleEffect.Stop();
     }
 
     private void OnTeamChanged(Team previousValue, Team newValue)

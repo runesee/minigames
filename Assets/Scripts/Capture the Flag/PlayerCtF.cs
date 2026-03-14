@@ -5,7 +5,7 @@ using System;
 using System.Collections;
 using TMPro;
 
-public class PlayerCtF : MovementPlayer
+public class PlayerCtF : BoostPlayer
 {
     public static PlayerCtF Local;
     [SerializeField] public GameObject flag;
@@ -39,11 +39,6 @@ public class PlayerCtF : MovementPlayer
         false,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
-    );
-    private NetworkVariable<bool> isShowingBoostParticlesNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
     );
     public NetworkVariable<double> timeSpentTaggedNet = new NetworkVariable<double>(
         0,
@@ -81,7 +76,6 @@ public class PlayerCtF : MovementPlayer
         NetworkVariableWritePermission.Server
     );
 
-    public ParticleSystem sprintParticleEffect;
     public Team? currentStartZone;
     public Team? currentFlagZone;
     public AudioSource audioSource;
@@ -106,7 +100,6 @@ public class PlayerCtF : MovementPlayer
     private bool isPunching;
     private bool isTaunting;
     private bool canTaunt;
-    private float smoothedPedalSpeed = 0f;
 
     public enum CtfClips
     {
@@ -190,13 +183,6 @@ public class PlayerCtF : MovementPlayer
     private void OnFlagChanged(bool previousValue, bool newValue)
     {
         flag.SetActive(newValue);
-    }
-
-    private void OnSprintParticlesChanged(bool previousValue, bool newValue)
-    {
-        if (sprintParticleEffect == null) return;
-        if (newValue && !sprintParticleEffect.isPlaying) sprintParticleEffect.Play();
-        else if (sprintParticleEffect.isPlaying) sprintParticleEffect.Stop();
     }
 
     private void OnTeamChanged(Team previousValue, Team newValue)

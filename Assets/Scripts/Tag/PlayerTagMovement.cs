@@ -5,7 +5,7 @@ using System.Linq;
 using System;
 using PlayPulse.Api.Utils;
 
-public class PlayerTagMovement : MovementPlayer
+public class PlayerTagMovement : BoostPlayer
 {
     [Header("Map Boundaries")]
     public float minX = -17f;
@@ -39,11 +39,6 @@ public class PlayerTagMovement : MovementPlayer
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner
     );
-    private NetworkVariable<bool> isShowingBoostParticlesNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
     public NetworkVariable<double> timeSpentTaggedNet = new NetworkVariable<double>(
         0,
         NetworkVariableReadPermission.Everyone,
@@ -60,7 +55,6 @@ public class PlayerTagMovement : MovementPlayer
         NetworkVariableWritePermission.Owner
     );
 
-    public ParticleSystem sprintParticleEffect;
     private InputAction attackAction;
     private InputAction interactAction;
     private InputAction resetTaggedPlayerDebug;
@@ -69,7 +63,6 @@ public class PlayerTagMovement : MovementPlayer
     private bool isTaunting;
     private bool canTaunt;
     private bool isBoosting;
-    private float smoothedPedalSpeed = 0f;
     private new readonly float sprintSpeedThreshold = 3.3f;
     private readonly float boostSpeed = 8f;
     private readonly float maxStamina = 100f;
@@ -115,13 +108,6 @@ public class PlayerTagMovement : MovementPlayer
     {
         base.OnNetworkDespawn();
         isShowingBoostParticlesNet.OnValueChanged -= OnSprintParticlesChanged;
-    }
-
-    private void OnSprintParticlesChanged(bool previousValue, bool newValue)
-    {
-        if (sprintParticleEffect == null) return;
-        if (newValue && !sprintParticleEffect.isPlaying) sprintParticleEffect.Play();
-        else if (sprintParticleEffect.isPlaying) sprintParticleEffect.Stop();
     }
 
     public override PlayerData GetPlayerData()

@@ -1,5 +1,4 @@
 using Unity.Netcode;
-using UnityEngine;
 using UnityEngine.InputSystem;
 
 public abstract class MovementPlayer : PrefabPlayer

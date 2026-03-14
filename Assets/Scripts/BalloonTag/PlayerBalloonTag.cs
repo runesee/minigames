@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 using System;
 using System.Collections.Generic;
 
-public class PlayerBalloonTag : MovementPlayer
+public class PlayerBalloonTag : BoostPlayer
 {
     [Header("Map Boundaries")]
     public float minX = -17f;
@@ -33,11 +33,6 @@ public class PlayerBalloonTag : MovementPlayer
     NetworkVariableReadPermission.Everyone,
     NetworkVariableWritePermission.Server
     );
-    private NetworkVariable<bool> isShowingBoostParticlesNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
     public NetworkVariable<double> timeSpentTaggedNet = new NetworkVariable<double>(
         0,
         NetworkVariableReadPermission.Everyone,
@@ -54,7 +49,6 @@ public class PlayerBalloonTag : MovementPlayer
     NetworkVariableWritePermission.Server
     );
 
-    public ParticleSystem sprintParticleEffect;
     public List<GameObject> BalloonPrefabs;
     private InputAction attackAction;
     private InputAction interactAction;
@@ -62,7 +56,6 @@ public class PlayerBalloonTag : MovementPlayer
     private bool isPunching;
     private bool isTaunting;
     private bool canTaunt;
-    private float smoothedPedalSpeed = 0f;
 
     public override void OnNetworkSpawn()
     {
@@ -107,13 +100,6 @@ public class PlayerBalloonTag : MovementPlayer
         base.OnNetworkDespawn();
         isShowingBoostParticlesNet.OnValueChanged -= OnSprintParticlesChanged;
         balloonsNet.OnValueChanged -= OnBalloonsChanged;
-    }
-
-    private void OnSprintParticlesChanged(bool previousValue, bool newValue)
-    {
-        if (sprintParticleEffect == null) return;
-        if (newValue && !sprintParticleEffect.isPlaying) sprintParticleEffect.Play();
-        else if (sprintParticleEffect.isPlaying) sprintParticleEffect.Stop();
     }
     
     void OnBalloonsChanged(BalloonState previousValue, BalloonState newValue)
