@@ -142,6 +142,7 @@ public class PlayerCtF : Player
 
     public override void OnNetworkSpawn()
     {
+        base.OnNetworkSpawn();
         if (IsOwner) Local = this;
         animator = GetComponentInChildren<Animator>();
         animator.applyRootMotion = false;
@@ -172,7 +173,6 @@ public class PlayerCtF : Player
         interactAction.Enable();
 
         // Subscribe to color and sprint particle changes
-        colorNet.OnValueChanged += OnSkinColorChanged;
         isShowingBoostParticlesNet.OnValueChanged += OnSprintParticlesChanged;
         teamNet.OnValueChanged += OnTeamChanged;
         isFlagActiveNet.OnValueChanged += OnFlagChanged;
@@ -184,19 +184,7 @@ public class PlayerCtF : Player
         blueFlagFabric = GameObject.Find("BlueFabric");
         currentFlagZone = Team.None;
 
-        // Apply initial player-selected color
-        var data = LocalPlayerStorage.Load();
-        string color = IsOwner ? data.color : colorNet.Value.ToString();
-        SetSkinColor(color);
-
-        if (IsOwner)
-        {
-            // Apply player-selected nickname and color
-            UpdateColorServerRpc(color);
-            UpdateNicknameServerRpc(data.nickname);
-            UpdateGuidServerRpc(data.guid);
-            StartCoroutine(ZoomCamera());
-        }
+        if (IsOwner) StartCoroutine(ZoomCamera());
         if (IsHost) StartCoroutine(WaitForPlayerConnect());
     }
 
@@ -216,7 +204,7 @@ public class PlayerCtF : Player
 
     public override void OnNetworkDespawn()
     {
-        colorNet.OnValueChanged -= OnSkinColorChanged;
+        base.OnNetworkDespawn();
         isShowingBoostParticlesNet.OnValueChanged -= OnSprintParticlesChanged;
         isFlagActiveNet.OnValueChanged -= OnFlagChanged;
     }

@@ -7,7 +7,7 @@ using PlayPulse.Api.Utils;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(NetworkObject))]
-public class PlayerTagMovement : Player
+public class PlayerTagMovement : PlayerPrefab
 {
     [Header("Map Boundaries")]
     public float minX = -17f;
@@ -78,8 +78,6 @@ public class PlayerTagMovement : Player
     private InputAction sprintAction;
     private InputAction interactAction;
     private InputAction resetTaggedPlayerDebug;
-    private Animator animator;
-    private Rigidbody rb;
 
     private bool isPunching;
     private bool isTaunting;
@@ -96,16 +94,9 @@ public class PlayerTagMovement : Player
     private readonly float minStaminaToBoost = 5f;
     private readonly float taggedStaminaBoostMultiplier = 1.5f;
 
-    private void Awake()
-    {
-        rb = GetComponent<Rigidbody>();
-    }
-
     public override void OnNetworkSpawn()
     {
-        animator = GetComponentInChildren<Animator>();
-        animator.applyRootMotion = false;
-
+        base.OnNetworkSpawn();
         // Configure sprint particle effect
         if (sprintParticleEffect != null)
         {
@@ -128,23 +119,7 @@ public class PlayerTagMovement : Player
         attackAction.Enable();
         interactAction.Enable();
         resetTaggedPlayerDebug.Enable();
-
-        // Subscribe to color and sprint particle changes
-        colorNet.OnValueChanged += OnSkinColorChanged;
         isShowingBoostParticlesNet.OnValueChanged += OnSprintParticlesChanged;
-
-        // Apply initial player-selected color
-        var data = LocalPlayerStorage.Load();
-        string color = IsOwner ? data.color : colorNet.Value.ToString();
-        SetSkinColor(color);
-
-        if (IsOwner)
-        {
-            // Apply player-selected nickname and color
-            UpdateColorServerRpc(color);
-            UpdateNicknameServerRpc(data.nickname);
-            UpdateGuidServerRpc(data.guid);
-        }
         if (IsHost && IsOwner) StartCoroutine(WaitForPlayerConnect());
     }
 
@@ -157,7 +132,7 @@ public class PlayerTagMovement : Player
 
     public override void OnNetworkDespawn()
     {
-        colorNet.OnValueChanged -= OnSkinColorChanged;
+        base.OnNetworkDespawn();
         isShowingBoostParticlesNet.OnValueChanged -= OnSprintParticlesChanged;
     }
 

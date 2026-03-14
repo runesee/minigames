@@ -21,6 +21,8 @@ public class FocusFlowData : Player
         }
     }
 
+    public override void OnNetworkDespawn() {}
+
     public override PlayerData GetPlayerData()
     {
         PlayerData playerData = new PlayerData(

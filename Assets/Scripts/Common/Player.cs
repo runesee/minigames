@@ -38,6 +38,11 @@ public abstract class Player : NetworkBehaviour
         }
     }
 
+    public override void OnNetworkDespawn()
+    {
+        colorNet.OnValueChanged -= OnSkinColorChanged;
+    }
+
     public virtual void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
     {
         SetSkinColor(newValue.Value.ToString());

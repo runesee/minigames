@@ -66,6 +66,7 @@ public class RedLightPlayerMovement : Player
 
     public override void OnNetworkSpawn()
     {
+        base.OnNetworkSpawn();
         startPositionZ = transform.position.z;
 
         animator = GetComponentInChildren<Animator>();
@@ -73,30 +74,18 @@ public class RedLightPlayerMovement : Player
         {
             animator.applyRootMotion = false;
         }
-        colorNet.OnValueChanged += OnSkinColorChanged;
         isPenalizedNet.OnValueChanged += OnPenaltyStateChanged;
-
-        var data = LocalPlayerStorage.Load();
-        string color = IsOwner ? data.color : colorNet.Value.ToString();
-        SetSkinColor(color);
 
         if (IsOwner)
         {
-            UpdateColorServerRpc(color);
-            UpdateNicknameServerRpc(data.nickname);
-            UpdateGuidServerRpc(data.guid);
-
             RedLightCameraFollow cameraFollow = Camera.main?.GetComponent<RedLightCameraFollow>();
-            if (cameraFollow != null)
-            {
-                cameraFollow.SetTarget(transform);
-            }
+            if (cameraFollow != null) cameraFollow.SetTarget(transform);
         }
     }
 
     public override void OnNetworkDespawn()
     {
-        colorNet.OnValueChanged -= OnSkinColorChanged;
+        base.OnNetworkDespawn();
         isPenalizedNet.OnValueChanged -= OnPenaltyStateChanged;
     }
 

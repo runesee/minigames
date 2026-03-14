@@ -57,6 +57,7 @@ public class PlayerColorFlood : Player
 
     public override void OnNetworkSpawn()
     {
+        base.OnNetworkSpawn();
         animator = GetComponentInChildren<Animator>();
         if (animator != null) animator.applyRootMotion = false;
 
@@ -75,30 +76,14 @@ public class PlayerColorFlood : Player
         moveAction.Enable();
         sprintAction?.Enable();
 
-        colorNet.OnValueChanged += OnSkinColorChanged;
         isShowingBoostParticlesNet.OnValueChanged += OnSprintParticlesChanged;
         teamNet.OnValueChanged += OnTeamChanged;
-
-        var data = LocalPlayerStorage.Load();
-        string color = IsOwner ? data.color : colorNet.Value.ToString();
-        SetSkinColor(color);
-
-        if (teamNet.Value != Team.None)
-        {
-            ApplyTeamTint(teamNet.Value);
-        }
-
-        if (IsOwner)
-        {
-            UpdateColorServerRpc(color);
-            UpdateNicknameServerRpc(data.nickname);
-            UpdateGuidServerRpc(data.guid);
-        }
+        if (teamNet.Value != Team.None) ApplyTeamTint(teamNet.Value);
     }
 
     public override void OnNetworkDespawn()
     {
-        colorNet.OnValueChanged -= OnSkinColorChanged;
+        base.OnNetworkDespawn();
         isShowingBoostParticlesNet.OnValueChanged -= OnSprintParticlesChanged;
         teamNet.OnValueChanged -= OnTeamChanged;
     }
