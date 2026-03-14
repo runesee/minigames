@@ -4,11 +4,11 @@ using Unity.Collections;
 using System.Collections;
 
 [RequireComponent(typeof(Rigidbody))]
-public class RedLightPlayerMovement : PlayerPrefab
+public class RedLightPlayerMovement : MovementPlayer
 {
     [Header("Movement Settings")]
     [SerializeField] private float speedMultiplier = 10f;
-    [SerializeField] private float sprintSpeedThreshold = 5f;
+    private new readonly float sprintSpeedThreshold = 5f;
 
     [Header("Penalty Settings")]
     [SerializeField] private float penaltyPushBackDistance = 3f;
@@ -206,14 +206,12 @@ public class RedLightPlayerMovement : PlayerPrefab
         flashTimer = penaltyFreezeDuration;
     }
 
-    private void LateUpdate()
+    public override void LateUpdate()
     {
         bool walking = isStandaloneMode ? isWalkingLocal : isWalking.Value;
         bool sprinting = isStandaloneMode ? isSprintingLocal : isSprinting.Value;
-
         animator.SetBool("isWalking", walking);
         animator.SetBool("isSprinting", sprinting);
-
         UpdateTrafficLightPosition();
         HandleFlashEffect();
     }

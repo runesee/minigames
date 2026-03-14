@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
-public abstract class PlayerPrefab : Player
+public abstract class PrefabPlayer : Player
 {
     protected Animator animator;
     protected Rigidbody rb;

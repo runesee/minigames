@@ -3,7 +3,7 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerColorFlood : PlayerPrefab
+public class PlayerColorFlood : MovementPlayer
 {
     [Header("Map Boundaries")]
     public float minX = -39.5f;
@@ -11,26 +11,11 @@ public class PlayerColorFlood : PlayerPrefab
     public float minZ = -19.5f;
     public float maxZ = 19.5f;
 
-    private readonly float walkSpeed = 5f;
-    private readonly float sprintSpeedThreshold = 0.65f;
-
-    private NetworkVariable<bool> isWalkingNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
-    private NetworkVariable<bool> isSprintingNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
-
     private NetworkVariable<bool> isShowingBoostParticlesNet = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner
     );
-
     public NetworkVariable<Team> teamNet = new NetworkVariable<Team>(
         Team.None,
         NetworkVariableReadPermission.Everyone,
@@ -38,9 +23,6 @@ public class PlayerColorFlood : PlayerPrefab
     );
 
     public ParticleSystem sprintParticleEffect;
-    private InputAction moveAction;
-    private InputAction sprintAction;
-
     private float smoothedPedalSpeed = 0f;
     private float speedBoostTimer;
     private const float SpeedBoostDuration = 5f;
@@ -137,13 +119,6 @@ public class PlayerColorFlood : PlayerPrefab
         }
     }
 
-    private void LateUpdate()
-    {
-        if (animator == null) return;
-        animator.SetBool("isWalking", isWalkingNet.Value);
-        animator.SetBool("isSprinting", isSprintingNet.Value);
-    }
-
     private void OnTriggerEnter(Collider other)
     {
         if (!IsOwner) return;
@@ -204,7 +179,7 @@ public class PlayerColorFlood : PlayerPrefab
         if (PlayerSkinRenderer == null) return;
         Color tint = team switch
         {
-            Team.Green => new Color(0.5f, 1f, 0.5f),
+            Team.Green => new Color(0.5f, 1f, 0.5f), // TODO : use default color values
             Team.Blue => new Color(0.5f, 0.7f, 1f),
             _ => Color.white,
         };

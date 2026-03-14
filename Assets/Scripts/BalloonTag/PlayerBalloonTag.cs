@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 using System;
 using System.Collections.Generic;
 
-public class PlayerBalloonTag : PlayerPrefab
+public class PlayerBalloonTag : MovementPlayer
 {
     [Header("Map Boundaries")]
     public float minX = -17f;
@@ -18,16 +18,6 @@ public class PlayerBalloonTag : PlayerPrefab
     public AudioClip tagClip;
     public AudioClip popClip;
 
-    private NetworkVariable<bool> isWalkingNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
-    private NetworkVariable<bool> isSprintingNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
     private NetworkVariable<bool> isPunchingNet = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
@@ -67,15 +57,12 @@ public class PlayerBalloonTag : PlayerPrefab
     public ParticleSystem sprintParticleEffect;
     public List<GameObject> BalloonPrefabs;
     private InputAction attackAction;
-    private InputAction moveAction;
-    private InputAction sprintAction;
     private InputAction interactAction;
 
     private bool isPunching;
     private bool isTaunting;
     private bool canTaunt;
     private float smoothedPedalSpeed = 0f;
-    private readonly float sprintSpeedThreshold = 0.65f;
 
     public override void OnNetworkSpawn()
     {
@@ -241,10 +228,9 @@ public class PlayerBalloonTag : PlayerPrefab
         }
     }
 
-    private void LateUpdate()
+    public override void LateUpdate()
     {
-        animator.SetBool("isWalking", isWalkingNet.Value);
-        animator.SetBool("isSprinting", isSprintingNet.Value);
+        base.LateUpdate();
         animator.SetBool("isPunching", isPunchingNet.Value);
         animator.SetBool("isTaunting", isTauntingNet.Value);
     }

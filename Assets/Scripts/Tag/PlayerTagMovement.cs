@@ -5,7 +5,7 @@ using System.Linq;
 using System;
 using PlayPulse.Api.Utils;
 
-public class PlayerTagMovement : PlayerPrefab
+public class PlayerTagMovement : MovementPlayer
 {
     [Header("Map Boundaries")]
     public float minX = -17f;
@@ -19,16 +19,6 @@ public class PlayerTagMovement : PlayerPrefab
     public AudioClip tagClip;
     public AudioClip boostClip;
 
-    private NetworkVariable<bool> isWalkingNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
-    private NetworkVariable<bool> isSprintingNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
     private NetworkVariable<bool> isPunchingNet = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
@@ -72,8 +62,6 @@ public class PlayerTagMovement : PlayerPrefab
 
     public ParticleSystem sprintParticleEffect;
     private InputAction attackAction;
-    private InputAction moveAction;
-    private InputAction sprintAction;
     private InputAction interactAction;
     private InputAction resetTaggedPlayerDebug;
 
@@ -82,12 +70,11 @@ public class PlayerTagMovement : PlayerPrefab
     private bool canTaunt;
     private bool isBoosting;
     private float smoothedPedalSpeed = 0f;
-    private readonly float walkSpeed = 5f;
+    private new readonly float sprintSpeedThreshold = 3.3f;
     private readonly float boostSpeed = 8f;
     private readonly float maxStamina = 100f;
     private readonly float staminaDrainRate = 20f;
     private readonly float staminaRegenRateFast = 15f;
-    private readonly float sprintSpeedThreshold = 3.3f;
     private readonly float exhaustedSpeedMultiplier = 0.3f;
     private readonly float minStaminaToBoost = 5f;
     private readonly float taggedStaminaBoostMultiplier = 1.5f;
@@ -107,13 +94,9 @@ public class PlayerTagMovement : PlayerPrefab
         }
 
         // Init key bindings
-        moveAction = InputSystem.actions.FindAction("Move");
-        sprintAction = InputSystem.actions.FindAction("Sprint");
         attackAction = InputSystem.actions.FindAction("Attack");
         interactAction = InputSystem.actions.FindAction("Interact");
         resetTaggedPlayerDebug = InputSystem.actions.FindAction("Crouch");
-        moveAction.Enable();
-        sprintAction.Enable();
         attackAction.Enable();
         interactAction.Enable();
         resetTaggedPlayerDebug.Enable();
@@ -282,10 +265,9 @@ public class PlayerTagMovement : PlayerPrefab
         }
     }
 
-    private void LateUpdate()
+    public override void LateUpdate()
     {
-        animator.SetBool("isWalking", isWalkingNet.Value);
-        animator.SetBool("isSprinting", isSprintingNet.Value);
+        base.LateUpdate();
         animator.SetBool("isPunching", isPunchingNet.Value);
         animator.SetBool("isHit", isHitNet.Value);
         animator.SetBool("isTaunting", isTauntingNet.Value);

@@ -5,7 +5,7 @@ using System;
 using System.Collections;
 using TMPro;
 
-public class PlayerCtF : PlayerPrefab
+public class PlayerCtF : MovementPlayer
 {
     public static PlayerCtF Local;
     [SerializeField] public GameObject flag;
@@ -20,16 +20,6 @@ public class PlayerCtF : PlayerPrefab
     public float minZ = -13f;
     public float maxZ = 12f;
 
-    private NetworkVariable<bool> isWalkingNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
-    private NetworkVariable<bool> isSprintingNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
     private NetworkVariable<bool> isPunchingNet = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
@@ -111,15 +101,12 @@ public class PlayerCtF : PlayerPrefab
     private GameObject greenFlagFabric;
     private GameObject blueFlagFabric;
     private InputAction attackAction;
-    private InputAction moveAction;
-    private InputAction sprintAction;
     private InputAction interactAction;
 
     private bool isPunching;
     private bool isTaunting;
     private bool canTaunt;
     private float smoothedPedalSpeed = 0f;
-    private readonly float sprintSpeedThreshold = 0.65f;
 
     public enum CtfClips
     {
@@ -386,10 +373,9 @@ public class PlayerCtF : PlayerPrefab
         if (isFlagActiveNet.Value) flagTransform.transform.rotation = rb.rotation;
     }
 
-    private void LateUpdate()
+    public override void LateUpdate()
     {
-        animator.SetBool("isWalking", isWalkingNet.Value);
-        animator.SetBool("isSprinting", isSprintingNet.Value);
+        base.LateUpdate();
         animator.SetBool("isPunching", isPunchingNet.Value);
         animator.SetBool("isTaunting", isTauntingNet.Value);
     }
