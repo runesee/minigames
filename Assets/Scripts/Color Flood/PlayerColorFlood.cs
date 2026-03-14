@@ -1,7 +1,6 @@
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class PlayerColorFlood : BoostPlayer
 {
@@ -24,24 +23,6 @@ public class PlayerColorFlood : BoostPlayer
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        animator = GetComponentInChildren<Animator>();
-        if (animator != null) animator.applyRootMotion = false;
-
-        if (sprintParticleEffect != null)
-        {
-            var main = sprintParticleEffect.main;
-            main.playOnAwake = false;
-            main.startLifetime = 0.5f;
-            main.startSpeed = 2f;
-            main.startSize = 0.3f;
-            sprintParticleEffect.Stop();
-        }
-
-        moveAction = InputSystem.actions.FindAction("Move");
-        sprintAction = InputSystem.actions.FindAction("Sprint");
-        moveAction.Enable();
-        sprintAction?.Enable();
-
         teamNet.OnValueChanged += OnTeamChanged;
         if (teamNet.Value != Team.None) ApplyTeamTint(teamNet.Value);
     }

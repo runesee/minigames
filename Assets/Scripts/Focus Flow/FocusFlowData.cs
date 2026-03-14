@@ -21,7 +21,7 @@ public class FocusFlowData : Player
         }
     }
 
-    public override void OnNetworkDespawn() {}
+    public override void OnNetworkDespawn() {} // Overwriting unused parent logic, please leave this snippet
 
     public override PlayerData GetPlayerData()
     {

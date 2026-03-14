@@ -1,6 +1,5 @@
 using UnityEngine;
 using Unity.Netcode;
-using Unity.Collections;
 using System.Collections;
 
 [RequireComponent(typeof(Rigidbody))]
@@ -33,24 +32,11 @@ public class RedLightPlayerMovement : MovementPlayer
     private bool isFlashing = false;
     private float startPositionZ = 0f;
 
-    private NetworkVariable<bool> isWalking = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
-
-    private NetworkVariable<bool> isSprinting = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
-
     private NetworkVariable<bool> isPenalizedNet = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
-
     public NetworkVariable<float> distanceTraveledNet = new NetworkVariable<float>(
         0f,
         NetworkVariableReadPermission.Everyone,
@@ -61,12 +47,6 @@ public class RedLightPlayerMovement : MovementPlayer
     {
         base.OnNetworkSpawn();
         startPositionZ = transform.position.z;
-
-        animator = GetComponentInChildren<Animator>();
-        if (animator != null)
-        {
-            animator.applyRootMotion = false;
-        }
         isPenalizedNet.OnValueChanged += OnPenaltyStateChanged;
 
         if (IsOwner)
@@ -87,15 +67,7 @@ public class RedLightPlayerMovement : MovementPlayer
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening)
         {
             isStandaloneMode = true;
-            
             startPositionZ = transform.position.z;
-            
-            animator = GetComponentInChildren<Animator>();
-            if (animator != null)
-            {
-                animator.applyRootMotion = false;
-            }
-
             originalColor = PlayerSkinRenderer.material.color;
         }
     }
@@ -103,7 +75,6 @@ public class RedLightPlayerMovement : MovementPlayer
     private void Update()
     {
         if (!isStandaloneMode && !IsOwner) return;
-
         HandlePenaltyTimer();
         HandleStopInput();
     }
@@ -111,7 +82,6 @@ public class RedLightPlayerMovement : MovementPlayer
     private void FixedUpdate()
     {
         if (!isStandaloneMode && !IsOwner) return;
-
         HandleMovement();
         CheckRedLightViolation();
         UpdateDistanceTraveled();
@@ -120,7 +90,6 @@ public class RedLightPlayerMovement : MovementPlayer
     private void UpdateDistanceTraveled()
     {
         if (isStandaloneMode) return;
-
         distanceTraveledNet.Value = GetTraveledDistance();
     }
 
@@ -132,11 +101,7 @@ public class RedLightPlayerMovement : MovementPlayer
             if (penaltyTimer <= 0f)
             {
                 isPenalized = false;
-                
-                if (IsServer)
-                {
-                    isPenalizedNet.Value = false;
-                }
+                if (IsServer) isPenalizedNet.Value = false;
             }
         }
     }
@@ -161,14 +126,9 @@ public class RedLightPlayerMovement : MovementPlayer
     private void CheckRedLightViolation()
     {
         if (isPenalized || RedLightManager.Instance == null) return;
-
         bool isRedLight = RedLightManager.Instance.IsRedLight;
         float currentSpeed = Mathf.Abs(rb.linearVelocity.z);
-
-        if (isRedLight && currentSpeed > movementThreshold)
-        {
-            ApplyPenalty();
-        }
+        if (isRedLight && currentSpeed > movementThreshold) ApplyPenalty();
     }
 
     private void ApplyPenalty()
@@ -183,7 +143,6 @@ public class RedLightPlayerMovement : MovementPlayer
         transform.position = newPosition;
 
         rb.linearVelocity = Vector3.zero;
-
         ApplyPenaltyServerRpc();
     }
 
@@ -208,8 +167,8 @@ public class RedLightPlayerMovement : MovementPlayer
 
     public override void LateUpdate()
     {
-        bool walking = isStandaloneMode ? isWalkingLocal : isWalking.Value;
-        bool sprinting = isStandaloneMode ? isSprintingLocal : isSprinting.Value;
+        bool walking = isStandaloneMode ? isWalkingLocal : isWalkingNet.Value;
+        bool sprinting = isStandaloneMode ? isSprintingLocal : isSprintingNet.Value;
         animator.SetBool("isWalking", walking);
         animator.SetBool("isSprinting", sprinting);
         UpdateTrafficLightPosition();
@@ -219,7 +178,6 @@ public class RedLightPlayerMovement : MovementPlayer
     private void UpdateTrafficLightPosition()
     {
         if (trafficLight == null) return;
-
         Vector3 lightPosition = trafficLight.position;
         lightPosition.z = transform.position.z + trafficLightOffset;
         trafficLight.position = lightPosition;
@@ -227,29 +185,15 @@ public class RedLightPlayerMovement : MovementPlayer
 
     private void HandleStopInput()
     {
-        bool stopHeld;
-        
-        if (MinigameManager.USING_PLAYPULSE)
-        {
-            stopHeld = PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.A);
-        }
-        else
-        {
-            stopHeld = Input.GetKey(KeyCode.Space);
-        }
-
-        isStopped = stopHeld;
+        isStopped = MinigameManager.USING_PLAYPULSE ? PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.A) : Input.GetKey(KeyCode.Space);
     }
 
     private void HandleMovement()
     {
         if (isPenalized) return;
-
         float pedalInput = GetPedalInput();
         float speed = isStopped ? 0f : pedalInput * speedMultiplier;
-
         rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, speed);
-
         UpdateAnimationState(speed, pedalInput);
     }
 
@@ -265,46 +209,32 @@ public class RedLightPlayerMovement : MovementPlayer
         }
         else
         {
-            isWalking.Value = isMoving && !shouldSprint;
-            isSprinting.Value = shouldSprint;
+            isWalkingNet.Value = isMoving && !shouldSprint;
+            isSprintingNet.Value = shouldSprint;
         }
-
         animator.speed = isMoving ? pedalInput * 1.6f : 1.0f;
     }
 
     private float GetPedalInput()
     {
-        if (MinigameManager.USING_PLAYPULSE)
-        {
-            return Mathf.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f);
-        }
-        else
-        {
-            return Input.GetKey(KeyCode.UpArrow) ? 0.5f : 0f;
-        }
+        if (MinigameManager.USING_PLAYPULSE) return Mathf.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f);
+        else return Input.GetKey(KeyCode.UpArrow) ? 0.5f : 0f;
     }
 
     private void OnPenaltyStateChanged(bool previousValue, bool newValue)
     {
-        if (newValue && !isFlashing)
-        {
-            StartFlashEffect();
-        }
+        if (newValue && !isFlashing) StartFlashEffect();
     }
 
     protected override void SetSkinColor(string color)
     {
         base.SetSkinColor(color);
-        if (ColorUtility.TryParseHtmlString(color, out var skinColor))
-        {
-            originalColor = skinColor;
-        }
+        if (ColorUtility.TryParseHtmlString(color, out var skinColor)) originalColor = skinColor;
     }
 
     public void AssignTrafficLightAndTrack(TrafficLightController light, int playerIndex)
     {
         if (!IsServer) return;
-        
         trafficLight = light.transform;
         AssignTrafficLightClientRpc(light.GetComponent<NetworkObject>().NetworkObjectId);
         HighlightTrackClientRpc(playerIndex);
@@ -340,10 +270,7 @@ public class RedLightPlayerMovement : MovementPlayer
         if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(lightNetworkObjectId, out var networkObject))
         {
             TrafficLightController controller = networkObject.GetComponent<TrafficLightController>();
-            if (controller != null)
-            {
-                trafficLight = controller.transform;
-            }
+            if (controller != null) trafficLight = controller.transform;
         }
     }
 
