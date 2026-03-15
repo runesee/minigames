@@ -8,10 +8,7 @@ public class FocusFlowDataSpawner : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         if (!IsServer) return;
-        foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
-        {
-            SpawnForClient(clientId);
-        }
+        foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds) SpawnForClient(clientId);
         NetworkManager.Singleton.OnClientConnectedCallback += SpawnForClient;
     }
 

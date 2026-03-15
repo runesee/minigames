@@ -8,7 +8,6 @@ using Unity.Netcode.Transports.UTP;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using static MinigameManager;
 
 public class MenuManager : MonoBehaviour
 {
@@ -178,7 +177,7 @@ public class MenuManager : MonoBehaviour
         isHostMode = false;
         ShowSetupMenu();
         confirmButtonText.text = "Join";
-        if (ipLabel != null) ipLabel.SetActive(true);
+        ipLabel?.SetActive(true);
         if (ipInputField != null)
         {
             ipInputField.gameObject.SetActive(true);

@@ -49,7 +49,7 @@ public class MinigameManager : NetworkBehaviour
     void Start()
     {
         if (!USING_PLAYPULSE) return;
-        try // Initialize connection with PP-service, which should already be started.
+        try
         {
             if (!PlayPulse.PlayPulseService.IsInitialized) USING_PLAYPULSE = false;
         }

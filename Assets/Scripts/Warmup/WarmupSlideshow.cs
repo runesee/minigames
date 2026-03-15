@@ -46,10 +46,8 @@ public class WarmupSlideshow : MonoBehaviour
         bool rightTriggered = IsRightTriggered();
         bool leftTriggered = IsLeftTriggered();
 
-        if (rightTriggered)
-            NavigateNext();
-        else if (leftTriggered)
-            NavigatePrevious();
+        if (rightTriggered) NavigateNext();
+        else if (leftTriggered) NavigatePrevious();
 
         rightBikeWasPressed = PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.RightTrigger);
         leftBikeWasPressed = PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.LeftTrigger);
@@ -90,7 +88,6 @@ public class WarmupSlideshow : MonoBehaviour
             slides[i].SetActive(i == index);
             slides[i].GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
         }
-
         currentIndex = index;
         UpdateArrows();
     }

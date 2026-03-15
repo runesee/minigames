@@ -19,11 +19,7 @@ public class ButtonSoundGenerator : MonoBehaviour
 
     private void SetupAudioSource()
     {
-        audioSource = GetComponent<AudioSource>();
-        if (audioSource == null)
-        {
-            audioSource = gameObject.AddComponent<AudioSource>();
-        }
+        audioSource = GetComponent<AudioSource>() ?? gameObject.AddComponent<AudioSource>();
         audioSource.playOnAwake = false;
         audioSource.spatialBlend = 0f;
         audioSource.volume = volume;
@@ -32,12 +28,8 @@ public class ButtonSoundGenerator : MonoBehaviour
     private void GenerateButtonSound()
     {
         float frequency = GetFrequencyForButton(buttonType);
-        AudioClip clip = GenerateTone(frequency, duration);
-        
-        if (buttonCircle != null)
-        {
-            AssignSoundToButton(clip);
-        }
+        AudioClip clip = GenerateTone(frequency, duration); 
+        if (buttonCircle != null) AssignSoundToButton(clip);
     }
 
     private float GetFrequencyForButton(ButtonCircle.ButtonType type)
@@ -99,18 +91,12 @@ public class ButtonSoundGenerator : MonoBehaviour
             System.Reflection.BindingFlags.NonPublic | 
             System.Reflection.BindingFlags.Instance);
         
-        if (buttonSoundField != null)
-        {
-            buttonSoundField.SetValue(buttonCircle, clip);
-        }
+        buttonSoundField?.SetValue(buttonCircle, clip);
 
         var audioSourceField = buttonCircleType.GetField("audioSource", 
             System.Reflection.BindingFlags.NonPublic | 
             System.Reflection.BindingFlags.Instance);
         
-        if (audioSourceField != null)
-        {
-            audioSourceField.SetValue(buttonCircle, audioSource);
-        }
+        audioSourceField?.SetValue(buttonCircle, audioSource);
     }
 }

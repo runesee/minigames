@@ -404,7 +404,6 @@ MonoBehaviour:
         byte0060: 0
         byte0061: 0
   speedMultiplier: 10
-  sprintSpeedThreshold: 5
   penaltyPushBackDistance: 3
   penaltyFreezeDuration: 1.5
   movementThreshold: 0.1

@@ -24,15 +24,14 @@ public abstract class Player : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        colorNet.OnValueChanged += OnSkinColorChanged;
         // Apply initial player-selected color
+        colorNet.OnValueChanged += OnSkinColorChanged;
         var data = LocalPlayerStorage.Load();
         string color = IsOwner ? data.color : colorNet.Value.ToString();
         SetSkinColor(color);
 
-        if (IsOwner)
+        if (IsOwner) // Apply per-player values
         {
-            // Apply player-selected nickname and color
             UpdateColorServerRpc(color);
             UpdateNicknameServerRpc(data.nickname);
             UpdateGuidServerRpc(data.guid);

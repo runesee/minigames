@@ -1,4 +1,3 @@
-using UnityEngine;
 using Unity.Netcode;
 using Unity.Collections;
 using System;
@@ -89,8 +88,7 @@ public class SessionManager : NetworkBehaviour
 
     public PlayerData GetDataByGuid(FixedString64Bytes guid)
     {
-        foreach (var playerData in PlayerDataList)
-            if (playerData.Guid.Equals(guid)) return playerData;
+        foreach (var playerData in PlayerDataList) if (playerData.Guid.Equals(guid)) return playerData;
         return new PlayerData(guid, "player", "", 0f);
     }
 

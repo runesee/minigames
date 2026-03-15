@@ -34,7 +34,7 @@ public class SpeedIndicator : MonoBehaviour
     private void Update()
     {
         float normalizedSpeed = ReadNormalizedSpeed();
-        if (speedometerDisplay != null) speedometerDisplay.SetNormalizedSpeed(normalizedSpeed);
+        speedometerDisplay?.SetNormalizedSpeed(normalizedSpeed);
         UpdateActiveZone(normalizedSpeed);
         UpdatePhaseColors();
     }
@@ -63,9 +63,7 @@ public class SpeedIndicator : MonoBehaviour
         lastKnownIntervalPhase = isInterval;
         phaseInitialized = true;
 
-        if (isInterval)
-            speedometerDisplay.UpdateZoneColors(IntervalIdealSpeed);
-        else
-            speedometerDisplay.SetZoneColors(RestZoneColors);
+        if (isInterval) speedometerDisplay.UpdateZoneColors(IntervalIdealSpeed);
+        else speedometerDisplay.SetZoneColors(RestZoneColors);
     }
 }

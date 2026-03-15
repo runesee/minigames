@@ -169,10 +169,6 @@ public class ButtonCircle : MonoBehaviour
     {
         isShowingRing = false;
         ringTimer = 0f;
-
-        if (ringObject != null)
-        {
-            ringObject.SetActive(false);
-        }
+        ringObject?.SetActive(false);
     }
 }

@@ -33,30 +33,17 @@ public class RedLightGameTimer : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if (IsServer)
-        {
-            remainingTime.Value = gameDurationInSeconds;
-        }
-
+        if (IsServer)  remainingTime.Value = gameDurationInSeconds;
         remainingTime.OnValueChanged += OnRemainingTimeChanged;
         OnRemainingTimeChanged(0f, remainingTime.Value);
-        
         StartCoroutine(WaitForGameState());
     }
 
     private IEnumerator WaitForGameState()
     {
-        while (RedLightGameState.Instance == null)
-        {
-            yield return new WaitForSeconds(0.1f);
-        }
-
+        while (RedLightGameState.Instance == null) yield return new WaitForSeconds(0.1f);
         RedLightGameState.Instance.gameState.OnValueChanged += OnGameStateChanged;
-
-        if (IsServer)
-        {
-            StartCoroutine(StartGameAfterDelay());
-        }
+        if (IsServer)  StartCoroutine(StartGameAfterDelay());
     }
 
     private IEnumerator StartGameAfterDelay()
@@ -85,7 +72,6 @@ public class RedLightGameTimer : NetworkBehaviour
         if (IsServer)
         {
             remainingTime.Value = newRemainingTime;
-
             if (remainingTime.Value <= 0f)
             {
                 timerRunning.Value = false;
@@ -109,20 +95,12 @@ public class RedLightGameTimer : NetworkBehaviour
             timerEndTime.Value = NetworkManager.ServerTime.Time + gameDurationInSeconds;
             remainingTime.Value = gameDurationInSeconds;
             timerRunning.Value = true;
-
-            if (RedLightManager.Instance != null)
-            {
-                RedLightManager.Instance.StartGame();
-            }
+            RedLightManager.Instance?.StartGame();
         }
         else if (newState == GameState.Stopped)
         {
             timerRunning.Value = false;
-
-            if (RedLightManager.Instance != null)
-            {
-                RedLightManager.Instance.StopGame();
-            }
+            RedLightManager.Instance?.StopGame();
         }
     }
 
@@ -168,11 +146,7 @@ public class RedLightGameTimer : NetworkBehaviour
         {
             RedLightGameState.Instance.SetGameStateServerRpc(GameState.Stopped);
         }
-
-        if (IsServer)
-        {
-            StartCoroutine(TransitionToHandover());
-        }
+        if (IsServer) StartCoroutine(TransitionToHandover());
     }
 
     private IEnumerator TransitionToHandover()

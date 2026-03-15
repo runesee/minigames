@@ -35,14 +35,10 @@ public class PlayerColorFlood : BoostPlayer
 
     private void Update()
     {
-        if (ColorFloodGameState.Instance != null &&
-            ColorFloodGameState.Instance.gameState.Value != GameState.Running) return;
+        if (ColorFloodGameState.Instance != null && ColorFloodGameState.Instance.gameState.Value != GameState.Running) return;
         if (!IsOwner) return;
 
-        if (speedBoostTimer > 0)
-        {
-            speedBoostTimer -= Time.deltaTime;
-        }
+        if (speedBoostTimer > 0) speedBoostTimer -= Time.deltaTime;
 
         Vector2 input = moveAction.ReadValue<Vector2>();
         Vector3 joystickOffset = new Vector3(input.x, 0, input.y);
@@ -53,11 +49,9 @@ public class PlayerColorFlood : BoostPlayer
         float pedalSpeed = MinigameManager.USING_PLAYPULSE ? smoothedPedalSpeed : 0.5f;
         float pedalAnimationSpeed = MinigameManager.USING_PLAYPULSE  ? 1.6f * pedalSpeed : 1f;
 
-        if (System.Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f ||
-            System.Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f)
+        if (System.Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || System.Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f)
         {
-            joystickOffset = new Vector3(
-                -PlayPulse.Input.Input.JoystickX, 0, -PlayPulse.Input.Input.JoystickY);
+            joystickOffset = new Vector3(-PlayPulse.Input.Input.JoystickX, 0, -PlayPulse.Input.Input.JoystickY);
         }
 
         if (joystickOffset.sqrMagnitude > 0.01f)
@@ -94,8 +88,7 @@ public class PlayerColorFlood : BoostPlayer
     private void OnTriggerEnter(Collider other)
     {
         if (!IsOwner) return;
-        if (ColorFloodGameState.Instance == null ||
-            ColorFloodGameState.Instance.gameState.Value != GameState.Running) return;
+        if (ColorFloodGameState.Instance == null || ColorFloodGameState.Instance.gameState.Value != GameState.Running) return;
 
         SpeedBoostPickup speedPickup = other.GetComponent<SpeedBoostPickup>();
         if (speedPickup != null)
@@ -115,17 +108,13 @@ public class PlayerColorFlood : BoostPlayer
 
         ColorFloodTile tile = other.GetComponent<ColorFloodTile>();
         if (tile == null) return;
-
         TileGrid.Instance.PaintTileServerRpc(tile.tileIndex, teamNet.Value);
     }
 
     [ClientRpc]
     public void GrantSpeedBoostClientRpc()
     {
-        if (IsOwner)
-        {
-            speedBoostTimer = SpeedBoostDuration;
-        }
+        if (IsOwner) speedBoostTimer = SpeedBoostDuration;
     }
 
     public override void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)

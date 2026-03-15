@@ -2,7 +2,6 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Linq;
-using System;
 using PlayPulse.Api.Utils;
 
 public class PlayerTagMovement : TagPlayer
@@ -135,7 +134,7 @@ public class PlayerTagMovement : TagPlayer
         {
             HandleMovement(joystickOffset, moveSpeed, pedalSpeed, pedalAnimationSpeed, false);
             UpdateStamina(isBoosting);
-            
+
             // Play running animation if movement speed above threshold
             isSprintingNet.Value = moveSpeed > sprintSpeedThreshold;
             isWalkingNet.Value = !isSprintingNet.Value;

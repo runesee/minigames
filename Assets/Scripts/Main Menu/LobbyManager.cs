@@ -1,8 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using Unity.Netcode;
-using System.Collections;
-using static MinigameManager;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine.InputSystem;
@@ -71,11 +69,7 @@ public class LobbyManager : NetworkBehaviour
             startGameButton.interactable = false;
         }
 
-        if (waitingText != null)
-        {
-            waitingText.gameObject.SetActive(!isServer);
-        }
-
+        waitingText?.gameObject.SetActive(!isServer);
         UpdatePlayerCount();
     }
 
@@ -112,11 +106,7 @@ public class LobbyManager : NetworkBehaviour
             NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
             NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
         }
-
-        if (startGameButton != null)
-        {
-            startGameButton.onClick.RemoveListener(OnStartGameClicked);
-        }
+        startGameButton?.onClick.RemoveListener(OnStartGameClicked);
     }
 
     private void OnClientConnected(ulong clientId)
@@ -131,7 +121,6 @@ public class LobbyManager : NetworkBehaviour
                 AddPlayerClientRpc(existingClientId, data.nickname, data.color, data.slotIndex);
             }
         }
-
         UpdatePlayerCount();
     }
 
@@ -141,7 +130,6 @@ public class LobbyManager : NetworkBehaviour
         {
             OnPlayerLeaveRequested(clientId);
         }
-
         UpdatePlayerCount();
     }
 
@@ -192,12 +180,7 @@ public class LobbyManager : NetworkBehaviour
         };
 
         connectedPlayers[clientId] = playerData;
-
-        if (IsServer)
-        {
-            AddPlayerToSlot(clientId, nickname, color, slotIndex);
-        }
-
+        if (IsServer) AddPlayerToSlot(clientId, nickname, color, slotIndex);
         AddPlayerClientRpc(clientId, nickname, color, slotIndex);
     }
 
@@ -207,12 +190,7 @@ public class LobbyManager : NetworkBehaviour
         {
             int slotIndex = connectedPlayers[clientId].slotIndex;
             connectedPlayers.Remove(clientId);
-
-            if (IsServer)
-            {
-                RemovePlayerFromSlot(clientId, slotIndex);
-            }
-
+            if (IsServer) RemovePlayerFromSlot(clientId, slotIndex);
             RemovePlayerClientRpc(clientId, slotIndex);
         }
     }
@@ -225,15 +203,8 @@ public class LobbyManager : NetworkBehaviour
             return;
         }
 
-        if (playerPreviews.ContainsKey(clientId))
-        {
-            return;
-        }
-
-        if (nicknameTexts[slotIndex] != null)
-        {
-            nicknameTexts[slotIndex].text = nickname;
-        }
+        if (playerPreviews.ContainsKey(clientId)) return;
+        if (nicknameTexts[slotIndex] != null) nicknameTexts[slotIndex].text = nickname;
 
         if (playerSlots[slotIndex] != null && characterPreviewPrefab != null)
         {

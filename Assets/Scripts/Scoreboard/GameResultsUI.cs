@@ -193,9 +193,8 @@ public class GameResultsUI : NetworkBehaviour
     private void HideResults()
     {
         resultsPanel?.SetActive(false);
-
-        if (fireworksLeft != null) fireworksLeft.Stop();
-        if (fireworksRight != null) fireworksRight.Stop();
+        fireworksLeft?.Stop();
+        fireworksRight?.Stop();
     }
 
     private IEnumerator ShowResultsWithAnimation()
@@ -206,9 +205,8 @@ public class GameResultsUI : NetworkBehaviour
         }
 
         resultsPanel.SetActive(true);
-
-        if (fireworksLeft != null) fireworksLeft.Play();
-        if (fireworksRight != null) fireworksRight.Play();
+        fireworksLeft?.Play();
+        fireworksRight?.Play();
 
         float elapsed = 0f;
         Vector3 startScale = Vector3.zero;
@@ -224,12 +222,10 @@ public class GameResultsUI : NetworkBehaviour
             {
                 rectTransform.localScale = Vector3.Lerp(startScale, targetScale, curveValue);
             }
-
             if (panelCanvasGroup != null)
             {
                 panelCanvasGroup.alpha = curveValue;
             }
-
             yield return null;
         }
 
@@ -237,12 +233,10 @@ public class GameResultsUI : NetworkBehaviour
         {
             finalRect.localScale = targetScale;
         }
-
         if (panelCanvasGroup != null)
         {
             panelCanvasGroup.alpha = 1f;
         }
-
         StartCoroutine(AnimateResultsText());
     }
 

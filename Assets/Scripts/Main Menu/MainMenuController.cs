@@ -1,8 +1,5 @@
 using UnityEngine;
 using Unity.Netcode;
-using Unity.Netcode.Transports.UTP;
-using UnityEngine.SceneManagement;
-using static MinigameManager;
 using System.Net;
 using System.Net.Sockets;
 

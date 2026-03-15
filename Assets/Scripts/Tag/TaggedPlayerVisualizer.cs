@@ -118,11 +118,7 @@ public class TaggedPlayerVisualizer : NetworkBehaviour
                 playerSkinRenderer.material = originalMaterial;
             }
         }
-
-        if (markerInstance != null)
-        {
-            markerInstance.SetActive(isTagged);
-        }
+        markerInstance?.SetActive(isTagged);
     }
 
     private void CreateDefaultMarker()
