@@ -13,13 +13,7 @@ public class PlayerCtF : TagPlayer
     [SerializeField] public Material blueColor;
     [SerializeField] public Material greenColor;
 
-    [Header("Map Boundaries")]
-    public float minX = -17f;
-    public float maxX = 17f;
-    public float minZ = -13f;
-    public float maxZ = 12f;
-
-    private NetworkVariable<bool> isRespawning = new NetworkVariable<bool>(
+    private NetworkVariable<bool> isRespawningNet = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
@@ -203,16 +197,11 @@ public class PlayerCtF : TagPlayer
         if (CtFGameState.Instance != null && CtFGameState.Instance.gameState.Value != GameState.Running) return;
         if (!IsOwner) return;
         double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
-        if (serverTime - lastRespawnTimeNet.Value >= 4f && isRespawning.Value && IsOwner) RespawnPlayerServerRpc();
-        else if (isRespawning.Value) return;
+        if (serverTime - lastRespawnTimeNet.Value >= 4f && isRespawningNet.Value && IsOwner) RespawnPlayerServerRpc();
+        else if (isRespawningNet.Value) return;
 
         // Parse InputInteractions
-        Vector2 input = moveAction.ReadValue<Vector2>();
-        Vector3 joystickOffset = new Vector3(input.x, 0, input.y);
-        isTaunting = (interactAction.ReadValue<float>() > 0f && interactAction.WasPressedThisFrame()) ||
-            PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.Y);
-        isTaunting = interactAction.IsPressed() || PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.Y);
-        isPunching = attackAction.WasPerformedThisFrame() || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A);
+        var (joystickOffset, input) = ParseInput();
         isPunchingNet.Value = isPunching;
 
         if (isPunching && !isFrozenNet.Value)
@@ -235,31 +224,12 @@ public class PlayerCtF : TagPlayer
             double timeSinceTagged = serverTime - lastTagTimeNet.Value;
             if (timeSinceTagged >= 0.7f) UnfreezePlayerServerRpc();
         }
-
-        // Handle animations and update position based on input actions
-        float smoothing = 1f - Mathf.Exp(-10f * Time.deltaTime);
-        smoothedPedalSpeed = Mathf.Lerp(smoothedPedalSpeed, Math.Clamp(PlayPulse.Input.Input.Speed, 0f, 1f), smoothing);
-        float pedalSpeed = MinigameManager.USING_PLAYPULSE ? smoothedPedalSpeed : 0.4f;
-        float pedalAnimationSpeed = MinigameManager.USING_PLAYPULSE ? 1.6f * pedalSpeed : 1f;
-        joystickOffset = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ?
-        new Vector3((-1) * PlayPulse.Input.Input.JoystickX, 0, (-1) * PlayPulse.Input.Input.JoystickY) : joystickOffset;
+        var (pedalSpeed, pedalAnimationSpeed) = GetSmoothedPedalSpeed();
 
         if (joystickOffset.sqrMagnitude > 0.01f)
         {
-            // Play running animation if movement speed above threshold
-            isSprintingNet.Value = pedalSpeed > sprintSpeedThreshold;
-            isWalkingNet.Value = !isSprintingNet.Value;
-            isShowingBoostParticlesNet.Value = isSprintingNet.Value;
             float moveSpeed = 10f * pedalSpeed;
-
-            Quaternion lastRotation = Quaternion.LookRotation(joystickOffset);
-            transform.rotation = Quaternion.Slerp(transform.rotation, lastRotation, 10f * Time.deltaTime);
-            animator.speed = pedalAnimationSpeed;
-
-            Vector3 newPosition = rb.position + moveSpeed * Time.deltaTime * joystickOffset.normalized;
-            newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
-            newPosition.z = Mathf.Clamp(newPosition.z, minZ, maxZ);
-            rb.MovePosition(newPosition);
+            HandleMovement(joystickOffset, moveSpeed, pedalSpeed, pedalAnimationSpeed, true);
 
             if (IsOwner)
             {
@@ -268,35 +238,9 @@ public class PlayerCtF : TagPlayer
                 mainCamera.transform.position = smoothedPosition;
             } 
         }
-        else
-        {
-            isWalkingNet.Value = false;
-            isSprintingNet.Value = false;
-            animator.speed = 1.0f;
-            isShowingBoostParticlesNet.Value = false;
-        }
-
-        // Lastly, if neither moving or tagging, check if taunting.
-        // Sets both trigger and bool value in Animator.
-        // Limits animation to loop once if key is held down,
-        // otherwise cancels on other actions or letting go of key
-        canTaunt = !isWalkingNet.Value && !isSprintingNet.Value && !isPunching;
-        if (isTaunting && canTaunt)
-        {
-            animator.SetTrigger("isTauntingTrigger");
-            isTauntingNet.Value = true;
-        }
-        else if (isTaunting && canTaunt && !isTauntingNet.Value)
-        {
-            isTauntingNet.Value = true;
-        }
-        if (!isTaunting || !canTaunt || interactAction.WasReleasedThisFrame())
-        {
-            isTauntingNet.Value = false;
-        }
-
-        // Rotate flag with player model
-        if (isFlagActiveNet.Value) flagTransform.transform.rotation = rb.rotation;
+        else HandleMovement();
+        HandleTaunting();
+        if (isFlagActiveNet.Value) flagTransform.transform.rotation = rb.rotation; // Rotate flag with player model
     }
 
     public override void LateUpdate()
@@ -336,7 +280,7 @@ public class PlayerCtF : TagPlayer
 
         if ((this.currentZoneNet.Value == this.teamNet.Value && victim.currentZoneNet.Value == this.teamNet.Value) || victim.isFlagActiveNet.Value)
         {
-            victim.isRespawning.Value = true;
+            victim.isRespawningNet.Value = true;
             victim.lastRespawnTimeNet.Value = serverTime;
             victim.currentZoneNet.Value = victim.teamNet.Value;
             if (victim.isFlagActiveNet.Value)
@@ -388,7 +332,7 @@ public class PlayerCtF : TagPlayer
     [ServerRpc]
     private void RespawnPlayerServerRpc()
     {
-        isRespawning.Value = false;
+        isRespawningNet.Value = false;
     }
 
     [ClientRpc]

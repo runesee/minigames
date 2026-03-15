@@ -5374,21 +5374,17 @@ MonoBehaviour:
         byte0059: 0
         byte0060: 0
         byte0061: 0
+  sprintParticleEffect: {fileID: 6789903846567414674}
+  tagAudioSource: {fileID: 3805718767395553070}
+  tagClip: {fileID: 8300000, guid: 792de47f43f4c91489da86277518a33b, type: 3}
   minX: -17
   maxX: 17
   minZ: -13
   maxZ: 12
-  tagAudioSource: {fileID: 3805718767395553070}
   boostAudioSource: {fileID: 1393781912053361104}
-  tagClip: {fileID: 8300000, guid: 792de47f43f4c91489da86277518a33b, type: 3}
   boostClip: {fileID: 8300000, guid: 28e109cda39e52c4d93a414e9a8ca754, type: 3}
   isTaggedNet:
     m_InternalValue: 0
-  timeSpentTaggedNet:
-    m_InternalValue: 0
-  lastTagTimeNet:
-    m_InternalValue: 0
-  sprintParticleEffect: {fileID: 6789903846567414674}
 --- !u!114 &5568033458682530780
 MonoBehaviour:
   m_ObjectHideFlags: 0
