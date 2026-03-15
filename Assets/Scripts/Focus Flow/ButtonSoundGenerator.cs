@@ -7,7 +7,7 @@ public class ButtonSoundGenerator : MonoBehaviour
     [SerializeField] private float volume = 0.3f;
     [SerializeField] private float duration = 0.15f;
 
-    private AudioSource audioSource;
+    [SerializeField] private AudioSource audioSource;
     private ButtonCircle buttonCircle;
 
     private void Awake()
@@ -19,7 +19,6 @@ public class ButtonSoundGenerator : MonoBehaviour
 
     private void SetupAudioSource()
     {
-        audioSource = GetComponent<AudioSource>() ?? gameObject.AddComponent<AudioSource>();
         audioSource.playOnAwake = false;
         audioSource.spatialBlend = 0f;
         audioSource.volume = volume;
