@@ -1,6 +1,7 @@
 using UnityEngine;
 using Unity.Netcode;
 using System.Collections;
+using System;
 
 [RequireComponent(typeof(Rigidbody))]
 public class RedLightPlayerMovement : MovementPlayer
@@ -287,6 +288,7 @@ public class RedLightPlayerMovement : MovementPlayer
     public override PlayerData GetPlayerData()
     {
         float distance = isStandaloneMode ? GetTraveledDistance() : distanceTraveledNet.Value;
+        distance = Math.Clamp(distance - 10f, 0, 580f); // Account for -10 start position
         return new PlayerData(
             guidNet.Value,
             nicknameNet.Value,
