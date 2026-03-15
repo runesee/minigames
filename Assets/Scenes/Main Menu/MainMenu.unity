@@ -4555,6 +4555,7 @@ MonoBehaviour:
   tagMusic: {fileID: 8300000, guid: c4b92ffd3d4e57d42ae8121052ac0193, type: 3}
   focusFlowMusic: {fileID: 8300000, guid: 93067ec685091954a81a2a0f35f3ab7b, type: 3}
   scoreboardMusic: {fileID: 8300000, guid: f43330fdf0ea45b40b78bb89a42d9fbd, type: 3}
+  endMusic: {fileID: 8300000, guid: a8aad34ce4e81d84c977a4c0f0961736, type: 3}
   audioSource: {fileID: 8357539039490957703}
 --- !u!114 &295878900879057622
 MonoBehaviour:
