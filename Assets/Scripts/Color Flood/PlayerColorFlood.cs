@@ -4,18 +4,11 @@ using UnityEngine;
 
 public class PlayerColorFlood : BoostPlayer
 {
-    [Header("Map Boundaries")]
-    public float minX = -39.5f;
-    public float maxX = 39.5f;
-    public float minZ = -19.5f;
-    public float maxZ = 19.5f;
-
     public NetworkVariable<Team> teamNet = new NetworkVariable<Team>(
         Team.None,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
-
     private float speedBoostTimer;
     private const float SpeedBoostDuration = 5f;
     private const float SpeedBoostMultiplier = 2f;
@@ -39,20 +32,8 @@ public class PlayerColorFlood : BoostPlayer
         if (!IsOwner) return;
 
         if (speedBoostTimer > 0) speedBoostTimer -= Time.deltaTime;
-
-        Vector2 input = moveAction.ReadValue<Vector2>();
-        Vector3 joystickOffset = new Vector3(input.x, 0, input.y);
-
-        float smoothing = 1f - Mathf.Exp(-10f * Time.deltaTime);
-        float inputSpeed = Mathf.Clamp(PlayPulse.Input.Input.Speed, 0f, 1f);
-        smoothedPedalSpeed = Mathf.Lerp(smoothedPedalSpeed, inputSpeed, smoothing);
-        float pedalSpeed = MinigameManager.USING_PLAYPULSE ? smoothedPedalSpeed : 0.5f;
-        float pedalAnimationSpeed = MinigameManager.USING_PLAYPULSE  ? 1.6f * pedalSpeed : 1f;
-
-        if (System.Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || System.Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f)
-        {
-            joystickOffset = new Vector3(-PlayPulse.Input.Input.JoystickX, 0, -PlayPulse.Input.Input.JoystickY);
-        }
+        var (joystickOffset, input) = ParseInput();
+        var (pedalSpeed, pedalAnimationSpeed) = GetSmoothedPedalSpeed();
 
         if (joystickOffset.sqrMagnitude > 0.01f)
         {
@@ -62,18 +43,8 @@ public class PlayerColorFlood : BoostPlayer
             isShowingBoostParticlesNet.Value = isBoosted || pedalSpeed > sprintSpeedThreshold;
 
             float moveSpeed = walkSpeed * pedalSpeed;
-            if (speedBoostTimer > 0)
-            {
-                moveSpeed *= SpeedBoostMultiplier;
-            }
-            Quaternion targetRotation = Quaternion.LookRotation(joystickOffset);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
-            if (animator != null) animator.speed = pedalAnimationSpeed;
-
-            Vector3 newPosition = rb.position + moveSpeed * Time.deltaTime * joystickOffset.normalized;
-            newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
-            newPosition.z = Mathf.Clamp(newPosition.z, minZ, maxZ);
-            rb.MovePosition(newPosition);
+            if (speedBoostTimer > 0) moveSpeed *= SpeedBoostMultiplier;
+            HandleMovement(joystickOffset, moveSpeed, pedalSpeed, pedalAnimationSpeed, false);
         }
         else
         {
