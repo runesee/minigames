@@ -17,7 +17,7 @@ public class FocusFlowDataSpawner : NetworkBehaviour
         if (!IsServer) return;
         GameObject obj = Instantiate(focusFlowDataPrefab);
         NetworkObject netObj = obj.GetComponent<NetworkObject>();
-        netObj.SpawnWithOwnership(clientId);
+        netObj.SpawnAsPlayerObject(clientId, true);
     }
 
     public override void OnNetworkDespawn()

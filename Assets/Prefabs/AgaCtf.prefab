@@ -5470,19 +5470,18 @@ MonoBehaviour:
         byte0059: 0
         byte0060: 0
         byte0061: 0
+  sprintParticleEffect: {fileID: 6789903846567414674}
+  minX: -36
+  maxX: 36
+  minZ: -14
+  maxZ: 14
+  tagAudioSource: {fileID: 3805718767395553070}
+  tagClip: {fileID: 8300000, guid: 792de47f43f4c91489da86277518a33b, type: 3}
   flag: {fileID: 7685504545009282327}
   flagColor: {fileID: 4711070426998390495}
   flagTransform: {fileID: 9026480660467426401}
   blueColor: {fileID: 2100000, guid: 5f79d6da33539264da6fd39a66c9a845, type: 2}
   greenColor: {fileID: 2100000, guid: 8e8f7e43ebf4ece4babb4a055b4c5ba0, type: 2}
-  minX: -36
-  maxX: 36
-  minZ: -14
-  maxZ: 14
-  timeSpentTaggedNet:
-    m_InternalValue: 0
-  lastTagTimeNet:
-    m_InternalValue: 0
   lastRespawnTimeNet:
     m_InternalValue: 0
   teamNet:
@@ -5493,9 +5492,6 @@ MonoBehaviour:
     m_InternalValue: 0
   collectedFlagsNet:
     m_InternalValue: 0
-  sprintParticleEffect: {fileID: 6789903846567414674}
-  audioSource: {fileID: 3805718767395553070}
-  tagClip: {fileID: 8300000, guid: 792de47f43f4c91489da86277518a33b, type: 3}
   plopClip: {fileID: 8300000, guid: 283febda42e3ee448a80cb4552b1b03a, type: 3}
   scoreClip: {fileID: 8300000, guid: bfaeaa0eff4ed7b45bda83dd915061b5, type: 3}
   enemyScoreClip: {fileID: 8300000, guid: 101fc00948ddf7d4ca325de7951cceac, type: 3}

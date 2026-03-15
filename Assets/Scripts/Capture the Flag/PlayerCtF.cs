@@ -187,7 +187,7 @@ public class PlayerCtF : TagPlayer
             nicknameNet.Value,
             colorNet.Value,
             collectedFlagsNet.Value,
-            teamNet.Value == Team.Green ? 0f : 1f
+            teamNet.Value
         );
         return playerData;
     }

@@ -57,7 +57,6 @@ public class PlayerTagMovement : TagPlayer
         {
             var gameTimer = FindAnyObjectByType<GameTimer>();
             double serverTime = gameTimer != null ? gameTimer.GameEndServerTime : NetworkManager.Singleton.ServerTime.FixedTime;
-            //double serverTime = NetworkManager.Singleton.ServerTime.FixedTime; TODO
             totalTime += serverTime - lastTagTimeNet.Value;
         }
         return new PlayerData(
@@ -65,7 +64,7 @@ public class PlayerTagMovement : TagPlayer
             nicknameNet.Value,
             colorNet.Value,
             (float) totalTime,
-            (float) totalTime
+            Team.None
         );
     }
 

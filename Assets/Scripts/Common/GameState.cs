@@ -25,15 +25,15 @@ public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
     public FixedString64Bytes nickname;
     public FixedString64Bytes color;
     public float score;
-    public float ordering;
+    public Team team;
 
-    public PlayerData(FixedString64Bytes Guid, FixedString64Bytes nickname, FixedString64Bytes color, float score, float ordering)
+    public PlayerData(FixedString64Bytes Guid, FixedString64Bytes nickname, FixedString64Bytes color, float score, Team team)
     {
         this.Guid = Guid;
         this.nickname = nickname;
         this.color = color;
         this.score = score;
-        this.ordering = ordering;
+        this.team = team;
     }
 
     public PlayerData(FixedString64Bytes Guid)
@@ -42,7 +42,7 @@ public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
         this.nickname = "";
         this.color = "";
         this.score = 0f;
-        this.ordering = 0f;
+        this.team = Team.None;
     }
 
     public bool Equals(PlayerData other)
@@ -53,7 +53,7 @@ public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
             nickname.Equals(other.nickname) &&
             color.Equals(other.color) &&
             score.Equals(other.score) &&
-            ordering.Equals(other.ordering)
+            team.Equals(other.team)
         );    
     }
 
@@ -63,7 +63,7 @@ public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
         serializer.SerializeValue(ref nickname);
         serializer.SerializeValue(ref color);
         serializer.SerializeValue(ref score);
-        serializer.SerializeValue(ref ordering);
+        serializer.SerializeValue(ref team);
     }
 }
 
@@ -96,11 +96,13 @@ public abstract class MinigameGameState : NetworkBehaviour
     {
         gameState.Value = state;
         if (state != GameState.Handover) return;
-        foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
+        PlayerDataList.Clear();
+        foreach (var client in NetworkManager.Singleton.ConnectedClientsList)
         {
-            var player = obj.GetComponent<Player>();
+            var player = client.PlayerObject.GetComponent<Player>();
             if (player == null) continue;
-            PlayerDataList.Add(player.GetPlayerData()); 
+            PlayerData playerData = player.GetPlayerData();
+            if (!PlayerDataList.Contains(playerData)) PlayerDataList.Add(player.GetPlayerData());
         }
         SaveData();
         shouldChangeScene = true;
@@ -108,7 +110,7 @@ public abstract class MinigameGameState : NetworkBehaviour
 
     protected virtual void SaveData()
     {
-        var rankedPlayers = PlayerDataList.OrderByDescending(p => p.ordering).ToList();
+        var rankedPlayers = GetOrderedPlayerDataList(false);
         for (int i = 0; i < rankedPlayers.Count; i++)
         {
             float score = i < scores.Length ? scores[i] : 0f;
@@ -122,5 +124,11 @@ public abstract class MinigameGameState : NetworkBehaviour
             );
             SessionManager.Instance.SaveData(scoredPlayerData);
         }
+    }
+
+    protected virtual List<PlayerData> GetOrderedPlayerDataList(bool orderByTeam)
+    {
+        if (orderByTeam) return PlayerDataList.OrderByDescending(p => p.team.ToString()).ToList();
+        return PlayerDataList.OrderByDescending(p => p.score).ToList();
     }
 }

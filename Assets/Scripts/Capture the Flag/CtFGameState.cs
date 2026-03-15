@@ -32,7 +32,7 @@ public class CtFGameState : MinigameGameState
 
     protected override void SaveData()
     {
-        var rankedPlayers = PlayerDataList.OrderByDescending(p => p.ordering).ToList();
+        var rankedPlayers = GetOrderedPlayerDataList(true);
         if (greenScore.Value < blueScore.Value) rankedPlayers.Reverse();
         for (int i = 0; i < rankedPlayers.Count; i++)
         {

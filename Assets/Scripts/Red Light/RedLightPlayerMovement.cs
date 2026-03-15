@@ -292,7 +292,7 @@ public class RedLightPlayerMovement : MovementPlayer
             nicknameNet.Value,
             colorNet.Value,
             distance,
-            distance
+            Team.None
         );
     }
 }

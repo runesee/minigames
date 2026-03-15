@@ -129,7 +129,7 @@ public class PlayerColorFlood : BoostPlayer
             nicknameNet.Value,
             colorNet.Value,
             tilesOwned,
-            teamNet.Value == Team.Green ? 0f : 1f
+            teamNet.Value
         );
     }
 }

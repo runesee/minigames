@@ -30,7 +30,7 @@ public class FocusFlowData : Player
             nicknameNet.Value,
             colorNet.Value,
             totalScoreNet.Value,
-            totalScoreNet.Value
+            Team.None
         );
         return playerData;
     }

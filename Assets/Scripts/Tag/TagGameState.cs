@@ -17,7 +17,8 @@ public class TagGameState : MinigameGameState
 
     protected override void SaveData()
     {
-        var rankedPlayers = PlayerDataList.OrderBy(p => p.ordering).ToList();
+        var rankedPlayers = GetOrderedPlayerDataList(false);
+        rankedPlayers.Reverse();
         for (int i = 0; i < rankedPlayers.Count; i++)
         {
             float score = i < scores.Length ? scores[i] : 0f;

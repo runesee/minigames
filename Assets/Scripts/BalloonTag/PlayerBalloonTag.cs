@@ -62,7 +62,7 @@ public class PlayerBalloonTag : TagPlayer
             nicknameNet.Value,
             colorNet.Value,
             balloonsNet.Value.count,
-            balloonsNet.Value.count
+            Team.None
         );
         return playerData;
     }
