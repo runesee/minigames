@@ -172,9 +172,9 @@ public class GameResultsUI : NetworkBehaviour
         if (newState == GameState.Stopped)
         {
             if (!IsHost) return;
-            BuildResultsText();
+            MinigameManager.MinigameScene currentScene = BuildResultsText();
             StartCoroutine(ShowResultsWithAnimation());
-            ShowResultsClientRpc(results.ToArray());
+            ShowResultsClientRpc(results.ToArray(), currentScene);
             if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.CaptureTheFlag)
             {
                 if (CtFGameState.Instance.blueScore.Value > CtFGameState.Instance.greenScore.Value)
@@ -270,7 +270,7 @@ public class GameResultsUI : NetworkBehaviour
         return results;
     }
 
-    private void BuildResultsText()
+    private MinigameManager.MinigameScene BuildResultsText()
     {
         if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag)
         {
@@ -303,10 +303,11 @@ public class GameResultsUI : NetworkBehaviour
         {
             results.Reverse();
         }
-        UpdateCanvas(results);
+        UpdateCanvas(results, MinigameManager.Instance.currentGameState);
+        return MinigameManager.Instance.currentGameState;
     }
 
-    private void UpdateCanvas(List<PlayerResult> results)
+    private void UpdateCanvas(List<PlayerResult> results, MinigameManager.MinigameScene currentScene)
     {
         foreach (var card in playerCards)
         {
@@ -319,13 +320,12 @@ public class GameResultsUI : NetworkBehaviour
 
             string playerName = results[i].nickname.Value;
             double score = results[i].score;
-            var currentState = MinigameManager.Instance.currentGameState;
-
             string time;
-            if (currentState == MinigameManager.MinigameScene.Tag)
-                time = score.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "s";
-            else if (currentState == MinigameManager.MinigameScene.RedLight)
-                time = score.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "m";
+
+            if (currentScene == MinigameManager.MinigameScene.Tag)
+                time = score.ToString("F1", System.Globalization.CultureInfo.InvariantCulture) + "s";
+            else if (currentScene == MinigameManager.MinigameScene.RedLight)
+                time = score.ToString("F1", System.Globalization.CultureInfo.InvariantCulture) + "m";
             else
                 time = ((int)score).ToString(System.Globalization.CultureInfo.InvariantCulture);
 
@@ -349,10 +349,10 @@ public class GameResultsUI : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void ShowResultsClientRpc(PlayerResult[] playerResults)
+    private void ShowResultsClientRpc(PlayerResult[] playerResults, MinigameManager.MinigameScene currentScene)
     {
         this.results = playerResults.ToList();
-        UpdateCanvas(this.results);
+        UpdateCanvas(this.results, currentScene);
         StartCoroutine(ShowResultsWithAnimation());
     }
 
