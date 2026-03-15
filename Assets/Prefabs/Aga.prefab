@@ -5375,12 +5375,12 @@ MonoBehaviour:
         byte0060: 0
         byte0061: 0
   sprintParticleEffect: {fileID: 6789903846567414674}
-  tagAudioSource: {fileID: 3805718767395553070}
-  tagClip: {fileID: 8300000, guid: 792de47f43f4c91489da86277518a33b, type: 3}
   minX: -17
   maxX: 17
   minZ: -13
   maxZ: 12
+  tagAudioSource: {fileID: 3805718767395553070}
+  tagClip: {fileID: 8300000, guid: 792de47f43f4c91489da86277518a33b, type: 3}
   boostAudioSource: {fileID: 1393781912053361104}
   boostClip: {fileID: 8300000, guid: 28e109cda39e52c4d93a414e9a8ca754, type: 3}
   isTaggedNet:
@@ -5417,7 +5417,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 0.2
+  m_Volume: 0.35
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -5662,7 +5662,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 0.05
+  m_Volume: 0.025
   m_Pitch: 2
   Loop: 0
   Mute: 0

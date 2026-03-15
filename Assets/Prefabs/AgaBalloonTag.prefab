@@ -5373,6 +5373,7 @@ MonoBehaviour:
         byte0059: 0
         byte0060: 0
         byte0061: 0
+  sprintParticleEffect: {fileID: 6789903846567414674}
   minX: -17
   maxX: 17
   minZ: -13
@@ -5380,11 +5381,6 @@ MonoBehaviour:
   tagAudioSource: {fileID: 5932219003131930463}
   tagClip: {fileID: 8300000, guid: 792de47f43f4c91489da86277518a33b, type: 3}
   popClip: {fileID: 8300000, guid: 283febda42e3ee448a80cb4552b1b03a, type: 3}
-  timeSpentTaggedNet:
-    m_InternalValue: 0
-  lastTagTimeNet:
-    m_InternalValue: 0
-  sprintParticleEffect: {fileID: 6789903846567414674}
   BalloonPrefabs:
   - {fileID: 7285924930263013525}
   - {fileID: 6540445487063137629}
@@ -5407,7 +5403,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 0.2
+  m_Volume: 0.3
   m_Pitch: 1
   Loop: 0
   Mute: 0

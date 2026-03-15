@@ -89,7 +89,7 @@ public class MusicManager : NetworkBehaviour
     private void PlayScoreboardMusicClientRpc()
     {
         audioSource.Stop();
-        StartCoroutine(PlayScoreboardSoundbyte());
+        audioSource?.PlayOneShot(scoreboardMusic);
     }
 
     [ClientRpc]
@@ -122,11 +122,5 @@ public class MusicManager : NetworkBehaviour
             audioSource.volume += startVolume * Time.deltaTime / FadeTime;
             yield return null;
         }
-    }
-
-    private IEnumerator PlayScoreboardSoundbyte()
-    {
-        yield return new WaitForSeconds(3f); // Roughly syncs up with '+'-text
-        audioSource?.PlayOneShot(scoreboardMusic);
     }
 }
