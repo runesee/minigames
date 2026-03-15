@@ -45,12 +45,12 @@ public class CtFSetup : NetworkBehaviour
             if (data[i].team == Team.Green)
             {
                 playerCards[i].teamText.text = "Green";
-                playerCards[i].teamText.color = Color.green;
+                playerCards[i].teamText.color = PlayerColorManager.GetColor(2);
             } 
             else
             {
                 playerCards[i].teamText.text = "Blue";
-                playerCards[i].teamText.color = Color.blue;
+                playerCards[i].teamText.color = PlayerColorManager.GetColor(1);;
             } 
         }
     }
