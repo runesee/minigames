@@ -42,8 +42,7 @@ public class WarmupSpeedSlope : MonoBehaviour
 
     private void Awake()
     {
-        if (pattern == null || pattern.Length == 0)
-            pattern = BuildDefaultPattern();
+        if (pattern == null || pattern.Length == 0) pattern = BuildDefaultPattern();
     }
 
     private void Start()
@@ -93,8 +92,8 @@ public class WarmupSpeedSlope : MonoBehaviour
             float right = left + seg.rectTransform.sizeDelta.x;
             if (left <= 0f && right > 0f)
             {
-                minSpeed         = seg.minSpeed;
-                maxSpeed         = seg.maxSpeed;
+                minSpeed = seg.minSpeed;
+                maxSpeed = seg.maxSpeed;
                 pointsMultiplier = seg.pointsMultiplier;
                 return true;
             }
@@ -122,22 +121,22 @@ public class WarmupSpeedSlope : MonoBehaviour
         go.transform.SetSiblingIndex(0);
 
         var rt = go.GetComponent<RectTransform>();
-        rt.anchorMin        = new Vector2(0f, data.minSpeed);
-        rt.anchorMax        = new Vector2(0f, data.maxSpeed);
-        rt.pivot            = Vector2.zero;
-        rt.sizeDelta        = new Vector2(data.widthUnits, 0f);
+        rt.anchorMin = new Vector2(0f, data.minSpeed);
+        rt.anchorMax = new Vector2(0f, data.maxSpeed);
+        rt.pivot = Vector2.zero;
+        rt.sizeDelta = new Vector2(data.widthUnits, 0f);
         rt.anchoredPosition = new Vector2(x, 0f);
 
         var img = go.AddComponent<Image>();
-        img.color         = data.color;
+        img.color = data.color;
         img.raycastTarget = false;
 
         activeSegments.Add(new SegmentInstance
         {
-            rectTransform    = rt,
+            rectTransform = rt,
             pointsMultiplier = data.pointsMultiplier,
-            minSpeed         = data.minSpeed,
-            maxSpeed         = data.maxSpeed,
+            minSpeed = data.minSpeed,
+            maxSpeed = data.maxSpeed,
         });
     }
 
