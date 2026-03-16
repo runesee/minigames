@@ -183,6 +183,14 @@ public class GameResultsUI : NetworkBehaviour
                 }
                 else DisplayWinnerTextClientRpc(CtFGameState.Instance.greenColor.color, Team.Green);
             }
+            else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.ColorFlood)
+            {
+                if (ColorFloodGameState.Instance.blueTileCount.Value > ColorFloodGameState.Instance.greenTileCount.Value)
+                {
+                    DisplayWinnerTextClientRpc(PlayerColorManager.GetColor(1), Team.Blue);
+                }
+                else DisplayWinnerTextClientRpc(PlayerColorManager.GetColor(2), Team.Green);
+            }
         }
         else if (newState == GameState.Idling || newState == GameState.Initializing)
         {
