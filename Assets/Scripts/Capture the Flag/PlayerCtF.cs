@@ -1,89 +1,25 @@
 using Unity.Netcode;
-using Unity.Collections;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using System;
-using Unity.VisualScripting;
+using System.Collections;
+using TMPro;
 
-[RequireComponent(typeof(Rigidbody))]
-[RequireComponent(typeof(NetworkObject))]
-public class PlayerCtF : NetworkBehaviour
+public class PlayerCtF : TagPlayer
 {
     public static PlayerCtF Local;
-    [SerializeField] public SkinnedMeshRenderer playerSkinRenderer;
     [SerializeField] public GameObject flag;
     [SerializeField] public MeshRenderer flagColor;
+    [SerializeField] public Transform flagTransform;
     [SerializeField] public Material blueColor;
     [SerializeField] public Material greenColor;
 
-    [Header("Map Boundaries")]
-    public float minX = -17f;
-    public float maxX = 17f;
-    public float minZ = -13f;
-    public float maxZ = 12f;
-
-    private NetworkVariable<bool> isWalkingNet = new NetworkVariable<bool>(
+    private NetworkVariable<bool> isRespawningNet = new NetworkVariable<bool>(
         false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
-    private NetworkVariable<bool> isSprintingNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
-    private NetworkVariable<bool> isPunchingNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
-    private NetworkVariable<bool> isTauntingNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
-    private NetworkVariable<bool> isFrozen = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-    private NetworkVariable<bool> isRespawning = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-    private NetworkVariable<bool> isShowingBoostParticlesNet = new NetworkVariable<bool>(
-        false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
-    );
-    public NetworkVariable<double> timeSpentTaggedNet = new NetworkVariable<double>(
-        0,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-    public NetworkVariable<double> lastTagTimeNet = new NetworkVariable<double>(
-        0,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
     public NetworkVariable<double> lastRespawnTimeNet = new NetworkVariable<double>(
         0,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-    public NetworkVariable<FixedString64Bytes> colorNet = new NetworkVariable<FixedString64Bytes>(
-        "#D6877F",
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-    public NetworkVariable<FixedString64Bytes> nicknameNet = new NetworkVariable<FixedString64Bytes>(
-        "Player",
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-    public NetworkVariable<FixedString64Bytes> guidNet = new NetworkVariable<FixedString64Bytes>(
-        "",
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
@@ -108,42 +44,22 @@ public class PlayerCtF : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
-    public ParticleSystem sprintParticleEffect;
     public Team? currentStartZone;
     public Team? currentFlagZone;
-    public AudioSource audioSource;
-    public AudioClip tagClip;
     public AudioClip plopClip;
     public AudioClip scoreClip;
     public AudioClip enemyScoreClip;
     public AudioClip flagTakenClip;
     public AudioClip taggedClip;
     public AudioClip flagReturnedClip;
-    public Camera camera;
+    public Camera mainCamera;
+    private Canvas mainCanvas;
+    private GameObject respawnPanel;
+    private TextMeshProUGUI respawnText;
     private GameObject greenFlag;
     private GameObject blueFlag;
     private GameObject greenFlagFabric;
     private GameObject blueFlagFabric;
-    private InputAction attackAction;
-    private InputAction moveAction;
-    private InputAction sprintAction;
-    private InputAction interactAction;
-    private Animator animator;
-    private Rigidbody rb;
-
-    private bool isPunching;
-    private bool isTaunting;
-    private bool canTaunt;
-    private float smoothedPedalSpeed = 0f;
-    private bool USING_PLAYPULSE = true; // Flag for dev/bike movement toggling.
-    private readonly float sprintSpeedThreshold = 0.65f;
-
-    public enum Team
-    {
-        None,
-        Green,
-        Blue,
-    }
 
     public enum CtfClips
     {
@@ -155,42 +71,15 @@ public class PlayerCtF : NetworkBehaviour
         Returned,
     }
 
-    private void Awake()
-    {
-        rb = GetComponent<Rigidbody>();
-    }
-
     public override void OnNetworkSpawn()
     {
+        base.OnNetworkSpawn();
         if (IsOwner) Local = this;
-        animator = GetComponentInChildren<Animator>();
-        animator.applyRootMotion = false;
-        camera = FindFirstObjectByType<Camera>();
+        mainCamera = FindFirstObjectByType<Camera>();
+        mainCanvas = FindFirstObjectByType<Canvas>();
+        respawnPanel = mainCanvas.transform.Find("RespawnPanel").gameObject;
+        respawnText = respawnPanel.transform.Find("RespawnTime").gameObject.GetComponent<TextMeshProUGUI>();
 
-        // Configure sprint particle effect
-        if (sprintParticleEffect != null)
-        {
-            var main = sprintParticleEffect.main;
-            main.playOnAwake = false;
-            main.startLifetime = 0.5f;
-            main.startSpeed = 2f;
-            main.startSize = 0.3f;
-            sprintParticleEffect.Stop();
-        }
-
-        // Init key bindings
-        moveAction = InputSystem.actions.FindAction("Move");
-        sprintAction = InputSystem.actions.FindAction("Sprint");
-        attackAction = InputSystem.actions.FindAction("Attack");
-        interactAction = InputSystem.actions.FindAction("Interact");
-        moveAction.Enable();
-        sprintAction.Enable();
-        attackAction.Enable();
-        interactAction.Enable();
-
-        // Subscribe to color and sprint particle changes
-        colorNet.OnValueChanged += OnSkinColorChanged;
-        isShowingBoostParticlesNet.OnValueChanged += OnSprintParticlesChanged;
         teamNet.OnValueChanged += OnTeamChanged;
         isFlagActiveNet.OnValueChanged += OnFlagChanged;
         flag.SetActive(false);
@@ -201,19 +90,7 @@ public class PlayerCtF : NetworkBehaviour
         blueFlagFabric = GameObject.Find("BlueFabric");
         currentFlagZone = Team.None;
 
-        // Apply initial player-selected color
-        var data = LocalPlayerStorage.Load();
-        string color = IsOwner ? data.color : colorNet.Value.ToString();
-        SetSkinColor(color);
-
-        if (IsOwner)
-        {
-            // Apply player-selected nickname and color
-            UpdateColorServerRpc(color);
-            UpdateNicknameServerRpc(data.nickname);
-            UpdateGuidServerRpc(data.guid);
-            StartCoroutine(ZoomCamera());
-        }
+        if (IsOwner) StartCoroutine(ZoomCamera());
         if (IsHost) StartCoroutine(WaitForPlayerConnect());
     }
 
@@ -227,20 +104,14 @@ public class PlayerCtF : NetworkBehaviour
     private System.Collections.IEnumerator ZoomCamera()
     {
         yield return new WaitForSeconds(8f);
-        camera.orthographicSize = 10;
-        camera.transform.position = new Vector3(Math.Clamp(rb.position.x, -18f, 18f), 20f, -20f);
+        mainCamera.orthographicSize = 10;
+        mainCamera.transform.position = new Vector3(Math.Clamp(rb.position.x, -18f, 18f), 20f, -20f);
     }
 
     public override void OnNetworkDespawn()
     {
-        colorNet.OnValueChanged -= OnSkinColorChanged;
-        isShowingBoostParticlesNet.OnValueChanged -= OnSprintParticlesChanged;
+        base.OnNetworkDespawn();
         isFlagActiveNet.OnValueChanged -= OnFlagChanged;
-    }
-
-    private void OnSkinColorChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
-    {
-        SetSkinColor(newValue.Value.ToString());
     }
 
     private void OnFlagChanged(bool previousValue, bool newValue)
@@ -248,33 +119,16 @@ public class PlayerCtF : NetworkBehaviour
         flag.SetActive(newValue);
     }
 
-    private void OnSprintParticlesChanged(bool previousValue, bool newValue)
-    {
-        if (sprintParticleEffect == null) return;
-        if (newValue && !sprintParticleEffect.isPlaying) sprintParticleEffect.Play();
-        else if (sprintParticleEffect.isPlaying) sprintParticleEffect.Stop();
-    }
-
     private void OnTeamChanged(Team previousValue, Team newValue)
     {
-        playerSkinRenderer.material.color = newValue == Team.Green ? greenColor.color : blueColor.color;
+        PlayerSkinRenderer.material.color = newValue == Team.Green ? greenColor.color : blueColor.color;
         if (IsOwner)
         {
-            playerSkinRenderer.material.color = playerSkinRenderer.material.color * 2f;
-            playerSkinRenderer.material.EnableKeyword("_EMISSION");
-            playerSkinRenderer.material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+            PlayerSkinRenderer.material.color = PlayerSkinRenderer.material.color * 2f;
+            PlayerSkinRenderer.material.EnableKeyword("_EMISSION");
+            PlayerSkinRenderer.material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
             SetCurrentZoneServerRpc(newValue);
         }
-    }
-
-    /// <summary>
-    /// Helper method for changing a player model's color.
-    /// </summary>
-    /// <param name="color">Updated hex-code color.</param>
-    private void SetSkinColor(string color)
-    {
-        UnityEngine.ColorUtility.TryParseHtmlString(color, out var skinColor);
-        playerSkinRenderer.material.color = skinColor;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -326,15 +180,14 @@ public class PlayerCtF : NetworkBehaviour
         }
     }
 
-    public CtFGameState.PlayerData GetTagData()
+    public override PlayerData GetPlayerData()
     {
-        CtFGameState.PlayerData playerData = new CtFGameState.PlayerData(
+        PlayerData playerData = new PlayerData(
             guidNet.Value,
             nicknameNet.Value,
             colorNet.Value,
-            teamNet.Value,
             collectedFlagsNet.Value,
-            lastTagTimeNet.Value
+            teamNet.Value
         );
         return playerData;
     }
@@ -344,133 +197,63 @@ public class PlayerCtF : NetworkBehaviour
         if (CtFGameState.Instance != null && CtFGameState.Instance.gameState.Value != GameState.Running) return;
         if (!IsOwner) return;
         double serverTime = NetworkManager.Singleton.ServerTime.FixedTime;
-        if (serverTime - lastRespawnTimeNet.Value >= 3f && isFrozen.Value && IsOwner) RespawnPlayerServerRpc();
-        else if (isFrozen.Value) return;
+        if (serverTime - lastRespawnTimeNet.Value >= 4f && isRespawningNet.Value && IsOwner) RespawnPlayerServerRpc();
+        else if (isRespawningNet.Value) return;
 
         // Parse InputInteractions
-        Vector2 input = moveAction.ReadValue<Vector2>();
-        Vector3 joystickOffset = new Vector3(input.x, 0, input.y);
-        isTaunting = (interactAction.ReadValue<float>() > 0f && interactAction.WasPressedThisFrame()) ||
-            PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.Y);
-        isTaunting = interactAction.IsPressed() || PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.Y);
-        isPunching = attackAction.WasPerformedThisFrame() || PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A);
+        var (joystickOffset, input) = ParseInput();
         isPunchingNet.Value = isPunching;
 
-        if (isPunching && !isFrozen.Value)
+        if (isPunching && !isFrozenNet.Value)
         {
             if (currentFlagZone != Team.None && currentFlagZone != teamNet.Value && currentZoneNet.Value != teamNet.Value)
             {
                 string enemyFlag = teamNet.Value == Team.Blue ? "GreenFlag" : "BlueFlag";
-                audioSource?.PlayOneShot(plopClip);
+                tagAudioSource?.PlayOneShot(plopClip);
                 TakeFlagServerRpc(enemyFlag);
             }
             else
             {
-                PlayerCtF target = FindClosestPlayerInRange(2.5f);
-                audioSource?.PlayOneShot(tagClip);
+                PlayerCtF target = PlayerUtils.FindClosestPlayerInRange<PlayerCtF>(2.5f, this.gameObject, this.transform);
+                tagAudioSource?.PlayOneShot(tagClip);
                 if (target != null) TagPlayerServerRpc(target.NetworkObjectId);
             }
         }
-        else if (isFrozen.Value)
+        else if (isFrozenNet.Value)
         {
             double timeSinceTagged = serverTime - lastTagTimeNet.Value;
             if (timeSinceTagged >= 0.7f) UnfreezePlayerServerRpc();
         }
-
-        // Handle animations and update position based on input actions
-        float smoothing = 1f - Mathf.Exp(-10f * Time.deltaTime);
-        smoothedPedalSpeed = Mathf.Lerp(smoothedPedalSpeed, PlayPulse.Input.Input.Speed, smoothing);
-        float pedalSpeed = USING_PLAYPULSE ? smoothedPedalSpeed : 0.4f;
-        float pedalAnimationSpeed = USING_PLAYPULSE ? 1.6f * pedalSpeed : 1f;
-        joystickOffset = (Math.Abs(PlayPulse.Input.Input.JoystickX) > 0.1f || Math.Abs(PlayPulse.Input.Input.JoystickY) > 0.1f) ?
-        new Vector3((-1) * PlayPulse.Input.Input.JoystickX, 0, (-1) * PlayPulse.Input.Input.JoystickY) : joystickOffset;
+        var (pedalSpeed, pedalAnimationSpeed) = GetSmoothedPedalSpeed();
 
         if (joystickOffset.sqrMagnitude > 0.01f)
         {
-            // Play running animation if movement speed above threshold
-            isSprintingNet.Value = pedalSpeed > sprintSpeedThreshold;
-            isWalkingNet.Value = !isSprintingNet.Value;
-            isShowingBoostParticlesNet.Value = isSprintingNet.Value;
             float moveSpeed = 10f * pedalSpeed;
-
-            Quaternion lastRotation = Quaternion.LookRotation(joystickOffset);
-            transform.rotation = Quaternion.Slerp(transform.rotation, lastRotation, 10f * Time.deltaTime);
-            animator.speed = pedalAnimationSpeed;
-
-            Vector3 newPosition = rb.position + moveSpeed * Time.deltaTime * joystickOffset.normalized;
-            newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
-            newPosition.z = Mathf.Clamp(newPosition.z, minZ, maxZ);
-            rb.MovePosition(newPosition);
+            HandleMovement(joystickOffset, moveSpeed, pedalSpeed, pedalAnimationSpeed, true);
 
             if (IsOwner)
             {
                 Vector3 desiredPosition =  new Vector3(Math.Clamp(rb.position.x, -18f, 18f), 20f, -20f);
-                Vector3 smoothedPosition = Vector3.Lerp(camera.transform.position, desiredPosition, Time.deltaTime * moveSpeed);
-                camera.transform.position = smoothedPosition;
+                Vector3 smoothedPosition = Vector3.Lerp(mainCamera.transform.position, desiredPosition, Time.deltaTime * moveSpeed);
+                mainCamera.transform.position = smoothedPosition;
             } 
         }
-        else
-        {
-            isWalkingNet.Value = false;
-            isSprintingNet.Value = false;
-            animator.speed = 1.0f;
-            isShowingBoostParticlesNet.Value = false;
-        }
-
-        // Lastly, if neither moving or tagging, check if taunting.
-        // Sets both trigger and bool value in Animator.
-        // Limits animation to loop once if key is held down,
-        // otherwise cancels on other actions or letting go of key
-        canTaunt = !isWalkingNet.Value && !isSprintingNet.Value && !isPunching;
-        if (isTaunting && canTaunt)
-        {
-            animator.SetTrigger("isTauntingTrigger");
-            isTauntingNet.Value = true;
-        }
-        else if (isTaunting && canTaunt && !isTauntingNet.Value)
-        {
-            isTauntingNet.Value = true;
-        }
-        if (!isTaunting || !canTaunt || interactAction.WasReleasedThisFrame())
-        {
-            isTauntingNet.Value = false;
-        }
+        else HandleMovement();
+        HandleTaunting();
+        if (isFlagActiveNet.Value) flagTransform.transform.rotation = rb.rotation; // Rotate flag with player model
     }
 
-    private void LateUpdate()
+    public override void LateUpdate()
     {
-        animator.SetBool("isWalking", isWalkingNet.Value);
-        animator.SetBool("isSprinting", isSprintingNet.Value);
+        base.LateUpdate();
         animator.SetBool("isPunching", isPunchingNet.Value);
         animator.SetBool("isTaunting", isTauntingNet.Value);
-    }
-
-    /// <summary>
-    /// Sets player model color to specified hexcode.
-    /// </summary>
-    /// <param name="color">New player model color.</param>
-    [ServerRpc]
-    public void UpdateColorServerRpc(string color)
-    {
-        colorNet.Value = new FixedString64Bytes(color);
-    }
-
-    [ServerRpc]
-    public void UpdateNicknameServerRpc(string nickname)
-    {
-        nicknameNet.Value = nickname;
     }
 
     [ServerRpc]
     public void SetCurrentZoneServerRpc(Team zone)
     {
         currentZoneNet.Value = zone;
-    }
-
-    [ServerRpc]
-    public void UpdateGuidServerRpc(string guid)
-    {
-        guidNet.Value = guid;
     }
 
     /// <summary>
@@ -480,7 +263,7 @@ public class PlayerCtF : NetworkBehaviour
     [ClientRpc]
     private void PlayTaggedSoundClientRpc(ClientRpcParams clientRpcParams = default)
     {
-        if (!audioSource.isPlaying) audioSource?.PlayOneShot(taggedClip);
+        if (!tagAudioSource.isPlaying) tagAudioSource?.PlayOneShot(taggedClip);
     }
 
     /// <summary>
@@ -497,7 +280,7 @@ public class PlayerCtF : NetworkBehaviour
 
         if ((this.currentZoneNet.Value == this.teamNet.Value && victim.currentZoneNet.Value == this.teamNet.Value) || victim.isFlagActiveNet.Value)
         {
-            victim.isRespawning.Value = true;
+            victim.isRespawningNet.Value = true;
             victim.lastRespawnTimeNet.Value = serverTime;
             victim.currentZoneNet.Value = victim.teamNet.Value;
             if (victim.isFlagActiveNet.Value)
@@ -511,13 +294,14 @@ public class PlayerCtF : NetworkBehaviour
                 }
             }
             victim.TeleportClientRpc(new Vector3(victim.teamNet.Value == Team.Blue ? -34.5f : 34.5f, victim.rb.position.y, victim.rb.position.z));
+            victim.ToggleRespawnScreenClientRpc();
             PlayTaggedSoundClientRpc(new ClientRpcParams {Send = new ClientRpcSendParams {TargetClientIds = new ulong[] {victimClientId}}});
             PlaySoundClientRpc(CtfClips.Tag, Team.None);
         }
         if (IsOwner) StopAnimationsClientRpc();
 
         // Add timediff to current player and prevent tagging again for another .7 seconds
-        this.isFrozen.Value = true;
+        this.isFrozenNet.Value = true;
         this.timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
         this.lastTagTimeNet.Value = serverTime;
     }
@@ -525,18 +309,18 @@ public class PlayerCtF : NetworkBehaviour
     [ClientRpc]
     private void PlaySoundClientRpc(CtfClips clip, Team team)
     {
-        if (!audioSource.isPlaying)
+        if (!tagAudioSource.isPlaying)
         {
             switch(clip)
             {
                 case CtfClips.Tag:
-                    audioSource?.PlayOneShot(tagClip);
+                    tagAudioSource?.PlayOneShot(tagClip);
                     break;
                 case CtfClips.Plop:
-                    audioSource?.PlayOneShot(plopClip);
+                    tagAudioSource?.PlayOneShot(plopClip);
                     break;
                 case CtfClips.Taken:
-                    if (teamNet.Value != team) audioSource?.PlayOneShot(flagTakenClip);
+                    if (teamNet.Value != team) tagAudioSource?.PlayOneShot(flagTakenClip);
                     break;
             }
         } 
@@ -546,28 +330,9 @@ public class PlayerCtF : NetworkBehaviour
     /// Re-enable user actions after freeze period.
     /// </summary>
     [ServerRpc]
-    private void UnfreezePlayerServerRpc()
-    {
-        isFrozen.Value = false;
-    }
-
-    /// <summary>
-    /// Re-enable user actions after freeze period.
-    /// </summary>
-    [ServerRpc]
     private void RespawnPlayerServerRpc()
     {
-        isRespawning.Value = false;
-    }
-
-    [ClientRpc]
-    void StopAnimationsClientRpc()
-    {
-        if (!IsOwner) return;
-        isWalkingNet.Value = false;
-        isSprintingNet.Value = false;
-        isTauntingNet.Value = false;
-        isPunchingNet.Value = false;
+        isRespawningNet.Value = false;
     }
 
     [ClientRpc]
@@ -575,7 +340,26 @@ public class PlayerCtF : NetworkBehaviour
     {
         rb.position = position;
         rb.rotation = UnityEngine.Quaternion.Euler(0f, teamNet.Value == Team.Green ? -90f : 90f, 0f);
-        if (IsOwner) camera.transform.position = new Vector3(Math.Clamp(position.x, -18f, 18f), 20f, -20f);
+        if (IsOwner) mainCamera.transform.position = new Vector3(Math.Clamp(position.x, -18f, 18f), 20f, -20f);
+    }
+
+    [ClientRpc]
+    public void ToggleRespawnScreenClientRpc()
+    {
+        if (IsOwner) StartCoroutine(ToggleRespawnScreen());
+    }
+
+    private IEnumerator ToggleRespawnScreen()
+    {
+        int remainingTime = 4;
+        respawnPanel?.SetActive(true);
+        while (remainingTime > 0)
+        {
+            remainingTime--;
+            respawnText.text = remainingTime.ToString() + "s";
+            yield return new WaitForSeconds(1f);
+        } 
+        respawnPanel?.SetActive(false);
     }
 
     [ClientRpc]
@@ -627,48 +411,5 @@ public class PlayerCtF : NetworkBehaviour
             CtFGameState.Instance.UpdateScoreTextClientRpc(team, score);
             CtFGameState.Instance.ToastMessageClientRpc(team, team.ToString() + " scored a point!");
         } 
-    }
-
-    /// <summary>
-    /// Helper function for getting the closest player within range and field of view, if any.
-    /// </summary>
-    /// <param name="range"></param> Limit for how far a player can tag.
-    /// <returns></returns> A PlayerTagMovement object or null.
-    private PlayerCtF FindClosestPlayerInRange(float range)
-    {
-        PlayerCtF closest = null;
-        float shortest = Mathf.Infinity;
-        bool isWithinBounds = false;
-        GameObject _player = new GameObject();
-        PlayerCtF taggedPlayer = this;
-        foreach (var player in FindObjectsByType(typeof(PlayerCtF), FindObjectsSortMode.None))
-        {
-            PlayerCtF playerCtf = (PlayerCtF) player;
-            if (player == this || playerCtf.teamNet.Value == this.teamNet.Value) continue;
-
-            float distance = Vector3.Distance(transform.position, ((PlayerCtF)player).transform.position);
-
-            if (distance < range && distance < shortest)
-            {
-                shortest = distance;
-                closest = (PlayerCtF)player;
-                Vector3 targetVector = (closest.transform.position - transform.position).normalized;
-
-                // Within bounds if angle between position diff vector and tagged player's forward vector < 45 degrees
-                Quaternion.FromToRotation(transform.forward, targetVector).ToAngleAxis(out float angle, out Vector3 axis);
-                isWithinBounds = Mathf.Abs(angle) <= (distance > range / 2 ? 70f : 45f);
-                taggedPlayer = (PlayerCtF)player;
-                _player = player.GameObject();
-            }
-        }
-        // Need to check whether a GameObject is blocking the player's view (e.g. a Cube)
-        if (Physics.Linecast(transform.position, taggedPlayer.transform.position, out RaycastHit hit))
-        {
-            if (hit.collider.gameObject != _player)
-            {
-                isWithinBounds = false;
-            }
-        }
-        return isWithinBounds ? closest : null;
     }
 }

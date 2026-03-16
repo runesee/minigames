@@ -9,7 +9,8 @@ public class MusicManager : NetworkBehaviour
     public AudioClip tutorialMusic;
     public AudioClip tagMusic;
     public AudioClip focusFlowMusic;
-    public AudioClip scoreboardMusic;
+    public AudioClip scoreboardMusic; // NB: this is just a single sound effect, not music
+    public AudioClip endMusic;
     public AudioSource audioSource;
 
     private void Awake()
@@ -36,7 +37,7 @@ public class MusicManager : NetworkBehaviour
                 PlayScoreboardMusicClientRpc();
                 break;
             case MinigameManager.MinigameScene.EndScreen:
-                PlayScoreboardMusicClientRpc();
+                PlayEndMusicClientRpc();
                 break;
             case MinigameManager.MinigameScene.Tag:
                 PlayTagMusicClientRpc();
@@ -88,7 +89,13 @@ public class MusicManager : NetworkBehaviour
     private void PlayScoreboardMusicClientRpc()
     {
         audioSource.Stop();
-        StartCoroutine(PlayScoreboardSoundbyte());
+        audioSource?.PlayOneShot(scoreboardMusic);
+    }
+
+    [ClientRpc]
+    private void PlayEndMusicClientRpc()
+    {
+        PlayMusic(endMusic);
     }
 
     private void PlayMusic(AudioClip audioClip)
@@ -115,11 +122,5 @@ public class MusicManager : NetworkBehaviour
             audioSource.volume += startVolume * Time.deltaTime / FadeTime;
             yield return null;
         }
-    }
-
-    private IEnumerator PlayScoreboardSoundbyte()
-    {
-        yield return new WaitForSeconds(3f); // Roughly syncs up with '+'-text
-        audioSource?.PlayOneShot(scoreboardMusic);
     }
 }

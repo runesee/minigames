@@ -30,7 +30,6 @@ public class ZoneMultiplierDisplay : MonoBehaviour
             Transform textTransform = zoneTransform.Find("MultiplierText");
             zoneTexts[i] = textTransform.GetComponent<TextMesh>();
         }
-
         previousIntervalPhase = intervalTimer.IsIntervalPhase;
         UpdateMultipliers();
     }
@@ -47,10 +46,6 @@ public class ZoneMultiplierDisplay : MonoBehaviour
     private void UpdateMultipliers()
     {
         string[] currentMultipliers = intervalTimer.IsIntervalPhase ? intervalMultipliers : restMultipliers;
-
-        for (int i = 0; i < 5; i++)
-        {
-            zoneTexts[i].text = currentMultipliers[i];
-        }
+        for (int i = 0; i < 5; i++) zoneTexts[i].text = currentMultipliers[i];
     }
 }

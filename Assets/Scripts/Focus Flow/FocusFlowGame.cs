@@ -60,10 +60,7 @@ public class FocusFlowGame : NetworkBehaviour
 
     private void Update()
     {
-        if (waitingForInput && !isShowingSequence)
-        {
-            CheckPlayerInput();
-        }
+        if (waitingForInput && !isShowingSequence) CheckPlayerInput();
     }
 
     private void StartNewGame()
@@ -115,7 +112,6 @@ public class FocusFlowGame : NetworkBehaviour
                 yield return new WaitForSeconds(delayBetweenButtons);
             }
         }
-
         isShowingSequence = false;
     }
 
@@ -148,10 +144,7 @@ public class FocusFlowGame : NetworkBehaviour
 
     private void ProcessInput(ButtonCircle.ButtonType inputButton)
     {
-        if (playerInputIndex >= currentSequence.Count)
-        {
-            return;
-        }
+        if (playerInputIndex >= currentSequence.Count) return;
 
         ButtonCircle button = buttonMap[inputButton];
         button.LightUp();
@@ -159,16 +152,9 @@ public class FocusFlowGame : NetworkBehaviour
         if (inputButton == currentSequence[playerInputIndex])
         {
             playerInputIndex++;
-
-            if (playerInputIndex >= currentSequence.Count)
-            {
-                OnSequenceComplete();
-            }
+            if (playerInputIndex >= currentSequence.Count) OnSequenceComplete();
         }
-        else
-        {
-            OnPlayerFailed();
-        }
+        else OnPlayerFailed();
     }
 
     private void OnSequenceComplete()

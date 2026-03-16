@@ -5,12 +5,7 @@ public class SpeedIndicator : MonoBehaviour
     [SerializeField] private ScoreMultiplierManager multiplierManager;
     [SerializeField] private SpeedometerDisplay speedometerDisplay;
 
-    /// <summary>Optional: skin renderer on the player character for color sync.</summary>
-    public SkinnedMeshRenderer playerSkin;
-
     private const int ZoneCount = 5;
-    private const float WalkThreshold = 0.1f;
-    private const float SprintThreshold = 0.6f;
     private const float IntervalIdealSpeed = 1.0f;
 
     private static readonly Color[] RestZoneColors = new Color[]
@@ -23,7 +18,6 @@ public class SpeedIndicator : MonoBehaviour
     };
 
     private int currentActiveZone = -1;
-    private Animator characterAnimator;
     private bool lastKnownIntervalPhase;
     private bool phaseInitialized = false;
 
@@ -34,58 +28,27 @@ public class SpeedIndicator : MonoBehaviour
 
     private void Start()
     {
-        characterAnimator = GetComponentInChildren<Animator>();
-
-        if (playerSkin != null && FocusFlowData.LocalInstance != null)
-        {
-            ColorUtility.TryParseHtmlString(
-                FocusFlowData.LocalInstance.colorNet.Value.ToString(),
-                out Color skinColor);
-            playerSkin.material.color = skinColor;
-        }
-
         UpdatePhaseColors();
     }
 
     private void Update()
     {
         float normalizedSpeed = ReadNormalizedSpeed();
-
-        if (speedometerDisplay != null)
-            speedometerDisplay.SetNormalizedSpeed(normalizedSpeed);
-
-        UpdateAnimator(normalizedSpeed);
+        speedometerDisplay?.SetNormalizedSpeed(normalizedSpeed);
         UpdateActiveZone(normalizedSpeed);
         UpdatePhaseColors();
     }
 
     private float ReadNormalizedSpeed()
     {
-        if (multiplierManager != null && multiplierManager.IsTracking)
-            return multiplierManager.GetAverageNormalizedSpeed();
-
+        if (multiplierManager != null && multiplierManager.IsTracking) return multiplierManager.GetAverageNormalizedSpeed();
         return Mathf.Clamp(PlayPulse.Input.Input.Speed, 0f, 1f);
-    }
-
-    private void UpdateAnimator(float normalizedSpeed)
-    {
-        if (characterAnimator == null) return;
-
-        bool isSprinting = normalizedSpeed > SprintThreshold;
-        bool isWalking = !isSprinting && normalizedSpeed > WalkThreshold;
-
-        characterAnimator.SetBool("isWalking", isWalking);
-        characterAnimator.SetBool("isSprinting", isSprinting);
     }
 
     private void UpdateActiveZone(float normalizedSpeed)
     {
-        int activeZone = Mathf.Clamp(
-            Mathf.FloorToInt(normalizedSpeed * ZoneCount),
-            0, ZoneCount - 1);
-
+        int activeZone = Mathf.Clamp(Mathf.FloorToInt(normalizedSpeed * ZoneCount), 0, ZoneCount - 1);
         if (activeZone == currentActiveZone) return;
-
         currentActiveZone = activeZone;
     }
 
@@ -100,9 +63,7 @@ public class SpeedIndicator : MonoBehaviour
         lastKnownIntervalPhase = isInterval;
         phaseInitialized = true;
 
-        if (isInterval)
-            speedometerDisplay.UpdateZoneColors(IntervalIdealSpeed);
-        else
-            speedometerDisplay.SetZoneColors(RestZoneColors);
+        if (isInterval) speedometerDisplay.UpdateZoneColors(IntervalIdealSpeed);
+        else speedometerDisplay.SetZoneColors(RestZoneColors);
     }
 }

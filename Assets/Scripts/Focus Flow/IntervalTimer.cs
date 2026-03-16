@@ -65,9 +65,12 @@ public class IntervalTimer : NetworkBehaviour
         else if (currentTime <= 3f && !isChangingIntervals && IsServer)
         {    // May fire at incorrect times due to local timer not being server synced
             isChangingIntervals = true;
-            if (isIntervalPhase) MusicManager.Instance.PlayFocusFlowMusicClientRpc();
-            else MusicManager.Instance.PlayFocusFlowIntenseMusicClientRpc(false);
             ToggleIntervalSoundsClientRpc();
+            if (completedCycles + 1 < totalCycles)
+            {
+                if (isIntervalPhase) MusicManager.Instance.PlayFocusFlowMusicClientRpc();
+                else MusicManager.Instance.PlayFocusFlowIntenseMusicClientRpc(false);
+            }
         }
         UpdateTimerDisplay();
     }
@@ -83,7 +86,6 @@ public class IntervalTimer : NetworkBehaviour
         else
         {
             completedCycles++;
-            
             if (completedCycles >= totalCycles)
             {
                 isRunning = false;

@@ -31,6 +31,7 @@ public class PowerUpSpawner : NetworkBehaviour
     private readonly HashSet<int> activeIds = new HashSet<int>();
     private readonly Dictionary<int, GameObject> localPowerUps = new Dictionary<int, GameObject>();
     private int nextPowerUpId;
+    private const int MaxSpawnAttempts = 20;
 
     private void Awake()
     {
@@ -39,35 +40,24 @@ public class PowerUpSpawner : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if (IsServer)
-        {
-            StartCoroutine(SpawnLoop());
-        }
+        if (IsServer) StartCoroutine(SpawnLoop());
     }
 
     private IEnumerator SpawnLoop()
     {
-        while (ColorFloodGameState.Instance == null ||
-               ColorFloodGameState.Instance.gameState.Value != GameState.Running)
+        while (ColorFloodGameState.Instance == null || ColorFloodGameState.Instance.gameState.Value != GameState.Running)
         {
             yield return new WaitForSeconds(0.5f);
         }
 
         yield return new WaitForSeconds(initialDelay);
 
-        while (ColorFloodGameState.Instance != null &&
-               ColorFloodGameState.Instance.gameState.Value == GameState.Running)
+        while (ColorFloodGameState.Instance != null && ColorFloodGameState.Instance.gameState.Value == GameState.Running)
         {
-            if (activeIds.Count < maxActivePowerUps)
-            {
-                SpawnRandomPowerUp();
-            }
-
+            if (activeIds.Count < maxActivePowerUps) SpawnRandomPowerUp();
             yield return new WaitForSeconds(spawnInterval);
         }
     }
-
-    private const int MaxSpawnAttempts = 20;
 
     private void SpawnRandomPowerUp()
     {
@@ -101,9 +91,7 @@ public class PowerUpSpawner : NetworkBehaviour
 
             int id = nextPowerUpId++;
             activeIds.Add(id);
-            PowerUpType type = Random.value < paintBombChance
-                ? PowerUpType.PaintBomb
-                : PowerUpType.SpeedBoost;
+            PowerUpType type = Random.value < paintBombChance ? PowerUpType.PaintBomb : PowerUpType.SpeedBoost;
             SpawnPowerUpClientRpc(id, position, type);
             return;
         }
@@ -112,9 +100,7 @@ public class PowerUpSpawner : NetworkBehaviour
     [ClientRpc]
     private void SpawnPowerUpClientRpc(int pickupId, Vector3 position, PowerUpType type)
     {
-        PrimitiveType shape = type == PowerUpType.PaintBomb
-            ? PrimitiveType.Sphere
-            : PrimitiveType.Cube;
+        PrimitiveType shape = type == PowerUpType.PaintBomb ? PrimitiveType.Sphere : PrimitiveType.Cube;
 
         GameObject powerUp = GameObject.CreatePrimitive(shape);
         powerUp.name = $"{type}_{pickupId}";
@@ -202,7 +188,6 @@ public class PowerUpSpawner : NetworkBehaviour
                 break;
             }
         }
-
         RemovePowerUpClientRpc(pickupId);
     }
 
@@ -225,7 +210,6 @@ public class PowerUpSpawner : NetworkBehaviour
                 Destroy(kvp.Value);
             }
         }
-
         localPowerUps.Clear();
         activeIds.Clear();
     }

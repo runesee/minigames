@@ -22,12 +22,12 @@ public class SpeedometerDisplay : MonoBehaviour
     [SerializeField] private float needleBaseWidth = 0.025f;
     [SerializeField] private Color needleColor = Color.white;
 
-    private static readonly Color ColorGreen  = new Color(0.00f, 0.85f, 0.20f);
+    private static readonly Color ColorGreen = new Color(0.00f, 0.85f, 0.20f);
     private static readonly Color ColorYellow = new Color(1.00f, 0.90f, 0.00f);
-    private static readonly Color ColorRed    = new Color(0.90f, 0.10f, 0.10f);
+    private static readonly Color ColorRed = new Color(0.90f, 0.10f, 0.10f);
 
     private const int ZoneCount = 5;
-    private const float ArcDepthZ    =  0.00f;
+    private const float ArcDepthZ = 0.00f;
     private const float NeedleDepthZ = -0.05f;
 
     private Color[] zoneColors;
@@ -119,7 +119,7 @@ public class SpeedometerDisplay : MonoBehaviour
         float degreesPerZone = totalArcDegrees / ZoneCount;
         float halfGap = zoneGapDegrees / 2f;
 
-        zoneColors    = new Color[ZoneCount];
+        zoneColors = new Color[ZoneCount];
         zoneMaterials = new Material[ZoneCount];
 
         for (int i = 0; i < ZoneCount; i++)
@@ -127,7 +127,7 @@ public class SpeedometerDisplay : MonoBehaviour
             zoneColors[i] = Color.gray;
 
             float segStart = minSpeedAngleDeg - i * degreesPerZone + halfGap;
-            float segEnd   = minSpeedAngleDeg - (i + 1) * degreesPerZone - halfGap;
+            float segEnd = minSpeedAngleDeg - (i + 1) * degreesPerZone - halfGap;
 
             GameObject segObj = new GameObject($"SpeedometerZone_{i}");
             segObj.transform.SetParent(transform, false);
@@ -252,28 +252,20 @@ public class SpeedometerDisplay : MonoBehaviour
             float t = maxDistance > 0f ? distance / maxDistance : 0f;
             zoneColors[i] = EvaluateDistanceColor(t);
         }
-
         ApplyZoneColors();
     }
 
     public void SetZoneColors(Color[] colors)
     {
         if (zoneMaterials == null || colors == null) return;
-
-        for (int i = 0; i < ZoneCount && i < colors.Length; i++)
-            zoneColors[i] = colors[i];
-
+        for (int i = 0; i < ZoneCount && i < colors.Length; i++) zoneColors[i] = colors[i];
         ApplyZoneColors();
     }
 
     private void ApplyZoneColors()
     {
         lastAppliedColors = (Color[])zoneColors.Clone();
-
-        for (int i = 0; i < ZoneCount; i++)
-        {
-            zoneMaterials[i].color = zoneColors[i];
-        }
+        for (int i = 0; i < ZoneCount; i++) zoneMaterials[i].color = zoneColors[i];
     }
 
     private static Color EvaluateDistanceColor(float t)

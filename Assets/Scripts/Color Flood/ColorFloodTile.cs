@@ -3,8 +3,7 @@ using UnityEngine;
 public class ColorFloodTile : MonoBehaviour
 {
     public int tileIndex;
-    public ColorFloodGameState.Team ownerTeam = ColorFloodGameState.Team.None;
-
+    public Team ownerTeam = Team.None;
     private MeshRenderer meshRenderer;
 
     private void Awake()
@@ -12,13 +11,13 @@ public class ColorFloodTile : MonoBehaviour
         meshRenderer = GetComponent<MeshRenderer>();
     }
 
-    public void SetColor(ColorFloodGameState.Team team, Material greenMaterial, Material blueMaterial, Material neutralMaterial)
+    public void SetColor(Team team, Material greenMaterial, Material blueMaterial, Material neutralMaterial)
     {
         ownerTeam = team;
         meshRenderer.material = team switch
         {
-            ColorFloodGameState.Team.Green => greenMaterial,
-            ColorFloodGameState.Team.Blue => blueMaterial,
+            Team.Green => greenMaterial,
+            Team.Blue => blueMaterial,
             _ => neutralMaterial,
         };
     }

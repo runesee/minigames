@@ -10,11 +10,7 @@ public class WarmupBackToMenu : MonoBehaviour
     {
         bool keyboardBack = Keyboard.current != null && Keyboard.current[Key.Q].wasPressedThisFrame;
         bool bikeBack = PlayPulse.Input.Input.GetButton(PlayPulse.Input.Input.Button.X);
-
-        if (keyboardBack || bikeBack)
-        {
-            GoBackToMainMenu();
-        }
+        if (keyboardBack || bikeBack) GoBackToMainMenu();
     }
 
     private void GoBackToMainMenu()

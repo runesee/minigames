@@ -8,7 +8,6 @@ using Unity.Netcode.Transports.UTP;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using static MinigameManager;
 
 public class MenuManager : MonoBehaviour
 {
@@ -69,7 +68,6 @@ public class MenuManager : MonoBehaviour
     {   
         ShowMainMenu();
         colorDropdown.onValueChanged.AddListener(OnColorChanged);
-        OnColorChanged(colorDropdown.value);
         SelectButton(hostButton);
         // Initialize connection with PP-service
         if (!PlayPulse.PlayPulseService.IsInitialized)
@@ -111,10 +109,7 @@ public class MenuManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (colorDropdown != null)
-        {
-            colorDropdown.onValueChanged.RemoveListener(OnColorChanged);
-        }
+        colorDropdown?.onValueChanged.RemoveListener(OnColorChanged);
     }
 
     private void OnColorChanged(int colorIndex)
@@ -125,12 +120,7 @@ public class MenuManager : MonoBehaviour
         {
             colorPreview.color = selectedColor;
         }
-        
-        if (characterPreview != null)
-        {
-            characterPreview.SetColor(selectedColor);
-        }
-
+        characterPreview?.SetColor(selectedColor);
         ClearFeedback();
     }
 
@@ -178,7 +168,7 @@ public class MenuManager : MonoBehaviour
         isHostMode = false;
         ShowSetupMenu();
         confirmButtonText.text = "Join";
-        if (ipLabel != null) ipLabel.SetActive(true);
+        ipLabel?.SetActive(true);
         if (ipInputField != null)
         {
             ipInputField.gameObject.SetActive(true);

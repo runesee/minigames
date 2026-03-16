@@ -5,7 +5,6 @@ public class BonusScoreDisplay : MonoBehaviour
 {
     private const float DisplayDuration = 1.0f;
     private const float FadeOutDuration = 0.5f;
-
     private TextMesh textMesh;
     private Color originalColor;
     private Coroutine displayCoroutine;
@@ -19,11 +18,7 @@ public class BonusScoreDisplay : MonoBehaviour
 
     public void ShowBonus(int bonusPoints)
     {
-        if (displayCoroutine != null)
-        {
-            StopCoroutine(displayCoroutine);
-        }
-
+        if (displayCoroutine != null) StopCoroutine(displayCoroutine);
         displayCoroutine = StartCoroutine(DisplayBonusCoroutine(bonusPoints));
     }
 

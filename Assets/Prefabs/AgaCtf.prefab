@@ -5165,7 +5165,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 0.2
+  m_Volume: 0.3
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -5262,21 +5262,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCtF
   ShowTopMostFoldoutHeaderGroup: 1
-  playerSkinRenderer: {fileID: 8576045237320093323}
-  flag: {fileID: 7685504545009282327}
-  flagColor: {fileID: 4711070426998390495}
-  blueColor: {fileID: 2100000, guid: 5f79d6da33539264da6fd39a66c9a845, type: 2}
-  greenColor: {fileID: 2100000, guid: 8e8f7e43ebf4ece4babb4a055b4c5ba0, type: 2}
-  minX: -36
-  maxX: 36
-  minZ: -14
-  maxZ: 14
-  timeSpentTaggedNet:
-    m_InternalValue: 0
-  lastTagTimeNet:
-    m_InternalValue: 0
-  lastRespawnTimeNet:
-    m_InternalValue: 0
+  PlayerSkinRenderer: {fileID: 8576045237320093323}
   colorNet:
     m_InternalValue:
       utf8LengthInBytes: 7
@@ -5484,6 +5470,20 @@ MonoBehaviour:
         byte0059: 0
         byte0060: 0
         byte0061: 0
+  sprintParticleEffect: {fileID: 6789903846567414674}
+  minX: -36
+  maxX: 36
+  minZ: -14
+  maxZ: 14
+  tagAudioSource: {fileID: 3805718767395553070}
+  tagClip: {fileID: 8300000, guid: 792de47f43f4c91489da86277518a33b, type: 3}
+  flag: {fileID: 7685504545009282327}
+  flagColor: {fileID: 4711070426998390495}
+  flagTransform: {fileID: 9026480660467426401}
+  blueColor: {fileID: 2100000, guid: 5f79d6da33539264da6fd39a66c9a845, type: 2}
+  greenColor: {fileID: 2100000, guid: 8e8f7e43ebf4ece4babb4a055b4c5ba0, type: 2}
+  lastRespawnTimeNet:
+    m_InternalValue: 0
   teamNet:
     m_InternalValue: 0
   isFlagActiveNet:
@@ -5492,16 +5492,13 @@ MonoBehaviour:
     m_InternalValue: 0
   collectedFlagsNet:
     m_InternalValue: 0
-  sprintParticleEffect: {fileID: 6789903846567414674}
-  audioSource: {fileID: 3805718767395553070}
-  tagClip: {fileID: 8300000, guid: 792de47f43f4c91489da86277518a33b, type: 3}
   plopClip: {fileID: 8300000, guid: 283febda42e3ee448a80cb4552b1b03a, type: 3}
   scoreClip: {fileID: 8300000, guid: bfaeaa0eff4ed7b45bda83dd915061b5, type: 3}
   enemyScoreClip: {fileID: 8300000, guid: 101fc00948ddf7d4ca325de7951cceac, type: 3}
   flagTakenClip: {fileID: 8300000, guid: ae60ba2716a83064e97ca7270a2446f8, type: 3}
   taggedClip: {fileID: 8300000, guid: 315551b267afe684b87bc1cc54a4e18e, type: 3}
   flagReturnedClip: {fileID: 8300000, guid: b2f75dbcb4f542f4a9e7135636cc0176, type: 3}
-  camera: {fileID: 0}
+  mainCamera: {fileID: 0}
 --- !u!114 &7853237324364333884
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5572,7 +5569,7 @@ PrefabInstance:
     - target: {fileID: 5866666021909216657, guid: c979ec2f309c19f4eacc9c4b346a9663, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 9100000, guid: 175e68d138d26e14a91969a2b721cfdf, type: 2}
+      objectReference: {fileID: 9100000, guid: 0f8be1be6b46a0145907fe450d947ef4, type: 2}
     - target: {fileID: 5866666021909216657, guid: c979ec2f309c19f4eacc9c4b346a9663, type: 3}
       propertyPath: m_WarningMessage
       value: 

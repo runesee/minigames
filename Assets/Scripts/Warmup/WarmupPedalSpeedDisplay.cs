@@ -14,8 +14,7 @@ public class WarmupPedalSpeedDisplay : MonoBehaviour
         float now = Time.time;
         samples.Enqueue((now, Mathf.Clamp01(PlayPulse.Input.Input.Speed)));
 
-        while (samples.Count > 0 && now - samples.Peek().time > averagingWindow)
-            samples.Dequeue();
+        while (samples.Count > 0 && now - samples.Peek().time > averagingWindow) samples.Dequeue();
 
         float sum = 0f;
         foreach (var s in samples) sum += s.speed;

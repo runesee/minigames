@@ -14,11 +14,9 @@ public class WarmupScoreCalculator : MonoBehaviour
 
     private void Update()
     {
-        if (!slope.TryGetCurrentTarget(out float minSpeed, out float maxSpeed, out float multiplier))
-            return;
+        if (!slope.TryGetCurrentTarget(out float minSpeed, out float maxSpeed, out float multiplier)) return;
 
         float playerSpeed = PlayPulse.Input.Input.Speed;
-
         if (playerSpeed >= minSpeed && playerSpeed <= maxSpeed)
         {
             score += basePointsPerSecond * multiplier * Time.deltaTime;

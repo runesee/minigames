@@ -24,7 +24,7 @@ public class ScoreMultiplierManager : MonoBehaviour
             zoneIndexSamples.Add(currentZone);
             
             float normalizedSpeed = Mathf.Clamp(PlayPulse.Input.Input.Speed, 0.0f, 1.0f);
-            if (normalizedSpeedSamples.Count > 100) normalizedSpeedSamples.Dequeue();   // TODO : adjust count after trying on bike
+            if (normalizedSpeedSamples.Count > 100) normalizedSpeedSamples.Dequeue();
             normalizedSpeedSamples.Enqueue(normalizedSpeed);
         }
     }
@@ -38,26 +38,15 @@ public class ScoreMultiplierManager : MonoBehaviour
 
     public float GetAverageNormalizedSpeed()
     {
-        if (normalizedSpeedSamples.Count == 0)
-        {
-            return 0f;
-        }
-
+        if (normalizedSpeedSamples.Count == 0) return 0f;
         float total = 0f;
-        foreach (float speed in normalizedSpeedSamples)
-        {
-            total += speed;
-        }
-
+        foreach (float speed in normalizedSpeedSamples) total += speed;
         return total / normalizedSpeedSamples.Count;
     }
 
     public float GetAverageMultiplier()
     {
-        if (zoneIndexSamples.Count == 0)
-        {
-            return 1.0f;
-        }
+        if (zoneIndexSamples.Count == 0) return 1.0f;
 
         bool isInterval = intervalTimer.IsIntervalPhase;
         float[] currentMultipliers = isInterval ? intervalMultipliers : restMultipliers;
@@ -75,7 +64,6 @@ public class ScoreMultiplierManager : MonoBehaviour
                 totalMultiplier += 1.0f;
             }
         }
-
         return totalMultiplier / zoneIndexSamples.Count;
     }
 
@@ -92,11 +80,7 @@ public class ScoreMultiplierManager : MonoBehaviour
 
         float[] currentMultipliers = isInterval ? intervalMultipliers : restMultipliers;
 
-        if (zoneIndex >= 0 && zoneIndex < currentMultipliers.Length)
-        {
-            return currentMultipliers[zoneIndex];
-        }
-
+        if (zoneIndex >= 0 && zoneIndex < currentMultipliers.Length) return currentMultipliers[zoneIndex];
         return 1.0f;
     }
 

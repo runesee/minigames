@@ -58,9 +58,7 @@ public class HomeScreenController : MonoBehaviour
     private void Update()
     {
         if (isTransitioning) return;
-
-        if (AnyInputDetected())
-            TransitionToMainMenu();
+        if (AnyInputDetected()) TransitionToMainMenu();
     }
 
     private void OnDestroy()

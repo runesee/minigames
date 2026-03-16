@@ -22,36 +22,22 @@ public class RedLightPlayerSpawner : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         if (!IsServer) return;
-
         NetworkManager.Singleton.OnClientConnectedCallback += SpawnPlayer;
-        
         StartCoroutine(SpawnAllPlayersAfterDelay());
     }
     
     private IEnumerator SpawnAllPlayersAfterDelay()
     {
-        yield return new WaitForSeconds(2.0f);
-        
-        foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds)
-        {
-            SpawnPlayer(clientId);
-        }
+        yield return new WaitForSeconds(2.0f); 
+        foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds) SpawnPlayer(clientId);
     }
 
     private void SpawnPlayer(ulong clientId)
     {
         if (!IsServer) return;
-
-        if (spawnedClients.Contains(clientId))
-        {
-            return;
-        }
-
+        if (spawnedClients.Contains(clientId)) return;
         int playerIndex = (int)clientId;
-        if (playerIndex >= spawnPoints.Length)
-        {
-            return;
-        }
+        if (playerIndex >= spawnPoints.Length) return;
 
         Vector3 spawnPosition = spawnPoints[playerIndex].position;
         GameObject playerInstance = Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
@@ -64,7 +50,6 @@ public class RedLightPlayerSpawner : NetworkBehaviour
         {
             playerMovement.AssignTrafficLightAndTrack(trafficLights[playerIndex], playerIndex);
         }
-
         spawnedClients.Add(clientId);
     }
 
