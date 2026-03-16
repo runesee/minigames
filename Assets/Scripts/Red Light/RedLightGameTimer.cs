@@ -13,6 +13,11 @@ public class RedLightGameTimer : NetworkBehaviour
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private TextMeshProUGUI stateText;
 
+    [Header("Audio Settings")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip intervalCounterSound;
+    private bool playingCountdownSound = false;
+
     private NetworkVariable<float> remainingTime = new NetworkVariable<float>(
         0f,
         NetworkVariableReadPermission.Everyone,
@@ -76,6 +81,11 @@ public class RedLightGameTimer : NetworkBehaviour
             {
                 timerRunning.Value = false;
                 StopGame();
+            }
+            else if (remainingTime.Value <= 3f && !playingCountdownSound)
+            {  
+                playingCountdownSound = true;
+                PlayCountdownSoundClientRpc();
             }
         }
         else
@@ -157,5 +167,12 @@ public class RedLightGameTimer : NetworkBehaviour
         {
             RedLightGameState.Instance.SetGameStateServerRpc(GameState.Handover);
         }
+    }
+    
+    [ClientRpc]
+    private void PlayCountdownSoundClientRpc()
+    {
+        audioSource?.PlayOneShot(intervalCounterSound);
+        timerText.color = Color.red;
     }
 }

@@ -11,6 +11,10 @@ public class GameTimer : NetworkBehaviour
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private TextMeshProUGUI stateText;
 
+    [Header("Audio Settings")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip intervalCounterSound;
+
     private NetworkVariable<float> remainingTime = new NetworkVariable<float>(
         0f,
         NetworkVariableReadPermission.Everyone,
@@ -31,6 +35,7 @@ public class GameTimer : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
     private int overtimeCount = 0;
+    private bool playingCountdownSound = false;
 
     public override void OnNetworkSpawn()
     {
@@ -96,6 +101,11 @@ public class GameTimer : NetworkBehaviour
             {
                 timerRunning.Value = false;
                 StopGame();
+            }
+            else if (remainingTime.Value <= 3f && !playingCountdownSound)
+            {  
+                playingCountdownSound = true;
+                PlayCountdownSoundClientRpc();
             }
         }
         else
@@ -220,5 +230,20 @@ public class GameTimer : NetworkBehaviour
         else if (IsHost && SceneManager.GetActiveScene().name == "BalloonTag") BalloonTagGameState.Instance.SetGameStateServerRpc(GameState.Handover);
         else if (IsHost && SceneManager.GetActiveScene().name == "CaptureTheFlag") CtFGameState.Instance.SetGameStateServerRpc(GameState.Handover);
         else if (IsHost && SceneManager.GetActiveScene().name == "ColorFlood") ColorFloodGameState.Instance.SetGameStateServerRpc(GameState.Handover);
+    }
+
+    [ClientRpc]
+    private void PlayCountdownSoundClientRpc()
+    {
+        StartCoroutine(PlayCountdownSound());
+    }
+
+    private IEnumerator PlayCountdownSound()
+    {
+        audioSource?.PlayOneShot(intervalCounterSound);
+        timerText.color = Color.red;
+        yield return new WaitForSeconds(3f);
+        playingCountdownSound = false;
+        timerText.color = Color.white;
     }
 }
