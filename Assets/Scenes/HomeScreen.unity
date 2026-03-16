@@ -194,6 +194,52 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 22922213}
   m_CullTransparentMesh: 1
+--- !u!1 &118002878
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 118002879}
+  - component: {fileID: 118002880}
+  m_Layer: 0
+  m_Name: HomeScreenBackground
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &118002879
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 118002878}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &118002880
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 118002878}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83c5bad3684c84d648b27d183e4faa40, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HomeScreenBackground
+  topColor: {r: 0.08, g: 0.06, b: 0.18, a: 1}
+  bottomColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!1 &679386826
 GameObject:
   m_ObjectHideFlags: 0
@@ -405,10 +451,20 @@ MonoBehaviour:
   fadeOverlay: {fileID: 1107629172}
   characterPrefab: {fileID: 8587370964938106638, guid: 8b64197791aa19f459c89b942203bda4, type: 3}
   characterParent: {fileID: 1641117163}
+  showcaseBaseController: {fileID: 9100000, guid: e296e0aa5a39648f9b43c622220032a1, type: 2}
+  showcaseAnimations:
+  - {fileID: -203655887218126122, guid: bfb0f9d3c4cc64385b1a8bb31fe0c209, type: 3}
+  - {fileID: -203655887218126122, guid: b0147d2eb2c1e4cb5a7d2143375c227c, type: 3}
+  - {fileID: -203655887218126122, guid: b824d9227f55fc247bc46a535d8b0121, type: 3}
+  - {fileID: -203655887218126122, guid: a2860e6e66544614b92822878bdf0fac, type: 3}
+  - {fileID: -203655887218126122, guid: 31b014ae9458f4e3e97b3addcbafabf1, type: 3}
+  - {fileID: -203655887218126122, guid: 14e61707daffe4a4d94b6e2d54a5619e, type: 3}
+  - {fileID: -203655887218126122, guid: 797676ed238304952a92a7ba38d3c47d, type: 3}
+  - {fileID: -203655887218126122, guid: e9cb347ec7128466cae63aa76a4905cc, type: 3}
+  - {fileID: -203655887218126122, guid: 7d377684eee724c18a9fecafe3fc7aec, type: 3}
+  - {fileID: -203655887218126122, guid: 7a025408aa3634be0aa5fdc81cbb309b, type: 3}
   promptFadeDuration: 1.2
   sceneTransitionDuration: 0.8
-  titleBounceAmplitude: 10
-  titleBounceDuration: 2
   audioSource: {fileID: 679386828}
   transitionClip: {fileID: 8300000, guid: 9ed8561406bed7448940a6f043a6d56b, type: 3}
 --- !u!114 &1062498844
@@ -1006,7 +1062,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.3, g: 0.3, b: 0.3, a: 1}
+  m_BackGroundColor: {r: 0.02, g: 0.02, b: 0.06, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -1103,3 +1159,4 @@ SceneRoots:
   - {fileID: 1641117163}
   - {fileID: 679386827}
   - {fileID: 1062498841}
+  - {fileID: 118002879}
