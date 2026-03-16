@@ -69,17 +69,6 @@ public class MenuManager : MonoBehaviour
         ShowMainMenu();
         colorDropdown.onValueChanged.AddListener(OnColorChanged);
         SelectButton(hostButton);
-        // Initialize connection with PP-service
-        if (!PlayPulse.PlayPulseService.IsInitialized)
-        {
-            PlayPulse.PlayPulseService.Initialize(
-            string.Empty,
-            connectToBikeService: true,
-            appSocketPathOverride: "127.0.0.1:13337",
-            shellSocketPathOverride: "127.0.0.1:13337",
-            useTcpSocket: true
-            );
-        }
         }
 
     private void Update()

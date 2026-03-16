@@ -51,7 +51,17 @@ public class MinigameManager : NetworkBehaviour
         if (!USING_PLAYPULSE) return;
         try
         {
-            if (!PlayPulse.PlayPulseService.IsInitialized) USING_PLAYPULSE = false;
+            // Initialize connection with PP-service
+            if (!PlayPulse.PlayPulseService.IsInitialized)
+            {
+                PlayPulse.PlayPulseService.Initialize(
+                string.Empty,
+                connectToBikeService: true,
+                appSocketPathOverride: "127.0.0.1:13337",
+                shellSocketPathOverride: "127.0.0.1:13337",
+                useTcpSocket: true
+                );
+            }
         }
         catch { USING_PLAYPULSE = false; } // Bike connection failed, overriding to use keyboard instead
     }

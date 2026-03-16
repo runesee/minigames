@@ -102,7 +102,7 @@ public class PlayerTagMovement : TagPlayer
         {
             double timeSinceTagged = serverTime - lastTagTimeNet.Value;
             if (timeSinceTagged < 1.8f) return;
-            else UnfreezePlayerServerRpc();
+            else ToggleHitPlayerServerRpc();
         }
 
         // Parse InputInteractions
@@ -232,5 +232,11 @@ public class PlayerTagMovement : TagPlayer
     private float GetCurrentMaxStamina()
     {
         return isTaggedNet.Value ? maxStamina * taggedStaminaBoostMultiplier : maxStamina;
+    }
+
+    [ServerRpc]
+    protected virtual void ToggleHitPlayerServerRpc()
+    {
+        isHitNet.Value = false;
     }
 }
