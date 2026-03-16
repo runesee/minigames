@@ -50,7 +50,7 @@ public class ColorFloodPlayerSpawner : NetworkBehaviour
 
         // Wait until all expected player objects are spawned — no GUID check so
         // empty LocalPlayerStorage never deadlocks the game.
-        yield return new WaitUntil(() => GetAllPlayers().Count == RequiredPlayerCount);
+        yield return new WaitUntil(() => GetAllPlayers().Count >= RequiredPlayerCount);
 
         AssignTeams();
 
