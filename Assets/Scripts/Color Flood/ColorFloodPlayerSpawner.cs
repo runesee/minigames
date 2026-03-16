@@ -46,7 +46,7 @@ public class ColorFloodPlayerSpawner : NetworkBehaviour
         yield return new WaitForSeconds(0.5f);
         foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds) SpawnPlayer(clientId);
 
-        yield return new WaitUntil(() => GetAllPlayers().Count == RequiredPlayerCount);
+        yield return new WaitUntil(() => GetAllPlayers().Count >= RequiredPlayerCount);
         AssignTeams();
 
         while (ColorFloodGameState.Instance == null) yield return new WaitForSeconds(0.1f);
