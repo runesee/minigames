@@ -28,6 +28,10 @@ public class PowerUpSpawner : NetworkBehaviour
     [Header("Paint Bomb Settings")]
     [SerializeField] private float paintBombRadius = 5f;
 
+    [Header("Audio Settings")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip bombClip;
+
     private readonly HashSet<int> activeIds = new HashSet<int>();
     private readonly Dictionary<int, GameObject> localPowerUps = new Dictionary<int, GameObject>();
     private int nextPowerUpId;
@@ -163,7 +167,6 @@ public class PowerUpSpawner : NetworkBehaviour
                 break;
             }
         }
-
         RemovePowerUpClientRpc(pickupId);
     }
 
@@ -189,6 +192,7 @@ public class PowerUpSpawner : NetworkBehaviour
             }
         }
         RemovePowerUpClientRpc(pickupId);
+        PlayBombSfxClientRpc();
     }
 
     [ClientRpc]
@@ -199,6 +203,12 @@ public class PowerUpSpawner : NetworkBehaviour
             Destroy(powerUp);
             localPowerUps.Remove(pickupId);
         }
+    }
+
+    [ClientRpc]
+    private void PlayBombSfxClientRpc()
+    {
+        audioSource?.PlayOneShot(bombClip);
     }
 
     public override void OnNetworkDespawn()
