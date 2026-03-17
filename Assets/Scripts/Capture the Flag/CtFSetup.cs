@@ -127,28 +127,4 @@ public class CtFSetup : NetworkBehaviour
     {
         InitializeCanvas(data.ToList());
     }
-
-    private struct SetupData : INetworkSerializable
-    {
-        public FixedString64Bytes nickname;
-        public FixedString64Bytes color;
-        public FixedString64Bytes Guid;
-        public Team team;
-
-        public SetupData(FixedString64Bytes nickname, FixedString64Bytes color, FixedString64Bytes guid, Team team)
-        {
-            this.nickname = nickname;
-            this.color = color;
-            this.Guid = guid;
-            this.team = team;
-        }
-
-        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
-        {
-            serializer.SerializeValue(ref nickname);
-            serializer.SerializeValue(ref color);
-            serializer.SerializeValue(ref Guid);
-            serializer.SerializeValue(ref team);
-        }
-    }
 }
