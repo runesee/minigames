@@ -1,9 +1,14 @@
+using System.Collections;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
 public class PlayerColorFlood : BoostPlayer
 {
+    [Header("Audio Settings")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip speedClip;
+
     public NetworkVariable<Team> teamNet = new NetworkVariable<Team>(
         Team.None,
         NetworkVariableReadPermission.Everyone,
@@ -65,6 +70,7 @@ public class PlayerColorFlood : BoostPlayer
         if (speedPickup != null)
         {
             PowerUpSpawner.Instance.CollectSpeedBoostServerRpc(speedPickup.pickupId);
+            StartCoroutine(PlaySpeedSfx());
             return;
         }
 
@@ -116,6 +122,13 @@ public class PlayerColorFlood : BoostPlayer
     {
         rb.position = position;
         rb.rotation = Quaternion.Euler(0f, team == Team.Green ? 90f : -90f, 0f);
+    }
+
+    private IEnumerator PlaySpeedSfx()
+    {
+        audioSource?.PlayOneShot(speedClip);
+        yield return new WaitForSeconds(5f);
+        audioSource?.Stop();
     }
 
     public override PlayerData GetPlayerData()
