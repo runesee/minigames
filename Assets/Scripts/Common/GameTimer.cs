@@ -121,7 +121,7 @@ public class GameTimer : NetworkBehaviour
 
         if (newState == GameState.Running)
         {
-            if (CtFGameState.Instance != null)
+            if (CtFGameState.Instance != null || ColorFloodGameState.Instance != null)
             {
                 CTFToggleStartTextClientRpc();
                 return;
@@ -156,6 +156,7 @@ public class GameTimer : NetworkBehaviour
     private void ToggleStartTextClientRpc(GameState state)
     {
         if (CtFGameState.Instance != null) return;
+        if (ColorFloodGameState.Instance != null) return;
         if (state == GameState.Idling) stateText.text = "GET READY!"; 
         else stateText.text = "";
     }

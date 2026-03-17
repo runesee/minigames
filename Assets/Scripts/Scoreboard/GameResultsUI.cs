@@ -183,6 +183,14 @@ public class GameResultsUI : NetworkBehaviour
                 }
                 else DisplayWinnerTextClientRpc(CtFGameState.Instance.greenColor.color, Team.Green);
             }
+            else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.ColorFlood)
+            {
+                if (ColorFloodGameState.Instance.blueTileCount.Value > ColorFloodGameState.Instance.greenTileCount.Value)
+                {
+                    DisplayWinnerTextClientRpc(PlayerColorManager.GetColor(1), Team.Blue);
+                }
+                else DisplayWinnerTextClientRpc(PlayerColorManager.GetColor(2), Team.Green);
+            }
         }
         else if (newState == GameState.Idling || newState == GameState.Initializing)
         {
@@ -265,6 +273,7 @@ public class GameResultsUI : NetworkBehaviour
                 score = data.score,
                 nickname = data.nickname.ToSafeString(),
                 color = data.color,
+                team = data.team
             });
         }
         return results;
@@ -339,7 +348,9 @@ public class GameResultsUI : NetworkBehaviour
             UnityEngine.ColorUtility.TryParseHtmlString(results[i].color.Value, out var playerColor);
             card.bonusText.color = medalColor;
             card.nicknameText.color = playerColor;
-
+            Team team = results[i].team;
+            if (team != Team.None) card.scoreText.color = team == Team.Green ? PlayerColorManager.GetColor(2) : PlayerColorManager.GetColor(1);
+           
             int firstIndexOfScore = i;
             while (firstIndexOfScore > 0 && results[firstIndexOfScore - 1].score == results[i].score) firstIndexOfScore--;
             int rank = firstIndexOfScore + 1;
@@ -374,6 +385,7 @@ public class GameResultsUI : NetworkBehaviour
         public double score;
         public FixedString64Bytes nickname;
         public FixedString64Bytes color;
+        public Team team;
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
@@ -381,6 +393,7 @@ public class GameResultsUI : NetworkBehaviour
             serializer.SerializeValue(ref score);
             serializer.SerializeValue(ref nickname);
             serializer.SerializeValue(ref color);
+            serializer.SerializeValue(ref team);
         }
     }
 }
