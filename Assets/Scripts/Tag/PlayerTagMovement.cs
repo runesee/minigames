@@ -115,7 +115,7 @@ public class PlayerTagMovement : TagPlayer
         else if (!isBoosting) boostAudioSource?.Stop(); // Stopped boosting, stop current audio
 
         // Set target player as isHit if punched by punching player
-        if (isPunching && isTaggedNet.Value)
+        if (isPunching && isTaggedNet.Value && !isFrozenNet.Value)
         {
             PlayerTagMovement target = PlayerUtils.FindClosestPlayerInRange<PlayerTagMovement>(2.5f, this.gameObject, this.transform);
             tagAudioSource?.PlayOneShot(tagClip);
@@ -123,6 +123,11 @@ public class PlayerTagMovement : TagPlayer
             {
                 TagPlayerServerRpc(target.NetworkObjectId); // Set target as tagged and hit (can tag others, play animation)
             }
+        }
+        else if (isFrozenNet.Value)
+        {
+            double timeSinceTagged = serverTime - lastTagTimeNet.Value;
+            if (timeSinceTagged >= 0.7f) UnfreezePlayerServerRpc();
         }
 
         // Handle animations and update position based on input actions
@@ -183,7 +188,9 @@ public class PlayerTagMovement : TagPlayer
         // Add timediff to current player
         timeSpentTaggedNet.Value += serverTime - lastTagTimeNet.Value;
         victim.lastTagTimeNet.Value = serverTime;
+        this.lastTagTimeNet.Value = serverTime;
         TagGameState.Instance.taggedPlayerIdNet.Value = victimId;
+        this.isFrozenNet.Value = true;
         PlayTagSoundClientRpc();
     }
 
