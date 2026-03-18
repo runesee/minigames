@@ -340,14 +340,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 315a7eb1607054d83abe6a7e8cf6ef17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControlTimer
-  intervalDuration: 2
-  restDuration: 2
-  totalCycles: 2
+  intervalDuration: 240
+  restDuration: 180
+  totalCycles: 4
+  warmupDuration: 480
   timerText: {fileID: 911403030}
   normalLabelSize: 110
   shiftLabelSize: 180
   shiftAnimationDuration: 1
-  warmupDuration: 4
 --- !u!4 &965076115
 Transform:
   m_ObjectHideFlags: 0
@@ -382,6 +382,7 @@ MonoBehaviour:
   backgroundColor: {r: 0.05, g: 0.05, b: 0.1, a: 1}
   intervalLineColor: {r: 0.2, g: 0.8, b: 0.4, a: 1}
   restLineColor: {r: 0.3, g: 0.6, b: 1, a: 1}
+  warmupLineColor: {r: 1, g: 0.7, b: 0.2, a: 1}
   gridColor: {r: 0.2, g: 0.2, b: 0.3, a: 0.5}
   phaseDividerColor: {r: 1, g: 1, b: 1, a: 0.3}
 --- !u!1 &1101028508
