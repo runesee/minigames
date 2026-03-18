@@ -10,6 +10,9 @@ public class ControlTimer : MonoBehaviour
     [SerializeField] private float restDuration = 30f;
     [SerializeField] private int totalCycles = 5;
 
+    [Header("Warmup Settings")]
+    [SerializeField] private float warmupDuration = 480f;
+
     [Header("UI Reference")]
     [SerializeField] private Text timerText;
 
@@ -18,23 +21,24 @@ public class ControlTimer : MonoBehaviour
     [SerializeField] private float shiftLabelSize = 180f;
     [SerializeField] private float shiftAnimationDuration = 1f;
 
-    [Header("Warmup Settings")]
-    [SerializeField] private float warmupDuration = 480f;
-    private bool isWarmupPhase = true;
-
     private float currentTime;
     private int completedCycles;
+
     private bool isIntervalPhase = true;
+    private bool isWarmupPhase = true;
     private bool isRunning;
+    private bool hasStarted = false;
+
     private float currentLabelSize;
     private Coroutine phaseShiftCoroutine;
 
     public bool IsIntervalPhase => isIntervalPhase;
+    public bool IsWarmupPhase => isWarmupPhase;
     public bool IsRunning => isRunning;
     public int CompletedCycles => completedCycles;
+
     public float TotalSessionDuration => totalCycles * (intervalDuration + restDuration);
     public float ElapsedSessionTime { get; private set; }
-    public bool IsWarmupPhase => isWarmupPhase;
 
     public event Action<bool> OnPhaseChanged;
     public event Action OnSessionComplete;
@@ -45,8 +49,11 @@ public class ControlTimer : MonoBehaviour
         completedCycles = 0;
         currentLabelSize = normalLabelSize;
         ElapsedSessionTime = 0f;
-        isRunning = true;
+
+        isRunning = false;
         isWarmupPhase = true;
+        isIntervalPhase = true;
+        hasStarted = false;
 
         UpdateTimerDisplay();
 
@@ -61,6 +68,18 @@ public class ControlTimer : MonoBehaviour
 
     private void Update()
     {
+        if (!hasStarted)
+        {
+            if (Input.GetKeyDown(KeyCode.Return) ||
+                PlayPulse.Input.Input.GetButtonDown(PlayPulse.Input.Input.Button.A))
+            {
+                hasStarted = true;
+                isRunning = true;
+            }
+
+            return;
+        }
+
         if (!isRunning) return;
 
         currentTime -= Time.deltaTime;
@@ -91,6 +110,7 @@ public class ControlTimer : MonoBehaviour
         {
             isIntervalPhase = false;
             currentTime = restDuration;
+
             TriggerPhaseShiftAnimation();
             OnPhaseChanged?.Invoke(isIntervalPhase);
         }
@@ -102,6 +122,7 @@ public class ControlTimer : MonoBehaviour
             {
                 isRunning = false;
                 currentTime = 0f;
+
                 timerText.text = $"<size={Mathf.RoundToInt(normalLabelSize)}>DONE</size>\n00:00\nAll cycles complete";
                 OnSessionComplete?.Invoke();
                 return;
@@ -109,6 +130,7 @@ public class ControlTimer : MonoBehaviour
 
             isIntervalPhase = true;
             currentTime = intervalDuration;
+
             TriggerPhaseShiftAnimation();
             OnPhaseChanged?.Invoke(isIntervalPhase);
         }
@@ -116,7 +138,9 @@ public class ControlTimer : MonoBehaviour
 
     private void TriggerPhaseShiftAnimation()
     {
-        if (phaseShiftCoroutine != null) StopCoroutine(phaseShiftCoroutine);
+        if (phaseShiftCoroutine != null)
+            StopCoroutine(phaseShiftCoroutine);
+
         phaseShiftCoroutine = StartCoroutine(PhaseShiftAnimation());
     }
 
@@ -138,6 +162,13 @@ public class ControlTimer : MonoBehaviour
 
     private void UpdateTimerDisplay()
     {
+        if (!hasStarted)
+        {
+            int labelSize = Mathf.RoundToInt(currentLabelSize);
+            timerText.text = $"<size={labelSize}>READY</size>\nPress A to start";
+            return;
+        }
+
         int minutes = Mathf.FloorToInt(currentTime / 60f);
         int seconds = Mathf.FloorToInt(currentTime % 60f);
 
@@ -150,8 +181,11 @@ public class ControlTimer : MonoBehaviour
 
         int currentCycle = Mathf.Min(completedCycles + 1, totalCycles);
         string cycleInfo = isWarmupPhase ? "" : $"Cycle {currentCycle}/{totalCycles}";
-        int labelSize = Mathf.RoundToInt(currentLabelSize);
+        int labelSizeFinal = Mathf.RoundToInt(currentLabelSize);
 
-        timerText.text = $"<size={labelSize}>{phaseLabel}</size>\n{minutes:00}:{seconds:00}\n{cycleInfo}";
+        timerText.text =
+            $"<size={labelSizeFinal}>{phaseLabel}</size>\n" +
+            $"{minutes:00}:{seconds:00}\n" +
+            $"{cycleInfo}";
     }
 }
