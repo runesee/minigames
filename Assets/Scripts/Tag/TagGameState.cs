@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
 
@@ -15,22 +16,8 @@ public class TagGameState : MinigameGameState
         Instance = this;
     }
 
-    protected override void SaveData()
+    protected override List<PlayerData> GetOrderedPlayerDataList()
     {
-        var rankedPlayers = GetOrderedPlayerDataList(false);
-        rankedPlayers.Reverse();
-        for (int i = 0; i < rankedPlayers.Count; i++)
-        {
-            float score = i < scores.Length ? scores[i] : 0f;
-            var player = rankedPlayers[i];
-            var globalSessionData = SessionManager.Instance.GetDataByGuid(player.Guid);
-            var scoredPlayerData = new SessionManager.PlayerData(
-                player.Guid,
-                player.nickname,
-                player.color,
-                score + globalSessionData.Score
-            );
-            SessionManager.Instance.SaveData(scoredPlayerData);
-        }
+        return PlayerDataList.OrderByDescending(p => p.score).Reverse().ToList();
     }
 }

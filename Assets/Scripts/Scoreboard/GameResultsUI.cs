@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections;
 using Unity.VisualScripting;
 using Unity.Collections;
+using System;
 
 public class GameResultsUI : NetworkBehaviour
 {
@@ -179,17 +180,25 @@ public class GameResultsUI : NetworkBehaviour
             {
                 if (CtFGameState.Instance.blueScore.Value > CtFGameState.Instance.greenScore.Value)
                 {
-                    DisplayWinnerTextClientRpc(CtFGameState.Instance.blueColor.color, Team.Blue);
+                    DisplayWinnerTextClientRpc(CtFGameState.Instance.blueColor.color, Team.Blue, false);
                 }
-                else DisplayWinnerTextClientRpc(CtFGameState.Instance.greenColor.color, Team.Green);
+                else if (CtFGameState.Instance.blueScore.Value == CtFGameState.Instance.greenScore.Value)
+                {
+                    DisplayWinnerTextClientRpc(CtFGameState.Instance.blueColor.color, Team.Blue, true);
+                }
+                else DisplayWinnerTextClientRpc(CtFGameState.Instance.greenColor.color, Team.Green, false);
             }
             else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.ColorFlood)
             {
                 if (ColorFloodGameState.Instance.blueTileCount.Value > ColorFloodGameState.Instance.greenTileCount.Value)
                 {
-                    DisplayWinnerTextClientRpc(PlayerColorManager.GetColor(1), Team.Blue);
+                    DisplayWinnerTextClientRpc(PlayerColorManager.GetColor(1), Team.Blue, false);
                 }
-                else DisplayWinnerTextClientRpc(PlayerColorManager.GetColor(2), Team.Green);
+                else if (ColorFloodGameState.Instance.blueTileCount.Value == ColorFloodGameState.Instance.greenTileCount.Value)
+                {
+                    DisplayWinnerTextClientRpc(PlayerColorManager.GetColor(2), Team.Green, true);
+                }
+                else DisplayWinnerTextClientRpc(PlayerColorManager.GetColor(2), Team.Green, false);
             }
         }
         else if (newState == GameState.Idling || newState == GameState.Initializing)
@@ -262,21 +271,48 @@ public class GameResultsUI : NetworkBehaviour
 
     private static List<PlayerResult> AddResults<T>(List<PlayerResult> results) where T : Player
     {
+        var dataList = new List<PlayerResult>();
         foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
         {
             var player = obj.GetComponent<T>();
             if (player == null) continue;
             var data = player.GetPlayerData();
-            results.Add(new PlayerResult
+            dataList.Add(new PlayerResult
             {
                 clientId = player.OwnerClientId,
                 score = data.score,
                 nickname = data.nickname.ToSafeString(),
                 color = data.color,
-                team = data.team
+                team = data.team,
+                placement = 0,
             });
         }
-        return results;
+        if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag) dataList = dataList.OrderBy(p => p.score).ToList();
+        else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.RedLight) dataList = dataList.OrderBy(p => p.score).ToList();
+        else dataList = dataList.OrderByDescending(p => p.score).ToList();
+        var sortedDataList = new List<PlayerResult>();
+        for (int i = 0; i < dataList.Count; i++)
+        {
+            int placement;
+            if (i > 0 && Math.Abs(dataList[i].score - dataList[i - 1].score) < 0.001)
+            {
+                placement = sortedDataList[i - 1].placement;
+            }
+            else
+            {
+                placement = i + 1;
+            }
+            sortedDataList.Add(new PlayerResult
+            {
+                clientId = dataList[i].clientId,
+                score = dataList[i].score,
+                nickname = dataList[i].nickname,
+                color = dataList[i].color,
+                team = dataList[i].team,
+                placement = placement,
+            });
+        }
+        return sortedDataList;
     }
 
     private MinigameManager.MinigameScene BuildResultsText()
@@ -304,13 +340,6 @@ public class GameResultsUI : NetworkBehaviour
         else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.ColorFlood)
         {
             results = AddResults<PlayerColorFlood>(results);
-        }
-        results = results.OrderBy(r => r.score).ToList();
-
-        if (MinigameManager.Instance.currentGameState != MinigameManager.MinigameScene.Tag ||
-            MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.RedLight)
-        {
-            results.Reverse();
         }
         UpdateCanvas(results, MinigameManager.Instance.currentGameState);
         return MinigameManager.Instance.currentGameState;
@@ -344,16 +373,14 @@ public class GameResultsUI : NetworkBehaviour
             RectTransform rectTransform = (RectTransform)card.transform;
             card.gameObject.SetActive(true);
 
-            UnityEngine.ColorUtility.TryParseHtmlString(medalColors[i], out var medalColor);
+            UnityEngine.ColorUtility.TryParseHtmlString(medalColors[results[i].placement-1], out var medalColor);
             UnityEngine.ColorUtility.TryParseHtmlString(results[i].color.Value, out var playerColor);
             card.bonusText.color = medalColor;
             card.nicknameText.color = playerColor;
             Team team = results[i].team;
             if (team != Team.None) card.scoreText.color = team == Team.Green ? PlayerColorManager.GetColor(2) : PlayerColorManager.GetColor(1);
            
-            int firstIndexOfScore = i;
-            while (firstIndexOfScore > 0 && results[firstIndexOfScore - 1].score == results[i].score) firstIndexOfScore--;
-            int rank = firstIndexOfScore + 1;
+            int rank = results[i].placement;
             card.bonusText.text = "#" + rank.ToString();
             rectTransform.anchoredPosition = new Vector2(0, cardYPositions[i]);
         }
@@ -368,8 +395,13 @@ public class GameResultsUI : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void DisplayWinnerTextClientRpc(Color color, Team team)
+    private void DisplayWinnerTextClientRpc(Color color, Team team, bool tie)
     {
+        if (tie)
+        {
+            UpdateWinnerText();
+            return;
+        }
         UpdateWinnerText(color, team);
     }
 
@@ -379,6 +411,11 @@ public class GameResultsUI : NetworkBehaviour
         winnerText.color = color;
     }
 
+    private void UpdateWinnerText()
+    {
+        winnerText.text = "It's a tie!";
+    }
+
     public struct PlayerResult : INetworkSerializable
     {
         public ulong clientId;
@@ -386,6 +423,7 @@ public class GameResultsUI : NetworkBehaviour
         public FixedString64Bytes nickname;
         public FixedString64Bytes color;
         public Team team;
+        public int placement;
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
@@ -394,6 +432,7 @@ public class GameResultsUI : NetworkBehaviour
             serializer.SerializeValue(ref nickname);
             serializer.SerializeValue(ref color);
             serializer.SerializeValue(ref team);
+            serializer.SerializeValue(ref placement);
         }
     }
 }

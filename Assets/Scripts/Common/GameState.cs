@@ -110,25 +110,44 @@ public abstract class MinigameGameState : NetworkBehaviour
 
     protected virtual void SaveData()
     {
-        var rankedPlayers = GetOrderedPlayerDataList(false);
+        var rankedPlayers = GetOrderedPlayerDataList();
+        int previousPlacement = 0;
+        float[] scores = GetScores();
+
         for (int i = 0; i < rankedPlayers.Count; i++)
         {
-            float score = i < scores.Length ? scores[i] : 0f;
+            int placement;
+            if (i > 0 && Math.Abs(rankedPlayers[i].score - rankedPlayers[i - 1].score) < 0.001f)
+            {
+                placement = previousPlacement;
+            }
+            else
+            {
+                placement = i + 1;
+            }
+            previousPlacement = placement;
             var player = rankedPlayers[i];
             var globalSessionData = SessionManager.Instance.GetDataByGuid(player.Guid);
+            float scoreToAdd = placement - 1 < scores.Length ? scores[placement - 1] : 0f;
+
             var scoredPlayerData = new SessionManager.PlayerData(
                 player.Guid,
                 player.nickname,
                 player.color,
-                score + globalSessionData.Score
+                scoreToAdd + globalSessionData.Score,
+                placement
             );
             SessionManager.Instance.SaveData(scoredPlayerData);
         }
     }
 
-    protected virtual List<PlayerData> GetOrderedPlayerDataList(bool orderByTeam)
+    protected virtual List<PlayerData> GetOrderedPlayerDataList()
     {
-        if (orderByTeam) return PlayerDataList.OrderByDescending(p => p.team.ToString()).ToList();
         return PlayerDataList.OrderByDescending(p => p.score).ToList();
+    }
+
+    protected virtual float[] GetScores()
+    {
+        return this.scores;
     }
 }

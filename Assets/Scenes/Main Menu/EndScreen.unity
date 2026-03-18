@@ -1166,6 +1166,10 @@ MonoBehaviour:
   - {fileID: 790155302}
   - {fileID: 1779279261}
   - {fileID: 1898953755}
+  placementTexts:
+  - {fileID: 1795643176}
+  - {fileID: 1226573930}
+  - {fileID: 569905732}
 --- !u!4 &844301731
 Transform:
   m_ObjectHideFlags: 0

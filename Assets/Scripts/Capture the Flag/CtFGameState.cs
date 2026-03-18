@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using Unity.Netcode;
@@ -30,23 +31,11 @@ public class CtFGameState : MinigameGameState
         Instance = this;
     }
 
-    protected override void SaveData()
+    protected override List<PlayerData> GetOrderedPlayerDataList()
     {
-        var rankedPlayers = GetOrderedPlayerDataList(true);
+        var rankedPlayers = PlayerDataList.OrderByDescending(p => p.team.ToString()).ToList();
         if (greenScore.Value < blueScore.Value) rankedPlayers.Reverse();
-        for (int i = 0; i < rankedPlayers.Count; i++)
-        {
-            float score = i < ctfScores.Length ? ctfScores[i] : 0f;
-            var player = rankedPlayers[i];
-            var globalSessionData = SessionManager.Instance.GetDataByGuid(player.Guid);
-            var scoredPlayerData = new SessionManager.PlayerData(
-                player.Guid,
-                player.nickname,
-                player.color,
-                score + globalSessionData.Score
-            );
-            SessionManager.Instance.SaveData(scoredPlayerData);
-        }
+        return rankedPlayers;
     }
 
     [ClientRpc]
@@ -93,6 +82,31 @@ public class CtFGameState : MinigameGameState
 
     public void SetScores(float[] scores)
     {
-        this.scores = scores;
+        this.ctfScores = scores;
+    }
+
+    protected override float[] GetScores()
+    {
+        return this.ctfScores;
+    }
+
+    protected override void SaveData()
+    {
+        var rankedPlayers = GetOrderedPlayerDataList();
+        float[] scores = GetScores();
+        for (int i = 0; i < rankedPlayers.Count; i++)
+        {
+            float score = i < scores.Length ? scores[i] : 0f;
+            var player = rankedPlayers[i];
+            var globalSessionData = SessionManager.Instance.GetDataByGuid(player.Guid);
+            var scoredPlayerData = new SessionManager.PlayerData(
+                player.Guid,
+                player.nickname,
+                player.color,
+                score + globalSessionData.Score,
+                i
+            );
+            SessionManager.Instance.SaveData(scoredPlayerData);
+        }
     }
 }
