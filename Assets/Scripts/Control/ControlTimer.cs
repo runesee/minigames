@@ -34,6 +34,7 @@ public class ControlTimer : MonoBehaviour
     public int CompletedCycles => completedCycles;
     public float TotalSessionDuration => totalCycles * (intervalDuration + restDuration);
     public float ElapsedSessionTime { get; private set; }
+    public bool IsWarmupPhase => isWarmupPhase;
 
     public event Action<bool> OnPhaseChanged;
     public event Action OnSessionComplete;
