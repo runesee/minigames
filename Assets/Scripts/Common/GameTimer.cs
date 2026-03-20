@@ -198,12 +198,12 @@ public class GameTimer : NetworkBehaviour
                     CtFGameState.Instance.ToastMessageClientRpc(Team.None, "2nd Overtime! Last chance to avoid a tie!");
                     float[] scores = { 5f, 5f, 5f, 5f };
                     CtFGameState.Instance.SetScores(scores);
-                    OvertimeServerRpc(31f);
+                    OvertimeServerRpc(46f);
                 }
                 else
                 {
                     CtFGameState.Instance.ToastMessageClientRpc(Team.None, "Overtime! 45 seconds added to the clock!");
-                    OvertimeServerRpc(46f);
+                    OvertimeServerRpc(36f);
                 }
                 return;
             }
@@ -211,6 +211,11 @@ public class GameTimer : NetworkBehaviour
         }
         else if (ColorFloodGameState.Instance != null && IsServer)
         {
+            if (ColorFloodGameState.Instance.blueTileCount.Value == ColorFloodGameState.Instance.greenTileCount.Value)
+            {
+                float[] scores = { 5f, 5f, 5f, 5f };
+                ColorFloodGameState.Instance.SetScores(scores);
+            }
             ColorFloodGameState.Instance.SetGameStateServerRpc(GameState.Stopped);
         }
         StartCoroutine(Handover());

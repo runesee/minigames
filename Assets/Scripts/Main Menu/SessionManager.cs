@@ -21,13 +21,15 @@ public class SessionManager : NetworkBehaviour
         public FixedString64Bytes nickname;
         public FixedString64Bytes color;
         public float Score;
+        public int placement;
 
-        public PlayerData(FixedString64Bytes Guid, FixedString64Bytes nickname, FixedString64Bytes color, float Score)
+        public PlayerData(FixedString64Bytes Guid, FixedString64Bytes nickname, FixedString64Bytes color, float Score, int placement)
         {
             this.Guid = Guid;
             this.nickname = nickname;
             this.color = color;
             this.Score = Score;
+            this.placement = placement;
         }
 
         public PlayerData(FixedString64Bytes Guid)
@@ -36,11 +38,12 @@ public class SessionManager : NetworkBehaviour
             this.nickname = "";
             this.color = "";
             this.Score = 0f;
+            this.placement = 0;
         }
 
         public bool Equals(PlayerData other)
         {
-            return Guid.Equals(other.Guid) && nickname.Equals(other.nickname) && color.Equals(other.color) && Score.Equals(other.Score);
+            return Guid.Equals(other.Guid) && nickname.Equals(other.nickname) && color.Equals(other.color) && Score.Equals(other.Score) && placement.Equals(other.placement);
         }
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
@@ -49,6 +52,7 @@ public class SessionManager : NetworkBehaviour
             serializer.SerializeValue(ref nickname);
             serializer.SerializeValue(ref color);
             serializer.SerializeValue(ref Score);
+            serializer.SerializeValue(ref placement);
         }
     }
 
@@ -89,7 +93,7 @@ public class SessionManager : NetworkBehaviour
     public PlayerData GetDataByGuid(FixedString64Bytes guid)
     {
         foreach (var playerData in PlayerDataList) if (playerData.Guid.Equals(guid)) return playerData;
-        return new PlayerData(guid, "player", "", 0f);
+        return new PlayerData(guid, "player", "", 0f, 0);
     }
 
     public void SaveData(PlayerData newPlayerData)
@@ -104,6 +108,6 @@ public class SessionManager : NetworkBehaviour
             }
         }
         PlayerDataList.Add(newPlayerData);
-        previousPlayerDataList.Add(new PlayerData(newPlayerData.Guid, newPlayerData.nickname, newPlayerData.color, 0f));
+        previousPlayerDataList.Add(new PlayerData(newPlayerData.Guid, newPlayerData.nickname, newPlayerData.color, 0f, 0));
     }
 }

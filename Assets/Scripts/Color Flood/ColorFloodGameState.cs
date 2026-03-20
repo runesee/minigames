@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using Unity.Netcode;
@@ -17,8 +19,7 @@ public class ColorFloodGameState : MinigameGameState
     );
     public TMP_Text greenTileCountText;
     public TMP_Text blueTileCountText;
-    private readonly float[] winnerScores = { 6f, 6f };
-    private readonly float[] loserScores = { 3f, 3f };
+    protected float[] colorFloodScores = { 6f, 6f, 3f, 3f };
 
     private void Awake()
     {
@@ -48,22 +49,20 @@ public class ColorFloodGameState : MinigameGameState
         if (blueTileCountText != null) blueTileCountText.text = newValue.ToString();
     }
 
-    protected override void SaveData()
+    protected override List<PlayerData> GetOrderedPlayerDataList()
     {
-        var rankedPlayers = GetOrderedPlayerDataList(true);
+        var rankedPlayers = PlayerDataList.OrderByDescending(p => p.team.ToString()).ToList();
         if (greenTileCount.Value < blueTileCount.Value) rankedPlayers.Reverse();
-        for (int i = 0; i < rankedPlayers.Count; i++)
-        {
-            float score = i < winnerScores.Length ? winnerScores[i] : loserScores[i - winnerScores.Length];
-            var player = rankedPlayers[i];
-            var globalSessionData = SessionManager.Instance.GetDataByGuid(player.Guid);
-            var scoredPlayerData = new SessionManager.PlayerData(
-                player.Guid,
-                player.nickname,
-                player.color,
-                score + globalSessionData.Score
-            );
-            SessionManager.Instance.SaveData(scoredPlayerData);
-        }
+        return rankedPlayers;
+    }
+
+    protected override float[] GetScores()
+    {
+        return this.colorFloodScores;
+    }
+
+    public void SetScores(float[] scores)
+    {
+        this.colorFloodScores = scores;
     }
 }

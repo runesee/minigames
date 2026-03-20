@@ -5508,7 +5508,6 @@ MonoBehaviour:
   paintBombRadius: 5
   audioSource: {fileID: 1563620048}
   bombClip: {fileID: 8300000, guid: f883dfe8fc0f8d14eba7cfca808a14e2, type: 3}
-  speedClip: {fileID: 8300000, guid: 28e109cda39e52c4d93a414e9a8ca754, type: 3}
 --- !u!1 &190616423
 GameObject:
   m_ObjectHideFlags: 0
@@ -15242,7 +15241,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameTimer
   ShowTopMostFoldoutHeaderGroup: 1
-  gameDurationInSeconds: 150
+  gameDurationInSeconds: 240
   timerText: {fileID: 1483831535}
   stateText: {fileID: 578257900}
   audioSource: {fileID: 1626866556}
