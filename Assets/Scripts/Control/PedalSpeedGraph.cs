@@ -17,17 +17,22 @@ public class PedalSpeedGraph : MonoBehaviour
     [SerializeField] private Color backgroundColor = new Color(0.05f, 0.05f, 0.1f, 1f);
     [SerializeField] private Color intervalLineColor = new Color(0.2f, 0.8f, 0.4f, 1f);
     [SerializeField] private Color restLineColor = new Color(0.3f, 0.6f, 1f, 1f);
+    [SerializeField] private Color warmupLineColor = new Color(1f, 0.7f, 0.2f, 1f);
     [SerializeField] private Color gridColor = new Color(0.2f, 0.2f, 0.3f, 0.5f);
     [SerializeField] private Color phaseDividerColor = new Color(1f, 1f, 1f, 0.3f);
 
     private const int IntervalSceneIndex = 0;
     private const int RestSceneIndex = 1;
+    private const int WarmupSceneIndex = 2;
 
     private readonly List<SpeedGraphRenderer.SpeedSample> samples = new();
     private readonly List<SpeedGraphRenderer.SceneTransition> transitions = new();
+
     private float nextSampleTime;
     private bool hasSaved;
-    private bool lastIsInterval = true;
+
+    private int lastSceneIndex;
+    private bool isFirstSample = true;
 
     private void OnEnable()
     {
@@ -43,7 +48,7 @@ public class PedalSpeedGraph : MonoBehaviour
     {
         nextSampleTime = 0f;
         hasSaved = false;
-        lastIsInterval = true;
+        isFirstSample = true;
     }
 
     private void Update()
@@ -52,17 +57,30 @@ public class PedalSpeedGraph : MonoBehaviour
 
         if (Time.time >= nextSampleTime)
         {
-            bool currentIsInterval = controlTimer.IsIntervalPhase;
-            int sceneIndex = currentIsInterval ? IntervalSceneIndex : RestSceneIndex;
+            int sceneIndex;
 
-            if (currentIsInterval != lastIsInterval)
+            if (controlTimer.IsWarmupPhase)
+                sceneIndex = WarmupSceneIndex;
+            else if (controlTimer.IsIntervalPhase)
+                sceneIndex = IntervalSceneIndex;
+            else
+                sceneIndex = RestSceneIndex;
+
+            // Håndter transitions riktig mellom ALLE faser
+            if (isFirstSample)
+            {
+                lastSceneIndex = sceneIndex;
+                isFirstSample = false;
+            }
+            else if (sceneIndex != lastSceneIndex)
             {
                 transitions.Add(new SpeedGraphRenderer.SceneTransition
                 {
                     Time = controlTimer.ElapsedSessionTime,
                     SceneIndex = sceneIndex
                 });
-                lastIsInterval = currentIsInterval;
+
+                lastSceneIndex = sceneIndex;
             }
 
             float pedalSpeed = Mathf.Clamp01(PlayPulse.Input.Input.Speed);
@@ -103,6 +121,11 @@ public class PedalSpeedGraph : MonoBehaviour
 
     private Color GetPhaseColor(int sceneIndex)
     {
-        return sceneIndex == IntervalSceneIndex ? intervalLineColor : restLineColor;
+        if (sceneIndex == WarmupSceneIndex)
+            return warmupLineColor;
+
+        return sceneIndex == IntervalSceneIndex
+            ? intervalLineColor
+            : restLineColor;
     }
 }
