@@ -139,11 +139,14 @@ public class GameTimer : NetworkBehaviour
     private IEnumerator DisplayStartText()
     {
         stateText.text = "GET READY!"; 
-        yield return new WaitForSeconds(3f);
-        timerEndTime.Value = NetworkManager.ServerTime.Time + gameDurationInSeconds;
+        yield return new WaitForSeconds(1f);
         stateText.text = "";
-        remainingTime.Value = gameDurationInSeconds;
-        timerRunning.Value = true;
+        if (IsHost)
+        {
+            timerEndTime.Value = NetworkManager.ServerTime.Time + gameDurationInSeconds;
+            remainingTime.Value = gameDurationInSeconds;
+            timerRunning.Value = true;
+        } 
     }
 
     [ClientRpc]
