@@ -117,14 +117,9 @@ public abstract class MinigameGameState : NetworkBehaviour
         for (int i = 0; i < rankedPlayers.Count; i++)
         {
             int placement;
-            if (i > 0 && Math.Abs(rankedPlayers[i].score - rankedPlayers[i - 1].score) < 0.001f)
-            {
-                placement = previousPlacement;
-            }
-            else
-            {
-                placement = i + 1;
-            }
+            if (i > 0 && Math.Abs(rankedPlayers[i].score - rankedPlayers[i-1].score) < 0.001f) placement = previousPlacement;
+            else placement = i + 1;
+            
             previousPlacement = placement;
             var player = rankedPlayers[i];
             var globalSessionData = SessionManager.Instance.GetDataByGuid(player.Guid);

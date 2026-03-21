@@ -58,11 +58,7 @@ public class TaggedPlayerVisualizer : NetworkBehaviour
             CreateDefaultMarker();
         }
 
-        if (playerMovement != null)
-        {
-            playerMovement.isTaggedNet.OnValueChanged += OnTaggedStateChanged;
-            UpdateVisualization(playerMovement.isTaggedNet.Value);
-        }
+        if (playerMovement != null) playerMovement.isTaggedNet.OnValueChanged += OnTaggedStateChanged;
         
         if (IsOwner)
         {
@@ -70,7 +66,7 @@ public class TaggedPlayerVisualizer : NetworkBehaviour
             UnityEngine.ColorUtility.TryParseHtmlString(data.color, out var skinColor);
             glowColorNet.Value = skinColor;
         }
-
+        UpdateVisualization(playerMovement.isTaggedNet.Value);
         glowColorNet.OnValueChanged += OnGlowColorChanged;
     }
 
