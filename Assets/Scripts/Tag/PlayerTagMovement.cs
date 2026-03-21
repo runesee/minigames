@@ -45,7 +45,7 @@ public class PlayerTagMovement : TagPlayer
 
     private System.Collections.IEnumerator WaitForPlayerConnect()
     {
-        while (NetworkManager.Singleton.ConnectedClientsList.Count < 2 || TagGameState.Instance == null) yield return new WaitForSeconds(0.1f);
+        while (NetworkManager.Singleton.ConnectedClientsList.Count < MinigameManager.PLAYER_COUNT || TagGameState.Instance == null) yield return new WaitForSeconds(0.1f);
         TagGameState.Instance.SetGameStateServerRpc(GameState.Running);
         SetInitialTaggedPlayer();
     }

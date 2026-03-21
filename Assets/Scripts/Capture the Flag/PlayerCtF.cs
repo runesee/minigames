@@ -96,7 +96,7 @@ public class PlayerCtF : TagPlayer
 
     private System.Collections.IEnumerator WaitForPlayerConnect()
     {
-        while (NetworkManager.Singleton.ConnectedClientsList.Count < 2 || CtFGameState.Instance == null) yield return new WaitForSeconds(0.1f);
+        while (NetworkManager.Singleton.ConnectedClientsList.Count < MinigameManager.PLAYER_COUNT || CtFGameState.Instance == null) yield return new WaitForSeconds(0.1f);
         yield return new WaitForSeconds(8f);
         CtFGameState.Instance.SetGameStateServerRpc(GameState.Running);
     }
