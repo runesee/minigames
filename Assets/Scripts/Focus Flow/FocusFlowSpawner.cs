@@ -16,6 +16,8 @@ public class FocusFlowDataSpawner : NetworkBehaviour
     {
         yield return new WaitForSeconds(2f);
         if (IsServer) foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds) SpawnForClient(clientId);
+        while (NetworkManager.Singleton.ConnectedClientsList.Count < 2 || FocusFlowGameState.Instance == null) yield return new WaitForSeconds(0.1f);
+        if (IsServer) FocusFlowGameState.Instance.SetGameStateServerRpc(GameState.Running);
     }
 
     private void SpawnForClient(ulong clientId)
