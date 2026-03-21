@@ -94,7 +94,7 @@ public class CtFSetup : NetworkBehaviour
         {
             var entry = setupData[i];
             if (!players.TryGetValue(entry.Guid, out var player)) continue;
-            player.teamNet.Value = (teamIndex % 2 == 0) ? Team.Green : Team.Blue;
+            player.teamNet.Value = (teamIndex < 2) ? Team.Green : Team.Blue;
             var data = setupData[teamIndex];
             data.team = player.teamNet.Value;
             setupData[teamIndex] = data;
