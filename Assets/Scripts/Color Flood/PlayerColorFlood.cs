@@ -23,12 +23,19 @@ public class PlayerColorFlood : BoostPlayer
         base.OnNetworkSpawn();
         teamNet.OnValueChanged += OnTeamChanged;
         if (teamNet.Value != Team.None) ApplyTeamTint(teamNet.Value);
+        if (IsHost) StartCoroutine(WaitForPlayerConnect());
     }
 
     public override void OnNetworkDespawn()
     {
         base.OnNetworkDespawn();
         teamNet.OnValueChanged -= OnTeamChanged;
+    }
+
+    private System.Collections.IEnumerator WaitForPlayerConnect()
+    {
+        while (NetworkManager.Singleton.ConnectedClientsList.Count < MinigameManager.PLAYER_COUNT || ColorFloodGameState.Instance == null) yield return new WaitForSeconds(0.1f);
+        ColorFloodGameState.Instance.SetGameStateServerRpc(GameState.Running);
     }
 
     private void Update()
