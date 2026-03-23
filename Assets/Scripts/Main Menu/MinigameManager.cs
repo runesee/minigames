@@ -12,6 +12,7 @@ public class MinigameManager : NetworkBehaviour
 {
     public static MinigameManager Instance { get; private set; }
     public static bool USING_PLAYPULSE = true; // Flag for dev/bike movement toggling.
+    public static readonly int PLAYER_COUNT = 4;
     public enum MinigameScene
     {
         MainMenu,

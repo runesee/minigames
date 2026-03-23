@@ -613,6 +613,10 @@ MonoBehaviour:
   lobbyMusic: {fileID: 8300000, guid: 3706f7e6071fe304c93617122c6cab2e, type: 3}
   tutorialMusic: {fileID: 8300000, guid: b0c23ceabd41634479f5daebb84214a2, type: 3}
   tagMusic: {fileID: 8300000, guid: c4b92ffd3d4e57d42ae8121052ac0193, type: 3}
+  colorFloodMusic: {fileID: 8300000, guid: dad6114442ecba743b14f00ce53aeca0, type: 3}
+  ctfMusic: {fileID: 8300000, guid: 29bc03e0bc60b82498525981f9126265, type: 3}
+  balloonMusic: {fileID: 8300000, guid: 11d6c2f06ab495b4686518db1bf1e805, type: 3}
+  redLightMusic: {fileID: 8300000, guid: bdfb7904b0cb37b4bb652908c9c23254, type: 3}
   focusFlowMusic: {fileID: 8300000, guid: 93067ec685091954a81a2a0f35f3ab7b, type: 3}
   scoreboardMusic: {fileID: 8300000, guid: f43330fdf0ea45b40b78bb89a42d9fbd, type: 3}
   endMusic: {fileID: 8300000, guid: a8aad34ce4e81d84c977a4c0f0961736, type: 3}

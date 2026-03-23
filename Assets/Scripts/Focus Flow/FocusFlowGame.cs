@@ -60,6 +60,7 @@ public class FocusFlowGame : NetworkBehaviour
 
     private void Update()
     {
+        if (FocusFlowGameState.Instance != null && FocusFlowGameState.Instance.gameState.Value != GameState.Running) return;
         if (waitingForInput && !isShowingSequence) CheckPlayerInput();
     }
 

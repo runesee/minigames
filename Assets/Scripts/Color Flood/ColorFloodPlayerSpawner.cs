@@ -72,6 +72,7 @@ public class ColorFloodPlayerSpawner : NetworkBehaviour
 
         if (IsServer) {
             while (ColorFloodGameState.Instance == null) yield return new WaitForSeconds(0.1f);
+            while (NetworkManager.Singleton.ConnectedClientsList.Count < MinigameManager.PLAYER_COUNT || TagGameState.Instance == null) yield return new WaitForSeconds(0.1f);
             ColorFloodGameState.Instance.SetGameStateServerRpc(GameState.Running);
         }
     }
@@ -91,18 +92,6 @@ public class ColorFloodPlayerSpawner : NetworkBehaviour
             UnityEngine.ColorUtility.TryParseHtmlString(data[i].color.ToString(), out var playerColor);
             playerCards[i].nicknameText.color = playerColor;
         }
-    }
-
-    private IEnumerator SpawnAllPlayersAfterDelay()
-    {
-        yield return new WaitForSeconds(0.5f);
-        foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds) SpawnPlayer(clientId);
-
-        yield return new WaitUntil(() => GetAllPlayers().Count >= RequiredPlayerCount);
-        AssignTeams();
-
-        while (ColorFloodGameState.Instance == null) yield return new WaitForSeconds(0.1f);
-        ColorFloodGameState.Instance.SetGameStateServerRpc(GameState.Running);
     }
 
     private void SpawnPlayer(ulong clientId)

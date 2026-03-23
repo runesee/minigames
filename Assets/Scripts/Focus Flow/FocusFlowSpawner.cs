@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
+using System.Collections;
 
 public class FocusFlowDataSpawner : NetworkBehaviour
 {
@@ -8,8 +9,15 @@ public class FocusFlowDataSpawner : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         if (!IsServer) return;
-        foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds) SpawnForClient(clientId);
-        NetworkManager.Singleton.OnClientConnectedCallback += SpawnForClient;
+        StartCoroutine(SpawnPlayers());
+    }
+
+    private IEnumerator SpawnPlayers()
+    {
+        yield return new WaitForSeconds(2f);
+        if (IsServer) foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds) SpawnForClient(clientId);
+        while (NetworkManager.Singleton.ConnectedClientsList.Count < MinigameManager.PLAYER_COUNT || FocusFlowGameState.Instance == null) yield return new WaitForSeconds(0.1f);
+        if (IsServer) FocusFlowGameState.Instance.SetGameStateServerRpc(GameState.Running);
     }
 
     private void SpawnForClient(ulong clientId)

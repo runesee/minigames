@@ -8,6 +8,10 @@ public class MusicManager : NetworkBehaviour
     public AudioClip lobbyMusic;
     public AudioClip tutorialMusic;
     public AudioClip tagMusic;
+    public AudioClip colorFloodMusic;
+    public AudioClip ctfMusic;
+    public AudioClip balloonMusic;
+    public AudioClip redLightMusic;
     public AudioClip focusFlowMusic;
     public AudioClip scoreboardMusic; // NB: this is just a single sound effect, not music
     public AudioClip endMusic;
@@ -33,6 +37,18 @@ public class MusicManager : NetworkBehaviour
             case MinigameManager.MinigameScene.FocusFlowTutorial:
                 PlayTutorialMusicClientRpc();
                 break;
+            case MinigameManager.MinigameScene.RedLightTutorial:
+                PlayTutorialMusicClientRpc();
+                break;
+            case MinigameManager.MinigameScene.BalloonTagTutorial:
+                PlayTutorialMusicClientRpc();
+                break;
+            case MinigameManager.MinigameScene.ColorFloodTutorial:
+                PlayTutorialMusicClientRpc();
+                break;
+            case MinigameManager.MinigameScene.CaptureTheFlagTutorial:
+                PlayTutorialMusicClientRpc();
+                break;
             case MinigameManager.MinigameScene.Scoreboard:
                 PlayScoreboardMusicClientRpc();
                 break;
@@ -45,8 +61,17 @@ public class MusicManager : NetworkBehaviour
             case MinigameManager.MinigameScene.FocusFlow:
                 PlayFocusFlowIntenseMusicClientRpc(true);
                 break;
+            case MinigameManager.MinigameScene.ColorFlood:
+                PlayColorFloodMusicClientRpc();
+                break;
             case MinigameManager.MinigameScene.CaptureTheFlag:
-                PlayFocusFlowMusicClientRpc();
+                PlayCtfMusicClientRpc();
+                break;
+            case MinigameManager.MinigameScene.BalloonTag:
+                PlayBalloonMusicClientRpc();
+                break;
+            case MinigameManager.MinigameScene.RedLight:
+                PlayRedLightMusicClientRpc();
                 break;
             default:
                 PlayLobbyMusicClientRpc();
@@ -71,6 +96,31 @@ public class MusicManager : NetworkBehaviour
     {
         PlayMusic(lobbyMusic);
     }
+
+    [ClientRpc]
+    private void PlayColorFloodMusicClientRpc()
+    {
+        PlayMusic(colorFloodMusic);
+    }
+
+    [ClientRpc]
+    private void PlayCtfMusicClientRpc()
+    {
+        PlayMusic(ctfMusic);
+    }
+
+    [ClientRpc]
+    private void PlayBalloonMusicClientRpc()
+    {
+        PlayMusic(balloonMusic);
+    }
+
+    [ClientRpc]
+    private void PlayRedLightMusicClientRpc()
+    {
+        PlayMusic(redLightMusic);
+    }
+
 
     [ClientRpc]
     public void PlayFocusFlowMusicClientRpc()

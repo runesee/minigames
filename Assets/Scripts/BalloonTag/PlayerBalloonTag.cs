@@ -22,7 +22,7 @@ public class PlayerBalloonTag : TagPlayer
 
     private System.Collections.IEnumerator WaitForPlayerConnect()
     {
-        while (NetworkManager.Singleton.ConnectedClientsList.Count < 2 || BalloonTagGameState.Instance == null) yield return new WaitForSeconds(0.1f);
+        while (NetworkManager.Singleton.ConnectedClientsList.Count < MinigameManager.PLAYER_COUNT || BalloonTagGameState.Instance == null) yield return new WaitForSeconds(0.1f);
         BalloonTagGameState.Instance.SetGameStateServerRpc(GameState.Running);
     }
 

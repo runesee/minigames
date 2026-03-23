@@ -75,6 +75,7 @@ public class RedLightPlayerMovement : MovementPlayer
 
     private void Update()
     {
+        if (RedLightGameState.Instance != null && RedLightGameState.Instance.gameState.Value != GameState.Running) return;
         if (!isStandaloneMode && !IsOwner) return;
         HandlePenaltyTimer();
         HandleStopInput();
@@ -82,6 +83,7 @@ public class RedLightPlayerMovement : MovementPlayer
 
     private void FixedUpdate()
     {
+        if (RedLightGameState.Instance != null && RedLightGameState.Instance.gameState.Value != GameState.Running) return;
         if (!isStandaloneMode && !IsOwner) return;
         HandleMovement();
         CheckRedLightViolation();

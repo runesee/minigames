@@ -139,11 +139,14 @@ public class GameTimer : NetworkBehaviour
     private IEnumerator DisplayStartText()
     {
         stateText.text = "GET READY!"; 
-        yield return new WaitForSeconds(3f);
-        timerEndTime.Value = NetworkManager.ServerTime.Time + gameDurationInSeconds;
+        yield return new WaitForSeconds(1f);
         stateText.text = "";
-        remainingTime.Value = gameDurationInSeconds;
-        timerRunning.Value = true;
+        if (IsHost)
+        {
+            timerEndTime.Value = NetworkManager.ServerTime.Time + gameDurationInSeconds;
+            remainingTime.Value = gameDurationInSeconds;
+            timerRunning.Value = true;
+        } 
     }
 
     [ClientRpc]
@@ -198,12 +201,12 @@ public class GameTimer : NetworkBehaviour
                     CtFGameState.Instance.ToastMessageClientRpc(Team.None, "2nd Overtime! Last chance to avoid a tie!");
                     float[] scores = { 5f, 5f, 5f, 5f };
                     CtFGameState.Instance.SetScores(scores);
-                    OvertimeServerRpc(46f);
+                    OvertimeServerRpc(36f);
                 }
                 else
                 {
                     CtFGameState.Instance.ToastMessageClientRpc(Team.None, "Overtime! 45 seconds added to the clock!");
-                    OvertimeServerRpc(36f);
+                    OvertimeServerRpc(46f);
                 }
                 return;
             }
