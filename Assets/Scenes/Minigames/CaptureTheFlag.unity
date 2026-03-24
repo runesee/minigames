@@ -7972,7 +7972,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameTimer
   ShowTopMostFoldoutHeaderGroup: 1
-  gameDurationInSeconds: 1
+  gameDurationInSeconds: 240
   timerText: {fileID: 443790207}
   stateText: {fileID: 1351113321}
   audioSource: {fileID: 905318615}

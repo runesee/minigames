@@ -12,7 +12,7 @@ public class MinigameManager : NetworkBehaviour
 {
     public static MinigameManager Instance { get; private set; }
     public static bool USING_PLAYPULSE = true; // Flag for dev/bike movement toggling.
-    public static readonly int PLAYER_COUNT = 2;
+    public static readonly int PLAYER_COUNT = 4;
     public enum MinigameScene
     {
         MainMenu,
@@ -72,8 +72,8 @@ public class MinigameManager : NetworkBehaviour
     public void StartGameSession()
     {
         if (!IsHost) return;
-        NetworkManager.Singleton.SceneManager.LoadScene("FocusFlow", LoadSceneMode.Single);
-        currentGameState = MinigameScene.FocusFlow;
+        NetworkManager.Singleton.SceneManager.LoadScene("TagTutorial", LoadSceneMode.Single);
+        currentGameState = MinigameScene.TagTutorial;
         MusicManager.Instance?.PlaySong(currentGameState);
     }
 
