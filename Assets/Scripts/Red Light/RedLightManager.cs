@@ -102,6 +102,7 @@ public class RedLightManager : NetworkBehaviour
             if (!isRedLight.Value && !isYellowLight.Value && currentTime >= nextSwitchTimeNet.Value - YellowWarningDuration)
             {
                 isYellowLight.Value = true;
+                MusicManager.Instance.ToggleRedLighMusicClientRpc();
             }
 
             if (currentTime >= nextSwitchTimeNet.Value)
@@ -139,6 +140,7 @@ public class RedLightManager : NetworkBehaviour
 
     private void SwitchLight()
     {
+        if (isRedLight.Value) MusicManager.Instance.ToggleRedLighMusicClientRpc();
         isRedLight.Value = !isRedLight.Value;
         isYellowLight.Value = false;
         ScheduleNextSwitch();

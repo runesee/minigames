@@ -125,14 +125,20 @@ public class MusicManager : NetworkBehaviour
     [ClientRpc]
     public void PlayFocusFlowMusicClientRpc()
     {
-        StartCoroutine(FadeOutAndIn(1f));
+        StartCoroutine(FadeOutAndIn(0.5f));
     }
 
     [ClientRpc]
     public void PlayFocusFlowIntenseMusicClientRpc(bool sceneChange)
     {
-        if (!sceneChange) StartCoroutine(FadeOutAndIn(1f));
+        if (!sceneChange) StartCoroutine(FadeOutAndIn(0.5f));
         else PlayMusic(focusFlowMusic);
+    }
+
+    [ClientRpc]
+    public void ToggleRedLighMusicClientRpc()
+    {
+        StartCoroutine(FadeOutAndIn(0.5f));
     }
 
     [ClientRpc]
@@ -164,11 +170,6 @@ public class MusicManager : NetworkBehaviour
         while (currentAudioSource.volume > 0) 
         {
             currentAudioSource.volume -= startVolume * Time.deltaTime / FadeTime;
-            yield return null;
-        }
-
-        while (newAudioSource.volume < startVolume) 
-        {
             newAudioSource.volume += startVolume * Time.deltaTime / FadeTime;
             yield return null;
         }
