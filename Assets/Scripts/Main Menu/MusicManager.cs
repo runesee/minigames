@@ -125,14 +125,14 @@ public class MusicManager : NetworkBehaviour
     [ClientRpc]
     public void PlayFocusFlowMusicClientRpc()
     {
-        StartCoroutine(FadeOutAndIn(focusFlowMusic, 3f));
+        StartCoroutine(FadeOutAndIn(1f));
     }
 
     [ClientRpc]
     public void PlayFocusFlowIntenseMusicClientRpc(bool sceneChange)
     {
-        if (!sceneChange) StartCoroutine(FadeOutAndIn(tagMusic, 3f));
-        else PlayMusic(tagMusic);
+        if (!sceneChange) StartCoroutine(FadeOutAndIn(1f));
+        else PlayMusic(focusFlowMusic);
     }
 
     [ClientRpc]
@@ -155,21 +155,21 @@ public class MusicManager : NetworkBehaviour
         audioSource.Play();
     }
 
-    private IEnumerator FadeOutAndIn(AudioClip audioClip, float FadeTime) {
-        float startVolume = 0.1f;
-        while (audioSource.volume > 0) 
+    private IEnumerator FadeOutAndIn(float FadeTime) {
+        float startVolume = 0.15f;
+        AudioSource secondaryAudioSource = GameObject.Find("Secondary Audio Source").GetComponent<AudioSource>();
+        AudioSource currentAudioSource = audioSource.volume > 0f ? audioSource : secondaryAudioSource;
+        AudioSource newAudioSource = audioSource.volume > 0f ? secondaryAudioSource : audioSource;
+
+        while (currentAudioSource.volume > 0) 
         {
-            audioSource.volume -= startVolume * Time.deltaTime / FadeTime;
+            currentAudioSource.volume -= startVolume * Time.deltaTime / FadeTime;
             yield return null;
         }
 
-        audioSource.Stop();
-        audioSource.clip = audioClip;
-        audioSource.Play();
-
-        while (audioSource.volume < startVolume) 
+        while (newAudioSource.volume < startVolume) 
         {
-            audioSource.volume += startVolume * Time.deltaTime / FadeTime;
+            newAudioSource.volume += startVolume * Time.deltaTime / FadeTime;
             yield return null;
         }
     }

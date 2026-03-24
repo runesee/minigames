@@ -72,8 +72,8 @@ public class MinigameManager : NetworkBehaviour
     public void StartGameSession()
     {
         if (!IsHost) return;
-        NetworkManager.Singleton.SceneManager.LoadScene("TagTutorial", LoadSceneMode.Single);
-        currentGameState = MinigameScene.TagTutorial;
+        NetworkManager.Singleton.SceneManager.LoadScene("FocusFlow", LoadSceneMode.Single);
+        currentGameState = MinigameScene.FocusFlow;
         MusicManager.Instance?.PlaySong(currentGameState);
     }
 

@@ -62,7 +62,7 @@ public class IntervalTimer : NetworkBehaviour
         {
             OnPhaseComplete();
         }
-        else if (currentTime <= 3f && !isChangingIntervals && IsServer)
+        else if (currentTime <= 1f && !isChangingIntervals && IsServer)
         {    // May fire at incorrect times due to local timer not being server synced
             isChangingIntervals = true;
             ToggleIntervalSoundsClientRpc();

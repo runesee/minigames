@@ -617,7 +617,7 @@ MonoBehaviour:
   ctfMusic: {fileID: 8300000, guid: 614a43df45858764983458ea249df485, type: 3}
   balloonMusic: {fileID: 8300000, guid: e320210f37b07d142af52ddfb3ced7a6, type: 3}
   redLightMusic: {fileID: 8300000, guid: e19ff463d5bb4074dbbc634b207f89ca, type: 3}
-  focusFlowMusic: {fileID: 8300000, guid: 0d25213b4c40c2d40b5115760b9756f7, type: 3}
+  focusFlowMusic: {fileID: 8300000, guid: 614a43df45858764983458ea249df485, type: 3}
   scoreboardMusic: {fileID: 8300000, guid: f43330fdf0ea45b40b78bb89a42d9fbd, type: 3}
   endMusic: {fileID: 8300000, guid: 13087e179d201d741a6337c810ca0247, type: 3}
   audioSource: {fileID: 1116942986}
@@ -659,7 +659,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 13087e179d201d741a6337c810ca0247, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.1
+  m_Volume: 0.15
   m_Pitch: 1
   Loop: 1
   Mute: 0
