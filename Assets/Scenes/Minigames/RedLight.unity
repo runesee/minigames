@@ -17155,7 +17155,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RedLightGameTimer
   ShowTopMostFoldoutHeaderGroup: 1
-  gameDurationInSeconds: 90
+  gameDurationInSeconds: 30
   waitingDuration: 3
   timerText: {fileID: 1591234443}
   stateText: {fileID: 1360846815}
