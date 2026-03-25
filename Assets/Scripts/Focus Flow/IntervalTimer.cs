@@ -31,6 +31,7 @@ public class IntervalTimer : NetworkBehaviour
     private bool isIntervalPhase = true;
     private bool isRunning = false;
     private bool isChangingIntervals = false;
+    private bool isPlayingCountdown = false;
     private float currentLabelSize;
     private Coroutine phaseShiftCoroutine;
 
@@ -62,10 +63,15 @@ public class IntervalTimer : NetworkBehaviour
         {
             OnPhaseComplete();
         }
-        else if (currentTime <= 3f && !isChangingIntervals && IsServer)
+        else if (currentTime <= 3f && currentTime > 1f && !isPlayingCountdown && IsServer)
+        {
+            isPlayingCountdown = true;
+            ToggleIntervalSoundsClientRpc();
+        }
+        else if (currentTime <= 0.5f && !isChangingIntervals && IsServer)
         {    // May fire at incorrect times due to local timer not being server synced
             isChangingIntervals = true;
-            ToggleIntervalSoundsClientRpc();
+            StartCoroutine(ToggleChangingIntervals()); // Only needs to run on server
             if (completedCycles + 1 < totalCycles)
             {
                 if (isIntervalPhase) MusicManager.Instance.PlayFocusFlowMusicClientRpc();
@@ -142,6 +148,12 @@ public class IntervalTimer : NetworkBehaviour
     {
         audioSource?.PlayOneShot(intervalCounterSound);
         yield return new WaitForSeconds(5f); // Just needs to be longer than 3f
+        isPlayingCountdown = false;
+    }
+
+    private IEnumerator ToggleChangingIntervals()
+    {
+        yield return new WaitForSeconds(3f); // Just needs to be longer than 0.5f
         isChangingIntervals = false;
     }
 
