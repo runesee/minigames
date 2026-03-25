@@ -145,6 +145,7 @@ public class MusicManager : NetworkBehaviour
     private void PlayScoreboardMusicClientRpc()
     {
         audioSource.Stop();
+        audioSource.volume = 0.15f;
         audioSource?.PlayOneShot(scoreboardMusic);
     }
 
@@ -159,6 +160,7 @@ public class MusicManager : NetworkBehaviour
         audioSource.Stop();
         audioSource.clip = audioClip;
         audioSource.Play();
+        audioSource.volume = 0.15f;
     }
 
     private IEnumerator FadeOutAndIn(float FadeTime) {

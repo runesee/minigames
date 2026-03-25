@@ -288,7 +288,6 @@ public class GameResultsUI : NetworkBehaviour
             });
         }
         if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.Tag) dataList = dataList.OrderBy(p => p.score).ToList();
-        else if (MinigameManager.Instance.currentGameState == MinigameManager.MinigameScene.RedLight) dataList = dataList.OrderBy(p => p.score).ToList();
         else dataList = dataList.OrderByDescending(p => p.score).ToList();
         var sortedDataList = new List<PlayerResult>();
         for (int i = 0; i < dataList.Count; i++)
